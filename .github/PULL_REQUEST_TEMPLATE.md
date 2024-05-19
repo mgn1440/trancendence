@@ -17,6 +17,6 @@
 <!-- 이미지를 첨부해주시면 작업물을 리뷰하는데 도움이 됩니다. -->
 
 ## 관련 이슈 
->아래 링크에 관련된 이슈번호를 적어주세요. 예) .../mgn1440/transcendence/issues/2
-
-https://github.com/mgn1440/trancendence/issues/
+>아래 링크에 관련된 이슈번호를 적어주세요. 예) .../mgn1440/transcendence/issues/2 혹은 \#2
+- \#
+- https://github.com/mgn1440/trancendence/issues/
