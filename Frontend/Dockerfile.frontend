@@ -1,0 +1,21 @@
+FROM node:lts-alpine3.19
+
+# Set the working directory
+WORKDIR /app
+
+EXPOSE 1234
+
+# Install dependencies
+COPY --chmod=755 package.json .
+COPY --chmod=755 package-lock.json .
+RUN apk update && \ 
+    apk upgrade && \
+    apk add --no-cache g++ make python3 && \
+    apk add --no-cache curl && \
+    npm install
+
+# Copy the project
+COPY . .
+
+# Run the application
+CMD ["npm", "run", "dev"]
