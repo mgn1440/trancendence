@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
-import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-4v*(ol=%q)tq43)0je)_)(cttdg@w-w(o6*(2f4jy$yro%-nm1'
+SECRET_KEY = 'django-insecure-(eg1%h@r8fyk-^i@id)x$a@yv@^d)anwc-bwbwowkz=@z&2rei'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -38,7 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+	'ft_user',
+	'ft_auth',
 ]
+
+AUTH_USER_MODEL = 'ft_user.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -76,14 +79,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB'),
-        'USER': os.environ.get('POSTGRES_USER'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': 'postgresql',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -125,3 +125,16 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+#load env
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_CLIENT_ID = os.getenv('API_CLIENT_ID')
+API_CLIENT_SECRET = os.getenv('API_CLIENT_SECRET')
+API_REDIRECT_URI = os.getenv('API_REDIRECT_URI')
+API_AUTH_URI = 'https://api.intra.42.fr/oauth/authorize?client_id=' + API_CLIENT_ID + '&redirect_uri=' + API_REDIRECT_URI + '&response_type=code'
