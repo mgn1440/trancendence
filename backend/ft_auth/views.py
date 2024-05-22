@@ -1,18 +1,33 @@
 from django.shortcuts import render, redirect
-from backend.settings import API_AUTH_URI, API_CLIENT_ID, API_REDIRECT_URI, API_CLIENT_SECRET
+from backend.settings import API_AUTH_URI, API_CLIENT_ID, API_REDIRECT_URI, API_CLIENT_SECRET, SENDER_EMAIL, APP_PASSWORD, JWT_SECRET_KEY
 from django.http import HttpResponse
-from ft_user.models import CustomUser
-import requests
+from ft_user.models import CustomUser, EmailTOTPDevice
 from django.contrib.auth import login
 from django.views import View
+from ft_auth.utils import send_email
+from .serializers import MyTokenObtainPairSerializer
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+import json
+import requests
+import base64
+import pyotp
+import jwt
+
+sender_email = "kinkibx@gmail.com"
+receiver_email = "dudcks0994@gmail.com"
+app_password = "xvpr udlu uhnk gojj"
+subject = "This is a lucky email from Python"
+text = "whatwant is a good man."
+html = f"<html><body><p>{text}</p></body></html>"
 
 def oauth(request):
 	return redirect(API_AUTH_URI)
-
-
-class Callback(View):
+class Callback(View): # TODO: POST otp check function
 	def get(self, request):
 		code = request.GET.get('code')
+		if code is None:
+			return HttpResponse('No code', status=400)
 		data = {
 			'grant_type': 'authorization_code',
 			'client_id': API_CLIENT_ID,
@@ -21,8 +36,14 @@ class Callback(View):
 			'redirect_uri': API_REDIRECT_URI,
 		}
 		response = requests.post('https://api.intra.42.fr/oauth/token', data=data)
+		if response.status_code != 200:
+			return HttpResponse('Invalid code', status=400)
 		access_token = response.json()['access_token']
+		if access_token is None:
+			return HttpResponse('No access token', status=400)
 		user_info = requests.get('https://api.intra.42.fr/v2/me', headers={'Authorization': 'Bearer ' + access_token})
+		if user_info.status_code != 200:
+			return HttpResponse('42 API Error', status=400)
 		user_data = user_info.json()
 		# return HttpResponse(user_data['id'])
 		id = user_data['id']
@@ -31,16 +52,91 @@ class Callback(View):
 
 		user, created = CustomUser.objects.get_or_create(uid=id, defaults={'username': username, 'email': email})
 
-		if not created:
-			user = CustomUser.create_user(CustomUser, id, username, email)
+		if created:
+			key = base64.b32encode(pyotp.random_base32().encode()).decode()
+			device = EmailTOTPDevice.create(EmailTOTPDevice, user=user, key=key)
 		login(request, user)
-		return redirect('check')
-		
-# Create your views here.
 
+		if user.two_factor_enabled:
+			device = EmailTOTPDevice.objects.filter(user=user).first()
+			otp_code = device.generate_token()
+			html = f'<html><body><p>Your OTP is {otp_code}</p></body></html>'
+			try:
+				send_email(SENDER_EMAIL, user.email, APP_PASSWORD, "OTP", "dfasd", html)
+			except Exception as e:
+				return HttpResponse(f'error is {e}', status=400)
+			return redirect('otp')
+			# return HttpResponse('OTP sent', status=200)
+		else:
+			return redirect_main_page(user)
+			
 
 def check(request):
-	if request.user.is_authenticated:
-		return HttpResponse('Authenticated')
+	if request.user.is_authenticated:    #이부분이 이미 장고에의해 리퀘스트의 바디?에 user가 들어와있는지 확인하는부분. 따라서 user가 있는지도 확인해야함
+		otp_code = request.GET.get('otp_code')
+		user = request.user
+		if user.two_factor_enabled:
+			device = EmailTOTPDevice.objects.filter(user=user).first()
+			if device.verify_token(otp_code):
+
+				token = request.COOKIES.get('access_token') #이부분은 이후 Header에서 Authorization으로 받아오는 방식으로 바꿔야함
+				try:
+					payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256']) #이거는 try except으로 해야함. 사이닝 키로 유효성검사와 동시에 성공시 페이로드 리턴받아옴.
+					token_user = CustomUser.objects.get(uid=payload['uid'])
+					if token_user == user:
+						return HttpResponse('Fully 2FA and JWT Authenticated')
+					else:
+						return HttpResponse('Not Same User')
+				except:
+					return HttpResponse('Invalid Token')
+			else:
+				return HttpResponse('Invalid OTP')
+		else:
+			token = request.COOKIES.get('access_token')
+			payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256']) #이거는 try except으로 해야함. 사이닝 키로 유효성검사와 동시에 성공시 페이로드 리턴받아옴.
+			token_user = CustomUser.objects.get(uid=payload['uid'])
+			if token_user == user:
+				return HttpResponse('JWT Authenticated')
+			else:
+				return HttpResponse('Invalid JWT')
 	else:
 		return HttpResponse('Not Authenticated')
+	
+def number_input_view(request):
+	if not request.user or request.user.is_anonymous:
+		return redirect('test')
+	if not request.user.two_factor_enabled:
+		return redirect('test')
+	if request.method == 'POST':
+		data = json.loads(request.body)
+		combined_number = data.get('combined_number', '')
+		device = EmailTOTPDevice.objects.filter(user=request.user).first()
+		if device.verify_token(combined_number):
+			response = redirect('test_home')
+			token = generate_jwt(request.user)
+			response.set_cookie('access_token', token, httponly=True)
+			return response
+		else:
+			return JsonResponse({'error': 'Invalid OTP'}, status=400)
+	if request.method == 'GET':
+		return render(request, 'twoFA.html')
+	return JsonResponse({'error': 'Invalid request'}, status=400)
+
+	
+def redirect_main_page(user):
+	access_token = generate_jwt(user)
+	response = redirect('test_home') # TODO: change main page
+	response.set_cookie('access_token', access_token, httponly=True)
+	return response
+	
+def generate_jwt(user):
+	serializer = MyTokenObtainPairSerializer()
+	token = serializer.get_token(user)
+	access_token = str(token.access_token)
+	return access_token
+
+def test(request):
+	return render(request, 'test.html')
+
+def test_home(request):
+	return render(request, 'test_home.html')

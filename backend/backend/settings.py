@@ -11,6 +11,20 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+
+
+load_dotenv()
+
+API_CLIENT_ID = os.getenv('API_CLIENT_ID')
+API_CLIENT_SECRET = os.getenv('API_CLIENT_SECRET')
+API_REDIRECT_URI = os.getenv('API_REDIRECT_URI')
+API_AUTH_URI = 'https://api.intra.42.fr/oauth/authorize?client_id=' + API_CLIENT_ID + '&redirect_uri=' + API_REDIRECT_URI + '&response_type=code'
+SENDER_EMAIL = os.getenv('SENDER_EMAIL')
+APP_PASSWORD = os.getenv('APP_PASSWORD')
+JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,7 +53,33 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 	'ft_user',
 	'ft_auth',
+	'django_otp',
+    'django_otp.plugins.otp_totp',
+	'rest_framework',
+	'rest_framework_simplejwt',
 ]
+
+REST_FRAMEWORK = {
+	'DEFAULT_AUTHENTICATION_CLASSES': (
+		# 'rest_framework_simplejwt.authentication.JWTAuthentication',
+		'ft_auth.authentication.JWTAuthentication',
+	),
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+  # It will work instead of the default serializer(TokenObtainPairSerializer).
+	"TOKEN_OBTAIN_SERIALIZER": "ft_auth.serializers.MyTokenObtainPairSerializer",
+	"ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+	"REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+	"ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "UPDATE_LAST_LOGIN": False,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": JWT_SECRET_KEY,
+  # ...
+}
 
 AUTH_USER_MODEL = 'ft_user.CustomUser'
 
@@ -51,6 +91,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'ft_auth.middleware.CustomAuthentication',
+
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -58,7 +100,7 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -104,7 +146,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
+# Internationalization 
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
@@ -129,12 +171,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #load env
 
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
-
-API_CLIENT_ID = os.getenv('API_CLIENT_ID')
-API_CLIENT_SECRET = os.getenv('API_CLIENT_SECRET')
-API_REDIRECT_URI = os.getenv('API_REDIRECT_URI')
-API_AUTH_URI = 'https://api.intra.42.fr/oauth/authorize?client_id=' + API_CLIENT_ID + '&redirect_uri=' + API_REDIRECT_URI + '&response_type=code'
