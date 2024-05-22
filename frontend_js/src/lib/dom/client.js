@@ -14,17 +14,10 @@ const createElement = (node) => {
   const element = document.createElement(node.type);
   Object.entries(node.props || {}).forEach(([attr, value]) => {
     if (attr.startsWith('data-')) {
-      // element.dataset[attr] = value;
-      element.setAttribute(attr, value);
+      element.setAttribute(attr.slice(5), value);
     }
     else {
-      if (attr === 'onClick') {
-        element.onclick = value;
-      }
-      else {
-        // element.dataset[attr] = value;
-        element.setAttribute(attr, value);
-      }
+      element.setAttribute(attr, value);
     }
   });
 

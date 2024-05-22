@@ -67,15 +67,14 @@ const updateElement = (parent, newVDOM, currentVDOM, index = 0) => {
 const updateAttributes = (target, newProps, currentProps) => {
   for (const [attr, value] of Object.entries(newProps)) {
     if (currentProps[attr] !== newProps[attr])
-      // target.setAttribute(attr, value);
       target[attr] = value;
   }
 
   for (const attr of Object.keys(currentProps)) {
     if (newProps[attr] !== undefined) continue;
     if (attr.startsWith("on")) {
-      // target.setAttribute(attr, null);
-      target[attr] = null;
+      target.setAttribute(attr, null);
+      // target[attr] = null;
     }
     else if (attr.startsWith("class")) {
       target.removeAttribute("class");
