@@ -2,18 +2,12 @@ import { useEffect, useState } from "../lib/dom";
 import { createElement } from "../lib/createElement";
 import '../../style.css';
 
-const OTPInput = () => {
-  return (
-    createElement("input", { class: "m-2 text-center", type: "text", maxLength: "1" } )
-  );
-}
-
 const OTP = ({ len }) => {
-  let arr = [];
-  for (let i = 0; i < len; i++) {
-    arr.push(createElement(OTPInput));
-  }
-  return (createElement("div", { class: "otp" }, ...arr));
+  return (
+  <div class="otp">
+    {[...Array(parseInt(len))].map((n, index) =>
+      <input class="m-2 text-center" type="text" maxLength="1" />
+    )}</div>);
 }
 
 const TwoFAModal = () => {
