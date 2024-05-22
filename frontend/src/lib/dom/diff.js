@@ -73,7 +73,8 @@ const updateAttributes = (target, newProps, currentProps) => {
   for (const attr of Object.keys(currentProps)) {
     if (newProps[attr] !== undefined) continue;
     if (attr.startsWith("on")) {
-      target[attr] = null;
+      target.setAttribute(attr, null);
+      // target[attr] = null;
     }
     else if (attr.startsWith("class")) {
       target.removeAttribute("class");
