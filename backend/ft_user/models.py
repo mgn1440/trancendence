@@ -33,8 +33,8 @@ class EmailTOTPDevice(Device):
 	drift = models.SmallIntegerField(default=0)
 
 	def create(self, user, key):
-		device = self.model(user = user, key = key)
-		device.save(using = self._db)
+		device = EmailTOTPDevice(user = user, key = key)
+		device.save()
 		return device
 
 	def generate_token(self):
@@ -45,5 +45,10 @@ class EmailTOTPDevice(Device):
 		totp = pyotp.TOTP(self.key, digits=self.digits, interval=self.step)
 		return totp.verify(token, valid_window=self.tolerance)
 
+	# @classmethod
+	# def create(cls, user, key):
+	# 	device = cls(user=user, key=key)
+	# 	device.save()
+	# 	return device
 
 # Create your models here.
