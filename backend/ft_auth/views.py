@@ -106,8 +106,9 @@ def number_input_view(request):
 		device = EmailTOTPDevice.objects.filter(user=request.user).first()
 		if device.verify_token(combined_number):
 			response = redirect('test_home')
-			token = generate_jwt(request.user)
-			response.set_cookie('access_token', token, httponly=True)
+			tokens = generate_jwt(request.user)
+			response.set_cookie('access_token', tokens['access_token'])
+			response.set_cookie('refresh_token', tokens['refresh_token'])
 			return response
 		else:
 			return JsonResponse({'error': 'Invalid OTP'}, status=400)
@@ -117,19 +118,46 @@ def number_input_view(request):
 
 	
 def redirect_main_page(user):
-	access_token = generate_jwt(user)
 	response = redirect('test_home') # TODO: change main page
-	response.set_cookie('access_token', access_token, httponly=True)
+	tokens = generate_jwt(user)
+	response.set_cookie('access_token', tokens['access_token'])
+	response.set_cookie('refresh_token', tokens['refresh_token'])
 	return response
 	
 def generate_jwt(user):
 	serializer = MyTokenObtainPairSerializer()
 	token = serializer.get_token(user)
 	access_token = str(token.access_token)
-	return access_token
+	refresh_token = str(token)
+	user.update_refresh_token(refresh_token)
+	tokens = {
+		'access_token': access_token,
+		'refresh_token': refresh_token,
+	}
+	return tokens
 
 def test(request):
 	return render(request, 'test.html')
 
 def test_home(request):
 	return render(request, 'test_home.html')
+
+
+def refresh(request):
+	# if request.method != 'POST':
+		# return JsonResponse({'error': 'Invalid request'}, status=400)
+	refresh_token = request.COOKIES.get('refresh_token')
+	if not refresh_token:
+		return JsonResponse({'error': 'No refresh token'}, status=400)
+	user = request.user
+	if not user or user.is_anonymous:
+		return JsonResponse({'error': 'No user'}, status=400)
+	real_user = CustomUser.objects.get(uid=user.uid)
+	if real_user.refresh_token != refresh_token:
+		return JsonResponse({'error': 'Invalid refresh token' , 'user_refresh_token': real_user.refresh_token, 
+					   'cookie_refresh_token': refresh_token}, status=400)
+	tokens = generate_jwt(user)
+	response = HttpResponse()
+	response.set_cookie('access_token', tokens['access_token'])
+	response.set_cookie('refresh_token', tokens['refresh_token'])
+	return response
