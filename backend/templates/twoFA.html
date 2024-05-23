@@ -20,7 +20,7 @@
             const combinedNumber = numbers.join('');
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-            fetch('/api/auth/two_factor/', {
+            fetch('/api/auth/otp/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

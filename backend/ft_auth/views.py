@@ -14,13 +14,6 @@ import base64
 import pyotp
 import jwt
 
-sender_email = "kinkibx@gmail.com"
-receiver_email = "dudcks0994@gmail.com"
-app_password = "xvpr udlu uhnk gojj"
-subject = "This is a lucky email from Python"
-text = "whatwant is a good man."
-html = f"<html><body><p>{text}</p></body></html>"
-
 def oauth(request):
 	return redirect(API_AUTH_URI)
 class Callback(View): # TODO: POST otp check function
@@ -54,7 +47,9 @@ class Callback(View): # TODO: POST otp check function
 
 		if created:
 			key = base64.b32encode(pyotp.random_base32().encode()).decode()
-			device = EmailTOTPDevice.create(EmailTOTPDevice, user=user, key=key)
+			print('before')
+			device =EmailTOTPDevice.create(EmailTOTPDevice, user=user, key=key)
+			print('after')
 		login(request, user)
 
 		if user.two_factor_enabled:
@@ -62,14 +57,12 @@ class Callback(View): # TODO: POST otp check function
 			otp_code = device.generate_token()
 			html = f'<html><body><p>Your OTP is {otp_code}</p></body></html>'
 			try:
-				send_email(SENDER_EMAIL, user.email, APP_PASSWORD, "OTP", "dfasd", html)
+				send_email(SENDER_EMAIL, user.email, APP_PASSWORD, "Your OTP Code for 2FA", "dfasd", html)
 			except Exception as e:
 				return HttpResponse(f'error is {e}', status=400)
 			return redirect('otp')
-			# return HttpResponse('OTP sent', status=200)
 		else:
 			return redirect_main_page(user)
-			
 
 def check(request):
 	if request.user.is_authenticated:    #이부분이 이미 장고에의해 리퀘스트의 바디?에 user가 들어와있는지 확인하는부분. 따라서 user가 있는지도 확인해야함
