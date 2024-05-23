@@ -55,6 +55,7 @@ INSTALLED_APPS = [
 	'ft_auth',
 	'django_otp',
     'django_otp.plugins.otp_totp',
+	'django_otp.plugins.otp_email',
 	'rest_framework',
 	'rest_framework_simplejwt',
 ]

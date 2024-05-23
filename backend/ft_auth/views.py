@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from backend.settings import API_AUTH_URI, API_CLIENT_ID, API_REDIRECT_URI, API_CLIENT_SECRET, SENDER_EMAIL, APP_PASSWORD, JWT_SECRET_KEY
 from django.http import HttpResponse
-from ft_user.models import CustomUser, EmailTOTPDevice
+from ft_user.models import CustomUser
 from django.contrib.auth import login
 from django.views import View
 from ft_auth.utils import send_email
@@ -13,6 +13,7 @@ import requests
 import base64
 import pyotp
 import jwt
+from django_otp.plugins.otp_email.models import EmailDevice
 
 def oauth(request):
 	return redirect(API_AUTH_URI)
@@ -46,15 +47,13 @@ class Callback(View): # TODO: POST otp check function
 		user, created = CustomUser.objects.get_or_create(uid=id, defaults={'username': username, 'email': email})
 
 		if created:
-			key = base64.b32encode(pyotp.random_base32().encode()).decode()
-			print('before')
-			device =EmailTOTPDevice.create(EmailTOTPDevice, user=user, key=key)
-			print('after')
+			device = EmailDevice.objects.create(user=user, email=user.email)
 		login(request, user)
 
 		if user.two_factor_enabled:
-			device = EmailTOTPDevice.objects.filter(user=user).first()
-			otp_code = device.generate_token()
+			device = EmailDevice.objects.filter(user=user).first()
+			device.generate_token(length=6, valid_secs=300)
+			otp_code = device.token
 			html = f'<html><body><p>Your OTP is {otp_code}</p></body></html>'
 			try:
 				send_email(SENDER_EMAIL, user.email, APP_PASSWORD, "Your OTP Code for 2FA", "dfasd", html)
@@ -69,7 +68,7 @@ def check(request):
 		otp_code = request.GET.get('otp_code')
 		user = request.user
 		if user.two_factor_enabled:
-			device = EmailTOTPDevice.objects.filter(user=user).first()
+			device = EmailDevice.objects.filter(user=user).first()
 			if device.verify_token(otp_code):
 
 				token = request.COOKIES.get('access_token') #이부분은 이후 Header에서 Authorization으로 받아오는 방식으로 바꿔야함
@@ -103,7 +102,7 @@ def number_input_view(request):
 	if request.method == 'POST':
 		data = json.loads(request.body)
 		combined_number = data.get('combined_number', '')
-		device = EmailTOTPDevice.objects.filter(user=request.user).first()
+		device = EmailDevice.objects.filter(user=request.user).first()
 		if device.verify_token(combined_number):
 			response = redirect('test_home')
 			tokens = generate_jwt(request.user)
