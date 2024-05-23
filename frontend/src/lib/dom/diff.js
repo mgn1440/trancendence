@@ -1,25 +1,29 @@
-import { createElement } from "./client"
+import { createElement } from "./client";
 
 const diffTextVDOM = (newVDOM, currentVDOM) => {
-  if ((typeof newVDOM === "string" && typeof currentVDOM === "string") ||
-      (typeof newVDOM === "number" && typeof currentVDOM === "number") ||
-      (typeof newVDOM === "string" && typeof currentVDOM === "number") ||
-      (typeof newVDOM === "number" && typeof currentVDOM === "string")) {
+  if (
+    (typeof newVDOM === "string" && typeof currentVDOM === "string") ||
+    (typeof newVDOM === "number" && typeof currentVDOM === "number") ||
+    (typeof newVDOM === "string" && typeof currentVDOM === "number") ||
+    (typeof newVDOM === "number" && typeof currentVDOM === "string")
+  ) {
     return true;
   }
   // if (newVDOM === currentVDOM) return false;
   return false;
-}
+};
 
 const updateElement = (parent, newVDOM, currentVDOM, index = 0) => {
   let removeIndex;
-  const hasOnlyCurrentVDOM = 
+  const hasOnlyCurrentVDOM =
     (newVDOM === null || newVDOM === undefined) &&
-    (currentVDOM !== null && currentVDOM !== undefined);
+    currentVDOM !== null &&
+    currentVDOM !== undefined;
 
   const hasOnlyNewVDOM =
     (currentVDOM === null || currentVDOM === undefined) &&
-    (newVDOM !== null && newVDOM !== undefined);
+    newVDOM !== null &&
+    newVDOM !== undefined;
 
   if (parent.childNodes) {
     if (hasOnlyCurrentVDOM) {
@@ -39,19 +43,27 @@ const updateElement = (parent, newVDOM, currentVDOM, index = 0) => {
     return;
   }
 
-  if ((typeof newVDOM === "number" || typeof newVDOM === "string") &&
-      (typeof currentVDOM === "number" || typeof currentVDOM === "string"))
+  if (
+    (typeof newVDOM === "number" || typeof newVDOM === "string") &&
+    (typeof currentVDOM === "number" || typeof currentVDOM === "string")
+  )
     return;
-  if (!newVDOM || !currentVDOM)
-    return;
+  if (!newVDOM || !currentVDOM) return;
   if (newVDOM.type !== currentVDOM.type) {
     parent.replaceChild(createElement(newVDOM), parent.childNodes[index]);
     return;
   }
 
-  updateAttributes(parent.childNodes[index], newVDOM.props ?? {}, currentVDOM.props ?? {});
+  updateAttributes(
+    parent.childNodes[index],
+    newVDOM.props ?? {},
+    currentVDOM.props ?? {}
+  );
 
-  const maxLength = Math.max(newVDOM.children.length, currentVDOM.children.length);
+  const maxLength = Math.max(
+    newVDOM.children.length,
+    currentVDOM.children.length
+  );
 
   for (let i = 0; i < maxLength; i++) {
     const _removeIndex = updateElement(
@@ -62,7 +74,7 @@ const updateElement = (parent, newVDOM, currentVDOM, index = 0) => {
     );
     removeIndex = _removeIndex;
   }
-}
+};
 
 const updateAttributes = (target, newProps, currentProps) => {
   for (const [attr, value] of Object.entries(newProps)) {
@@ -76,14 +88,12 @@ const updateAttributes = (target, newProps, currentProps) => {
     if (attr.startsWith("on")) {
       // target.setAttribute(attr, null);
       target[attr] = null;
-    }
-    else if (attr.startsWith("class")) {
+    } else if (attr.startsWith("class")) {
       target.removeAttribute("class");
-    }
-    else {
+    } else {
       target.removeAttribute(attr);
     }
   }
-}
+};
 
 export { updateElement };

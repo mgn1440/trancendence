@@ -8,30 +8,29 @@
   --gray60: #585858;
   --gray70: #383838;
   --black: #181818;
-
 }
 
 @font-face {
-  font-family: 'MajorMonoDisplay';
+  font-family: "MajorMonoDisplay";
   src: url(font/MajorMonoDisplay.ttf);
   font-weight: normal;
 }
 
 @font-face {
-  font-family: 'Quantico';
+  font-family: "Quantico";
   src: url(font/Quantico.ttf);
   font-weight: normal;
 }
 
 body {
   overflow: hidden;
-  font-family: 'Quantico';  
+  font-family: "Quantico";
   background-color: var(--black);
   color: var(--white);
 }
 
 h1 {
-  font-family: 'MajorMonoDisplay';
+  font-family: "MajorMonoDisplay";
   color: var(--white);
   font-size: 10vh;
 }
@@ -42,6 +41,11 @@ h1 {
 
 a {
   text-decoration: none;
+}
+
+.window {
+  height: 100vh;
+  width: 100vw;
 }
 
 .mdSizeBtn {
@@ -56,9 +60,25 @@ a {
   color: var(--black);
 }
 
+.avatar {
+  position: relative;
+}
+
+.avatar-img {
+  width: 45px;
+  height: 45px;
+}
+
 .otp input {
   width: 40px;
   height: 40px;
+}
+
+.isloggedin {
+  position: absolute;
+  color: greenyellow;
+  left: 30px;
+  top: 30px;
 }
 
 div.modal-content {

@@ -1,13 +1,13 @@
 import { updateElement } from "./diff";
 import { shallowEqual } from "./utils/object";
 
-const frameRunner = (callback) =>{
+const frameRunner = (callback) => {
   let requestId;
-  return () =>{
+  return () => {
     requestId && cancelAnimationFrame(requestId);
     requestId = requestAnimationFrame(callback);
-  }
-}
+  };
+};
 
 const domRenderer = () => {
   const options = {
@@ -16,12 +16,12 @@ const domRenderer = () => {
     dependencies: [],
     effectHook: 0,
     effectList: [],
-  }
+  };
   const renderInfo = {
     $root: null,
     component: null,
     currentVDOM: null,
-  }
+  };
 
   const resetOptions = () => {
     options.states = [];
@@ -29,7 +29,7 @@ const domRenderer = () => {
     options.dependencies = [];
     options.effectHook = 0;
     options.effectList = [];
-  }
+  };
 
   const _render = frameRunner(() => {
     const { $root, component, currentVDOM } = renderInfo;
@@ -46,40 +46,44 @@ const domRenderer = () => {
   });
 
   const render = (root, component) => {
+    console.log("render");
     resetOptions();
     renderInfo.$root = root;
     renderInfo.component = component;
     _render();
-  }
+  };
 
   const useState = (initialState) => {
     const { stateHook: index, states } = options;
-    const state = (states[index] ?? initialState);
+    const state = states[index] ?? initialState;
     const setState = (newState) => {
+      console.log(options.states);
       if (shallowEqual(state, newState)) return;
       states[index] = newState;
       // queueMicrotask(_render);
       _render();
-    }
+    };
     options.stateHook += 1;
     return [state, setState];
-  }
+  };
 
   const useEffect = (callback, dependencies) => {
     const index = options.effectHook;
     options.effectList[index] = () => {
       const hasNoDeps = !dependencies;
       const prevDeps = options.dependencies[index];
-      const hasChangedDeps = prevDeps ? dependencies?.some((deps, i) => !shallowEqual(deps, prevDeps[i])) : true;
+      const hasChangedDeps = prevDeps
+        ? dependencies?.some((deps, i) => !shallowEqual(deps, prevDeps[i]))
+        : true;
 
       if (hasNoDeps || hasChangedDeps) {
         options.dependencies[index] = dependencies;
         callback();
       }
-    }
+    };
     options.effectHook += 1;
-  }
-  
+  };
+
   return { useState, useEffect, render };
-}
+};
 export const { useState, useEffect, render } = domRenderer();

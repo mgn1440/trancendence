@@ -6,6 +6,7 @@
     "target": "ES6",
     "paths": {
       "@/*": ["./src/*"],
+      "@img/*": ["./img/*"]
     }
   },
   "include": ["src"],
