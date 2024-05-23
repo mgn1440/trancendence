@@ -3,7 +3,7 @@ FROM node:lts-alpine3.19
 # Set the working directory
 WORKDIR /app
 
-EXPOSE 1234
+EXPOSE 5173
 
 # Install dependencies
 COPY --chmod=755 package.json .
