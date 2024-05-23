@@ -12,11 +12,15 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+from os.path import join
 from dotenv import load_dotenv
 
-
-
-load_dotenv()
+PROJECT_PATH = os.path.abspath(os.path.dirname(__name__))
+if os.getenv('ENV') == 'local':
+    dotenv_path = join(PROJECT_PATH, '../config/backend/.env.local')
+else:
+    dotenv_path = join(PROJECT_PATH, '../config/backend/.env')
+load_dotenv(dotenv_path)
 
 API_CLIENT_ID = os.getenv('API_CLIENT_ID')
 API_CLIENT_SECRET = os.getenv('API_CLIENT_SECRET')

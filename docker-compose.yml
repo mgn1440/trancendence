@@ -1,33 +1,35 @@
-version: '3'
+version: "3"
 services:
   frontend:
     build:
-      context: ./frontend
+      context: ${FE_PATH}
       dockerfile: Dockerfile.frontend
     container_name: frontend
-    # environment:
-    #   REACT_APP_API_URL: ${REACT_APP_API_URL}
+    env_file:
+      - ${FE_ENV_PATH}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:1234"]
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
       interval: 10s
       timeout: 5s
       retries: 5
     init: true
     ports:
-      - "1234:1234"
+      - "5173:5173"
     restart: on-failure:3
     tty: true
     networks:
       - transcendence
   backend:
     build:
-      context: ./backend
+      context: ${BE_PATH}
       dockerfile: Dockerfile.backend
     container_name: backend
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+    env_file:
+      - ${BE_ENV_PATH}
+    # environment:
+    #   POSTGRES_DB: postgres
+    #   POSTGRES_USER: postgres
+    #   POSTGRES_PASSWORD: postgres
     #   DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
     #   DJANGO_DEBUG: ${DJANGO_DEBUG}
     #   DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
@@ -57,6 +59,8 @@ services:
       - transcendence
   postgresql:
     container_name: postgresql
+    env_file:
+      - ${BE_ENV_PATH}
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
@@ -92,14 +96,24 @@ services:
     restart: on-failure:3
     tty: true
     volumes:
-      - ./nginx:/etc/nginx/conf.d
+      - "${NGINX_PATH}:/etc/nginx/conf.d"
     networks:
       - transcendence
   # redis:
   #   image: redis:latest
+  #   networks:
+  #     - transcendence
   #   restart: always
   #   ports:
   #     - "6379:6379"
+  #   volumes:
+  #     - "${REDIS_PATH}/data/:/data/"
+  #     - "${REDIS_PATH}/config/:/user/local/etc/redis/"
+  #   command: redis-server /user/local/etc/redis/redis.conf
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     timeout: 20s
+  #     retries: 5
 networks:
   transcendence:
     name: transcendence
