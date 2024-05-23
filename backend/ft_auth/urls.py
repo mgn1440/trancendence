@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from .views import oauth, Callback, check, test, test_home, number_input_view
+from .views import oauth, Callback, check, test, test_home, number_input_view, refresh
 
 urlpatterns = [
 	path('login/', oauth, name='oauth'),
@@ -8,5 +8,6 @@ urlpatterns = [
 	path('check/', check, name='check'),
 	path('test/', test, name='test'),
 	path('test_home/', test_home, name='test_home'),
-	path('otp/', number_input_view , name='otp')
+	path('otp/', number_input_view , name='otp'),
+	path('refresh/', refresh, name='refresh'),
 ]
