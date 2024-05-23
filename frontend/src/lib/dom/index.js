@@ -55,7 +55,8 @@ const domRenderer = () => {
 
   const useState = (initialState) => {
     const { stateHook: index, states } = options;
-    const state = states[index] ?? initialState;
+    if (states.length === index) states.push(initialState);
+    const state = () => states[index];
     const setState = (newState) => {
       console.log(options.states);
       if (shallowEqual(state, newState)) return;

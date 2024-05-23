@@ -1,5 +1,6 @@
 const User = () => {
-  const imgSrc = `img/minji_${Math.ceil(Math.random() * 5)}.jpg`;
+  const randNum = Math.ceil(Math.random() * 5);
+  const imgSrc = `img/minji_${randNum}.jpg`;
   return (
     <div class="hstack gap-2">
       <div class="avatar">
@@ -7,17 +8,20 @@ const User = () => {
         <span class="isloggedin">●</span>
       </div>
       <div class="user-info overflow">
-        <h6 class="text-start">User0</h6>
-        <p class="mb-3 small text-truncate">win: 0 lose: 0</p>
+        <h6 class="text-start">User{randNum}</h6>
+        <p class="mb-3 small text-truncate">
+          win: {10 - randNum} lose: {randNum} rate:{" "}
+          {((10 - randNum) / 10) * 100}%
+        </p>
       </div>
     </div>
   );
 };
 
 const UserList = () => {
-  const userNum = 5;
+  const userNum = 20;
   return (
-    <div>
+    <div class="overflow-scroll" style="height: 100vh;">
       {[...Array(parseInt(userNum))].map((n) => (
         <User />
       ))}
