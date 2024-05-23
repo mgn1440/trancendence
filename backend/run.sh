@@ -2,7 +2,7 @@
 
 
 find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
-find ./*/migrations/ -type f ! name '__init__.py' -exec rm -f {} +
+find ./*/migrations/ -type f ! -name '__init__.py' -exec rm -f {} +
 
 
 python manage.py makemigrations
