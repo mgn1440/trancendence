@@ -18,11 +18,12 @@ from django.urls import reverse
 
 def oauth(request):
 	return redirect(API_AUTH_URI)
+
 class Callback(View): # TODO: POST otp check function
 	def get(self, request):
 		code = request.GET.get('code')
 		if code is None:
-			return HttpResponse('No code', status=400)
+			return JsonResponse({'error': 'No code'}, status=400)
 		data = {
 			'grant_type': 'authorization_code',
 			'client_id': API_CLIENT_ID,
@@ -32,15 +33,14 @@ class Callback(View): # TODO: POST otp check function
 		}
 		response = requests.post('https://api.intra.42.fr/oauth/token', data=data)
 		if response.status_code != 200:
-			return HttpResponse('Invalid code', status=400)
+			return JsonResponse({'error': '42 API Access Token Error'}, status=400)
 		access_token = response.json()['access_token']
 		if access_token is None:
-			return HttpResponse('No access token', status=400)
+			return JsonResponse({'error': 'Empty Access Token Error'}, status=400)
 		user_info = requests.get('https://api.intra.42.fr/v2/me', headers={'Authorization': 'Bearer ' + access_token})
 		if user_info.status_code != 200:
-			return HttpResponse('42 API Error', status=400)
+			return JsonResponse({'error': '42 API /v2/me Error'}, status=400)
 		user_data = user_info.json()
-		# return HttpResponse(user_data['id'])
 		id = user_data['id']
 		username = user_data['login']
 		email = user_data['email']
@@ -59,11 +59,16 @@ class Callback(View): # TODO: POST otp check function
 			try:
 				send_email(SENDER_EMAIL, user.email, APP_PASSWORD, "Your OTP Code for 2FA", "dfasd", html)
 			except Exception as e:
-				return HttpResponse(f'error is {e}', status=400)
-			return redirect('otp')
+				return JsonResponse({'error': f'Email Error: {e}'}, status=400)
+			return redirect('otp')	
+			# return JsonResponse({'otp': 'true'}, status=200)
 		else:
 			return redirect_main_page(user)
-
+			# response = JsonResponse({'otp', 'false'}, status=200)
+			# tokens = generate_jwt(user)
+			# response.set_cookie('access_token', tokens['access_token'])
+			# response.set_cookie('refresh_token', tokens['refresh_token'])
+			# return response
 def check(request):
 	if request.user.is_authenticated:    #이부분이 이미 장고에의해 리퀘스트의 바디?에 user가 들어와있는지 확인하는부분. 따라서 user가 있는지도 확인해야함
 		otp_code = request.GET.get('otp_code')
