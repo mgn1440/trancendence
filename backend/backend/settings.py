@@ -64,12 +64,17 @@ INSTALLED_APPS = [
 	'rest_framework_simplejwt',
 ]
 
+# settings.py
 REST_FRAMEWORK = {
-	'DEFAULT_AUTHENTICATION_CLASSES': (
-		# 'rest_framework_simplejwt.authentication.JWTAuthentication',
-		'ft_auth.authentication.JWTAuthentication',
-	),
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+        # JWT 인증을 사용하는 경우:
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
 }
+
 
 from datetime import timedelta
 

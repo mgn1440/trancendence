@@ -1,1 +1,57 @@
-good
+<!-- myproject/templates/test.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Test Page</title>
+</head>
+<body>
+    <h1>OTP Test Page</h1>
+    <form id="otpForm">
+        <label for="otp_status">OTP Status:</label>
+        <input type="checkbox" id="otp_status" name="otp_status">
+        <button type="button" onclick="sendOtpStatus()">Submit</button>
+    </form>
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function sendOtpStatus() {
+            const csrftoken = getCookie('csrftoken');
+            const otpStatus = document.getElementById('otp_status').checked;
+
+            fetch('/api/user/otp/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({ 'otp_status': otpStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                alert('Response: ' + JSON.stringify(data));
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>

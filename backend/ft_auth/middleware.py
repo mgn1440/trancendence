@@ -12,6 +12,7 @@ class CustomAuthentication:
 		self.get_response = get_response
 		self.API_URLS = [
 			re.compile(r'^(.*)test_home/'),
+			re.compile(r'^(.*)user/otp/'),		
 		]
 		self.PUBLIC_URLS = [
 			re.compile(r'^(.*)login/'),
