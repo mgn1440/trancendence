@@ -28,9 +28,20 @@
                 },
                 body: JSON.stringify({ combined_number: combinedNumber })
             })
-            .then(response => response.text())
+            .then(response => response.json())
             .then(data => {
-                document.getElementById('result').innerText = data;
+                if (data.status === 'success') {
+                    // 현재 호스트를 기준으로 리다이렉트
+                    const baseUrl = window.location.origin;
+                    window.location.href = baseUrl + data.redirect_url;
+                } else {
+                    // 에러 메시지를 표시
+                    document.getElementById('result').innerText = data.message;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').innerText = 'An error occurred. Please try again.';
             });
         }
     </script>

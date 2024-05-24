@@ -14,6 +14,7 @@ import base64
 import pyotp
 import jwt
 from django_otp.plugins.otp_email.models import EmailDevice
+from django.urls import reverse
 
 def oauth(request):
 	return redirect(API_AUTH_URI)
@@ -50,7 +51,7 @@ class Callback(View): # TODO: POST otp check function
 			device = EmailDevice.objects.create(user=user, email=user.email)
 		login(request, user)
 
-		if user.two_factor_enabled:
+		if user.otp_enabled:
 			device = EmailDevice.objects.filter(user=user).first()
 			device.generate_token(length=6, valid_secs=300)
 			otp_code = device.token
@@ -67,7 +68,7 @@ def check(request):
 	if request.user.is_authenticated:    #이부분이 이미 장고에의해 리퀘스트의 바디?에 user가 들어와있는지 확인하는부분. 따라서 user가 있는지도 확인해야함
 		otp_code = request.GET.get('otp_code')
 		user = request.user
-		if user.two_factor_enabled:
+		if user.otp_enabled:
 			device = EmailDevice.objects.filter(user=user).first()
 			if device.verify_token(otp_code):
 
@@ -97,14 +98,14 @@ def check(request):
 def number_input_view(request):
 	if not request.user or request.user.is_anonymous:
 		return redirect('test')
-	if not request.user.two_factor_enabled:
+	if not request.user.otp_enabled:
 		return redirect('test')
 	if request.method == 'POST':
 		data = json.loads(request.body)
 		combined_number = data.get('combined_number', '')
 		device = EmailDevice.objects.filter(user=request.user).first()
 		if device.verify_token(combined_number):
-			response = redirect('test_home')
+			response = JsonResponse({'status': 'success', 'redirect_url': reverse('test_home')}, status=200)
 			tokens = generate_jwt(request.user)
 			response.set_cookie('access_token', tokens['access_token'])
 			response.set_cookie('refresh_token', tokens['refresh_token'])
@@ -156,7 +157,7 @@ def refresh(request):
 		return JsonResponse({'error': 'Invalid refresh token' , 'user_refresh_token': real_user.refresh_token, 
 					   'cookie_refresh_token': refresh_token}, status=400)
 	tokens = generate_jwt(user)
-	response = HttpResponse()
+	response = JsonResponse({'status': 'success'}, status=200)
 	response.set_cookie('access_token', tokens['access_token'])
 	response.set_cookie('refresh_token', tokens['refresh_token'])
 	return response
