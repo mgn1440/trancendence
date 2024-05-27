@@ -77,7 +77,7 @@
                 console.log('Updated Scores:', scores);  // 점수 업데이트 확인
                 updateScoreBoard();  // Update the scoreboard on the page
             } else if (data.type === 'end_game') {
-                alert(`Game Over! Winner: ${usernames[data.winner]}`);
+                alert(`Game Over! Winner: ${data.winner}, Loser: ${data.loser}`);
                 resetGame();
             }
         };
@@ -112,7 +112,6 @@
             const context = canvas.getContext('2d');
             let barHeight = 100;
             let barWidth = 10;
-            let playerSpeed = 5;
 
             function draw() {
                 context.clearRect(0, 0, canvas.width, canvas.height);
@@ -135,29 +134,24 @@
 
             document.addEventListener('keydown', function(event) {
                 if (player === 'left') {
-                    if (event.key === 'ArrowUp' && playerBar.left > 0) {
-                        playerBar.left -= playerSpeed;
-                        sendPlayerMove(player, playerBar.left);
-                    } else if (event.key === 'ArrowDown' && playerBar.left < canvas.height - barHeight) {
-                        playerBar.left += playerSpeed;
-                        sendPlayerMove(player, playerBar.left);
+                    if (event.key === 'ArrowUp') {
+                        sendPlayerMove('up');
+                    } else if (event.key === 'ArrowDown') {
+                        sendPlayerMove('down');
                     }
                 } else if (player === 'right') {
-                    if (event.key === 'ArrowUp' && playerBar.right > 0) {
-                        playerBar.right -= playerSpeed;
-                        sendPlayerMove(player, playerBar.right);
-                    } else if (event.key === 'ArrowDown' && playerBar.right < canvas.height - barHeight) {
-                        playerBar.right += playerSpeed;
-                        sendPlayerMove(player, playerBar.right);
+                    if (event.key === 'ArrowUp') {
+                        sendPlayerMove('up');
+                    } else if (event.key === 'ArrowDown') {
+                        sendPlayerMove('down');
                     }
                 }
             });
 
-            function sendPlayerMove(player, position) {
+            function sendPlayerMove(direction) {
                 gameSocket.send(JSON.stringify({
                     'type': 'move',
-                    'player': player,
-                    'position': position
+                    'direction': direction
                 }));
             }
 

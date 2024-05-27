@@ -2,24 +2,28 @@ import json
 import asyncio
 import random
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.contrib.auth import get_user_model
-from django.http import JsonResponse
-import requests
 
 class GameConsumer(AsyncWebsocketConsumer):
-    connected_users = {}
-    ready_users = set()
-    roles = {}
-    scores = {'left': 0, 'right': 0}
-    ball = {'x': 400, 'y': 300, 'radius': 10, 'speedX': 5, 'speedY': 5}
-    player_bar = {'left': 250, 'right': 250}
-    game_started = False  # 게임 시작 상태를 나타내는 플래그 추가
+    games = {}  # 각 방의 게임 상태를 저장할 딕셔너리
 
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_number']
         self.room_group_name = f"game_{self.room_name}"
-        self.user_id = str(self.scope["user"].id)  # Ensure user_id is a string
-        self.username = self.scope["user"].username  # 유저의 닉네임 가져오기
+        self.user_id = str(self.scope["user"].id)
+        self.username = self.scope["user"].username
+
+        # 게임 상태 초기화
+        if self.room_group_name not in self.games:
+            self.games[self.room_group_name] = {
+                'connected_users': {},
+                'ready_users': set(),
+                'roles': {},
+                'scores': {'left': 0, 'right': 0},
+                'ball': {'x': 400, 'y': 300, 'radius': 10, 'speedX': 5, 'speedY': 5},
+                'player_bar': {'left': 250, 'right': 250},
+                'game_started': False
+            }
+        self.game = self.games[self.room_group_name]
 
         # 유저 정보 출력
         print(f"User ID: {self.user_id}, Username: {self.username}")
@@ -29,35 +33,34 @@ class GameConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
-        self.connected_users[self.user_id] = self.username
+        self.game['connected_users'][self.user_id] = self.username
 
         # Assign roles
-        if len(self.connected_users) == 1:
-            self.roles[self.user_id] = 'left'
-        elif len(self.connected_users) == 2:
-            self.roles[self.user_id] = 'right'
+        if len(self.game['connected_users']) == 1:
+            self.game['roles'][self.user_id] = 'left'
+        elif len(self.game['connected_users']) == 2:
+            self.game['roles'][self.user_id] = 'right'
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'start_game',
                     'message': 'Two players connected. Start the game!',
-                    'roles': self.roles,
-                    'scores': self.scores,  # Send initial scores
-                    'usernames': self.connected_users  # 유저의 닉네임도 전송
+                    'roles': self.game['roles'],
+                    'scores': self.game['scores'],
+                    'usernames': self.game['connected_users']
                 }
             )
 
-        await self.accept()  # 모든 경우에 accept() 호출
+        await self.accept()
 
     async def disconnect(self, close_code):
-        # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
-        self.connected_users.pop(self.user_id, None)
-        self.ready_users.discard(self.user_id)
-        self.roles.pop(self.user_id, None)
+        self.game['connected_users'].pop(self.user_id, None)
+        self.game['ready_users'].discard(self.user_id)
+        self.game['roles'].pop(self.user_id, None)
 
     # Receive message from WebSocket
     async def receive(self, text_data):
@@ -65,9 +68,9 @@ class GameConsumer(AsyncWebsocketConsumer):
         message_type = text_data_json.get('type')
 
         if message_type == 'ready':
-            self.ready_users.add(self.user_id)
-            if len(self.ready_users) == 2 and not self.game_started:
-                self.game_started = True  # 게임 시작 상태를 업데이트
+            self.game['ready_users'].add(self.user_id)
+            if len(self.game['ready_users']) == 2 and not self.game['game_started']:
+                self.game['game_started'] = True
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
@@ -75,73 +78,59 @@ class GameConsumer(AsyncWebsocketConsumer):
                         'message': 'Both players are ready. Start the game!'
                     }
                 )
-                asyncio.create_task(self.start_ball_movement())  # Start ball movement after both players are ready
+                asyncio.create_task(self.start_ball_movement())
         elif message_type == 'move':
-            # Ensure position data exists
-            position = text_data_json.get('position')
-            player = text_data_json.get('player')
-            if position is not None and player is not None:
-                # Update player bar position
-                self.player_bar[player] = position
+            direction = text_data_json.get('direction')
+            player = self.game['roles'][self.user_id]
+            if direction == 'up':
+                self.game['player_bar'][player] = max(0, self.game['player_bar'][player] - 10)
+            elif direction == 'down':
+                self.game['player_bar'][player] = min(500, self.game['player_bar'][player] + 10)
 
-                # Broadcast the move to other players
-                await self.channel_layer.group_send(
-                    self.room_group_name,
-                    {
-                        'type': 'player_move',
-                        'player': player,
-                        'position': position
-                    }
-                )
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'player_move',
+                    'player': player,
+                    'position': self.game['player_bar'][player]
+                }
+            )
 
-    # Receive message from room group
-    async def chat_message(self, event):
-        message = event['message']
+    async def player_move(self, event):
+        player = event['player']
+        position = event['position']
 
-        # Send message to WebSocket
         await self.send(text_data=json.dumps({
-            'message': message
+            'type': 'move',
+            'player': player,
+            'position': position
         }))
-    
+
     async def start_game(self, event):
         message = event['message']
         roles = event['roles']
         scores = event['scores']
         usernames = event['usernames']
 
-        # Send start game message to WebSocket
         await self.send(text_data=json.dumps({
             'type': 'start_game',
             'message': message,
             'roles': roles,
             'scores': scores,
-            'usernames': usernames  # 유저의 닉네임도 전송
+            'usernames': usernames
         }))
     
     async def initiate_game(self, event):
         message = event['message']
 
-        # Send initiate game message to WebSocket
         await self.send(text_data=json.dumps({
             'type': 'initiate_game',
             'message': message
         }))
     
-    async def player_move(self, event):
-        player = event['player']
-        position = event['position']
-
-        # Send player move to WebSocket
-        await self.send(text_data=json.dumps({
-            'type': 'move',
-            'player': player,
-            'position': position
-        }))
-    
     async def ball_position(self, event):
         ball = event['ball']
 
-        # Send ball position to WebSocket
         await self.send(text_data=json.dumps({
             'type': 'ball_position',
             'ball': ball
@@ -150,98 +139,93 @@ class GameConsumer(AsyncWebsocketConsumer):
     async def update_scores(self, event):
         scores = event['scores']
 
-        print('Scores:', scores)  # 디버깅 메시지 추가
-        # Send scores to WebSocket
+        print('Scores:', scores)
         await self.send(text_data=json.dumps({
             'type': 'update_scores',
             'scores': scores
         }))
 
     async def start_ball_movement(self):
-        while self.game_started:  # 게임이 시작된 경우에만 공을 움직임
+        while self.game['game_started']:
             self.update_ball_position()
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'ball_position',
-                    'ball': self.ball
+                    'ball': self.game['ball']
                 }
             )
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.03)
 
     def update_ball_position(self):
-        self.ball['x'] += self.ball['speedX']
-        self.ball['y'] += self.ball['speedY']
+        self.game['ball']['x'] += self.game['ball']['speedX']
+        self.game['ball']['y'] += self.game['ball']['speedY']
 
-        # Ball collision with top and bottom walls
-        if self.ball['y'] + self.ball['radius'] > 600 or self.ball['y'] - self.ball['radius'] < 0:
-            self.ball['speedY'] = -self.ball['speedY']
+        if self.game['ball']['y'] + self.game['ball']['radius'] > 600 or self.game['ball']['y'] - self.game['ball']['radius'] < 0:
+            self.game['ball']['speedY'] = -self.game['ball']['speedY']
 
-        # Ball collision with left bar
-        if self.ball['x'] - self.ball['radius'] < 10:
-            if self.ball['y'] > self.player_bar['left'] and self.ball['y'] < self.player_bar['left'] + 100:
-                self.ball['speedX'] = -self.ball['speedX']
+        if self.game['ball']['x'] - self.game['ball']['radius'] < 10:
+            if self.game['ball']['y'] > self.game['player_bar']['left'] and self.game['ball']['y'] < self.game['player_bar']['left'] + 100:
+                self.game['ball']['speedX'] = -self.game['ball']['speedX']
 
-        # Ball collision with right bar
-        if self.ball['x'] + self.ball['radius'] > 790:
-            if self.ball['y'] > self.player_bar['right'] and self.ball['y'] < self.player_bar['right'] + 100:
-                self.ball['speedX'] = -self.ball['speedX']
+        if self.game['ball']['x'] + self.game['ball']['radius'] > 790:
+            if self.game['ball']['y'] > self.game['player_bar']['right'] and self.game['ball']['y'] < self.game['player_bar']['right'] + 100:
+                self.game['ball']['speedX'] = -self.game['ball']['speedX']
 
-        # Ball out of bounds (left or right)
-        if (self.ball['x'] - self.ball['radius'] < 0) or (self.ball['x'] + self.ball['radius'] > 800):
-            if self.ball['x'] - self.ball['radius'] < 0:
-                self.scores['right'] += 1
+        if (self.game['ball']['x'] - self.game['ball']['radius'] < 0) or (self.game['ball']['x'] + self.game['ball']['radius'] > 800):
+            if self.game['ball']['x'] - self.game['ball']['radius'] < 0:
+                self.game['scores']['right'] += 1
             else:
-                self.scores['left'] += 1
-            print('Broadcasting scores:', self.scores)  # 디버깅 메시지 추가
+                self.game['scores']['left'] += 1
+            print('Broadcasting scores:', self.game['scores'])
             asyncio.create_task(self.broadcast_scores())
-            self.check_game_over()
+            asyncio.create_task(self.check_game_over())  # 비동기 호출
+            # asyncio.create_task(self.send_game_over_message("surkim", "s"))  # 비동기 호출
             self.reset_ball()
 
     def reset_ball(self):
-        self.ball['x'] = 400
-        self.ball['y'] = 300
-        self.ball['speedX'] = 2 * (1 if random.random() > 0.5 else -1)
-        self.ball['speedY'] = 2 * (1 if random.random() > 0.5 else -1)
+        self.game['ball']['x'] = 400
+        self.game['ball']['y'] = 300
+        self.game['ball']['speedX'] = 5 * (1 if random.random() > 0.5 else -1)
+        self.game['ball']['speedY'] = 5 * (1 if random.random() > 0.5 else -1)
 
     async def broadcast_scores(self):
-        print('Sending scores:', self.scores)  # 디버깅 메시지 추가
+        print('Sending scores:', self.game['scores'])
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'update_scores',
-                'scores': self.scores
+                'scores': self.game['scores']
             }
         )
     
-    def check_game_over(self):
-        if self.scores['left'] >= 5:
-            self.end_game('left', 'right')
-        elif self.scores['right'] >= 5:
-            self.end_game('right', 'left')
+    async def check_game_over(self):
+        if self.game['scores']['left'] >= 5:
+            await self.end_game('left', 'right')
+        elif self.game['scores']['right'] >= 5:
+            await self.end_game('right', 'left')
 
-    def end_game(self, winner, loser):
-        winner_id = [uid for uid, role in self.roles.items() if role == winner][0]
-        loser_id = [uid for uid, role in self.roles.items() if role == loser][0]
-        # Update winner and loser in the database
-        # requests.post('http://127.0.0.1:8000/api/user/win/', data={'user_id': winner_id})
-        # requests.post('http://127.0.0.1:8000/api/user/lose/', data={'user_id': loser_id})
-        print(f"Game Over! Winner: {winner}, Loser: {loser}")
+    async def end_game(self, winner, loser):
+        print(loser)
+        winner_id = [uid for uid, role in self.game['roles'].items() if role == winner][0]
+        loser_id = [uid for uid, role in self.game['roles'].items() if role == loser][0]
+        winner_name = self.game['connected_users'][winner_id]
+        loser_name = self.game['connected_users'][loser_id]
+        print(f"Game Over! Winner: {winner_name}, Loser: {loser_name}")
 
-        # Send game over message to clients
-        asyncio.create_task(self.send_game_over_message(winner))
+        await self.send_game_over_message(winner_name, loser_name)
 
-        # Reset game state
-        self.game_started = False
-        self.scores = {'left': 0, 'right': 0}
-        self.ball = {'x': 400, 'y': 300, 'radius': 10, 'speedX': 5, 'speedY': 5}
-        self.player_bar = {'left': 250, 'right': 250}
+        # self.game['game_started'] = False
+        self.game['scores'] = {'left': 0, 'right': 0}
+        self.game['ball'] = {'x': 400, 'y': 300, 'radius': 10, 'speedX': 5, 'speedY': 5}
+        self.game['player_bar'] = {'left': 250, 'right': 250}
 
-    async def send_game_over_message(self, winner):
+    async def send_game_over_message(self, winner_name, loser_name):
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'end_game',
-                'winner': winner
+                'winner': winner_name,
+                'loser': loser_name
             }
         )
