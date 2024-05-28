@@ -1,5 +1,6 @@
-import { updateElement } from "./diff";
+import updateElement from "./diff";
 import { shallowEqual } from "./utils/object";
+import { createElement } from "./client";
 
 const frameRunner = (callback) => {
   let requestId;
@@ -36,7 +37,17 @@ const domRenderer = () => {
     if (!$root || !component) return;
 
     const newVDOM = component();
-    updateElement($root, newVDOM, currentVDOM);
+    while ($root.firstChild) $root.removeChild($root.firstChild);
+    $root.appendChild(createElement(newVDOM));
+    // if (!currentVDOM) {
+    //   $root.replaceWith(createElement(newVDOM));
+    //   // first render
+    // } else {
+    //   console.log(currentVDOM, newVDOM);
+    //   const patch = updateElement(currentVDOM, newVDOM);
+    //   console.log(patch);
+    //   patch($root);
+    // }
     options.stateHook = 0;
     options.effectHook = 0;
     renderInfo.currentVDOM = newVDOM;
@@ -56,9 +67,9 @@ const domRenderer = () => {
   const useState = (initialState) => {
     const { stateHook: index, states } = options;
     if (states.length === index) states.push(initialState);
-    const state = () => states[index];
+    const state = states[index];
     const setState = (newState) => {
-      console.log(options.states);
+      // console.log(options.states); // debug
       if (shallowEqual(state, newState)) return;
       states[index] = newState;
       // queueMicrotask(_render);
