@@ -1,6 +1,5 @@
 import { useEffect, useState } from "../lib/dom";
 import { createElement } from "../lib/createElement";
-import "../../style.css";
 
 const isFull = (inputs) => {
   for (let i = 0; i < inputs.length; i++) {

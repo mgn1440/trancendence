@@ -8,6 +8,7 @@
   --gray60: #585858;
   --gray70: #383838;
   --black: #181818;
+  --bs-scrollbar-width: 0;
 }
 
 @font-face {
@@ -22,8 +23,11 @@
   font-weight: normal;
 }
 
+::-webkit-scrollbar {
+  width: var(--bs-scrollbar-width);
+}
 body {
-  overflow: hidden;
+  /* overflow: hidden; */
   font-family: "Quantico";
   background-color: var(--black);
   color: var(--white);

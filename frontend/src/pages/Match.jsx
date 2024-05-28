@@ -4,12 +4,12 @@ import MatchList from "./components/MatchList";
 
 const MatchPage = () => {
   return (
-    <div class="window row">
-      <div class="col-md-8 col-lg-9">
+    <div style="display: flex; flex-direction: row; ">
+      <div style="width:100%">
         <Profile />
         <MatchList />
       </div>
-      <div class="col-md-4 col-lg-3">
+      <div>
         <UserList />
       </div>
     </div>
