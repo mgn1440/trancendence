@@ -1,0 +1,36 @@
+@import "./reset.css";
+/* @import "./font.css"; */
+
+.user-cards{
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	gap: 25px;
+	/* flex-wrap: wrap; */
+	/* margin-top: 20px; */
+}
+
+.user-cards .user-card {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	border: 2px solid white;
+	border-radius: 10px;
+	/* width: 0rem;
+	height: 0rem; */
+}
+
+.user-card > img {
+	border-bottom: 2px solid white;
+}
+
+.user-card > p {
+	text-align: left;
+	/* font-size: 1.5rem; */
+}
+
+.user-cards .clients {
+	border-color: #DBFF00;
+}

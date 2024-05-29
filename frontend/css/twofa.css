@@ -25,7 +25,7 @@
 	gap: 18px;
 }
 
-.otp input {
+.otp .input {
 	width: 60px;
 	height: 60px;
 	font-size: 2.25rem;
@@ -34,8 +34,16 @@
 	pointer-events: none;
 }
 
-.otp input:focus {
-	/* outline: none; */
+.otp .input:focus {
+	outline: none;
+}
+
+.otp .bg-gray{
+	background-color: gray;
+}
+
+.timer .expired {
+	color: red;
 }
 
 .two-factor-auth-page > .bottom {
@@ -43,7 +51,7 @@
 	height: 60px;
 	display: flex;
 	flex-direction: row;
-	justify-content: right;
+	justify-content:right;
 	align-items: center;
 }
 
@@ -61,10 +69,4 @@
 
 .bottom > .small-btn{
 	margin-left: 22px;
-}
-
-input::-webkit-inner-spin-button,
-input::-webkit-outer-spin-button {
-	-webkit-appearance: none;
-	margin: 0;
 }

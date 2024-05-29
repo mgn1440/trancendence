@@ -1,3 +1,6 @@
+@import "./reset.css";
+/* @import "./font.css"; */
+
 .main-page{
 	display: flex;
 	flex-direction: column;
