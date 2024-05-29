@@ -1,0 +1,70 @@
+@import "./reset.css";
+/* @import "./font.css"; */
+
+.two-factor-auth-page {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	width: 100vw;
+}
+
+.mention {
+	font-family:  quantico;
+	font-size: 2.25rem;
+	text-align: center;
+	margin-bottom: 19px;
+}
+
+.otp {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 40px;
+	gap: 18px;
+}
+
+.otp input {
+	width: 60px;
+	height: 60px;
+	font-size: 2.25rem;
+	text-align: center;
+	caret-color: transparent;
+	pointer-events: none;
+}
+
+.otp input:focus {
+	/* outline: none; */
+}
+
+.two-factor-auth-page > .bottom {
+	width: 450px;
+	height: 60px;
+	display: flex;
+	flex-direction: row;
+	justify-content: right;
+	align-items: center;
+}
+
+.timer{
+	font-family: "Ropa sans";
+	font-size: 1.25rem;
+}
+
+.small-btn {
+	font-family: "Ropa sans";
+	width: 7rem;
+	height: 2.25rem;
+	font-size: 1.25rem;
+}
+
+.bottom > .small-btn{
+	margin-left: 22px;
+}
+
+input::-webkit-inner-spin-button,
+input::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}

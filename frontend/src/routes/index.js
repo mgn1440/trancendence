@@ -3,7 +3,8 @@ import MainPage from "../pages/Main";
 import MatchPage from "../pages/Match";
 import RoomPage from "../pages/Room";
 import GamePage from "../pages/Game";
-import TestPage from "../pages/Test";
+import TwoFactorAuthPage from "../pages/TwoFactorAuth";
+// import TestPage from "../pages/Test";
 
 export const routes = [
   {
@@ -11,6 +12,11 @@ export const routes = [
     element: MainPage,
     errorElement: NotFoundPage,
     children: [
+      {
+        path: "TwoFactorAuth",
+        element: TwoFactorAuthPage,
+        children: []
+      },
       {
         path: "match",
         element: MatchPage,
@@ -30,10 +36,10 @@ export const routes = [
           },
         ],
       },
-      {
-        path: "test",
-        element: TestPage,
-      }
+      // {
+      //   path: "test",
+      //   element: TestPage,
+      // }
     ],
   },
 ];
