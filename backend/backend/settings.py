@@ -49,6 +49,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -176,7 +177,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization 
+# Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
@@ -201,4 +202,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #load env
 
-
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'ASYNC_CLIENT_CLASS': "django_redis.client.AsyncClient", # add async cache
+        }
+    }
+}
