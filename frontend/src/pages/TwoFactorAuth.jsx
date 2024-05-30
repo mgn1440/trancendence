@@ -1,9 +1,6 @@
 import { useEffect, useState } from "../lib/dom";
 import { createElement } from "../lib/createElement";
 
-// const axios = require("axios");
-
-
 const isFull = (inputs) => {
   for (let i = 0; i < inputs.length; i++) {
     if (inputs[i].value === "") {
@@ -29,7 +26,13 @@ const OTP = ({ len }) => {
           else if (index !== len - 1) {
             inputs[index + 1].focus();
           } else if (isFull(inputs)) {
-            // axios.post("backend_server", { otp: Array.from(inputs).map((input) => input.value).join("")});
+            axios({
+              method: "post",
+              url: "/api/auth/otp",
+              data: {
+                "otp": Array.from(inputs).map((input) => input.value).join("")
+              }
+            })
             console.log(Array.from(inputs).map((input) => input.value).join(""));
           }
         }
@@ -77,48 +80,10 @@ const OTP = ({ len }) => {
   );
 };
 
-//   const TwoFAModal = () => {
-// 	return (
-// 	  <div
-// 		class="modal fade"
-// 		id="twoFAModal"
-// 		data-bs-backdrop="static"
-// 		data-bs-keyboard="false"
-// 		tabindex="-1"
-// 		aria-labelledby="twoFAModalLabel"
-// 		aria-hidden="true"
-// 	  >
-// 		<div class="modal-dialog">
-// 		  <div class="modal-content">
-// 			<div class="modal-header">
-// 			  <h5 class="modal-title" id="twoFAModalLabel">
-// 				2FA
-// 			  </h5>
-// 			  <button
-// 				type="button"
-// 				class="btn-close btn-close-white"
-// 				data-bs-dismiss="modal"
-// 				aria-label="Close"
-// 			  ></button>
-// 			</div>
-// 			<div class="modal-body d-flex justify-content-center align-items-center flex-column">
-// 			  <OTP len={6} />
-// 			</div>
-// 			<div class="modal-footer">
-// 			  <a class="mdSizeBtn" href="/match" data-link="true">
-// 				Submit
-// 			  </a>
-// 			</div>
-// 		  </div>
-// 		</div>
-// 	  </div>
-// 	);
-//   };
-
 const TwoFactorAuthPage = () => {
   useEffect(() => {
     const timer = document.querySelector(".timer");
-    timer.addEventListener("load", startTimer());
+    // timer.addEventListener("load", startTimer());
     timer.addEventListener("load", resendBtn());
   });
   return (
