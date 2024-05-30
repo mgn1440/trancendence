@@ -10,6 +10,7 @@ from rest_framework import generics
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
+
 class OtpUpdateView(APIView): #TODO: 미들웨어에서는 request.user가 잘 로그인 되어있다가 여기서는 AnonymousUser로 나옴. 이유를 찾아야함.
     # permission_classes = [IsAuthenticated]
     def post(self, request):
@@ -27,15 +28,32 @@ class OtpUpdateView(APIView): #TODO: 미들웨어에서는 request.user가 잘 �
 class UserDetailView(generics.RetrieveAPIView):
     serializer_class = CustomUserSerializer
     def get_object(self):
-        return CustomUser.objects.get(uid=self.request.user.uid)
+        try:
+            return CustomUser.objects.get(uid=self.request.user.uid)
+        except CustomUser.DoesNotExist:
+            return None
     def get(self, request, *args, **kwargs):
         user = self.get_object()
+        if user is None:
+            return JsonResponse({'status_code': '400', 'message': 'User not found'}, status=400)
+        serializer = self.get_serializer(user)
+        dict_data = dict(serializer.data)
+        dict_data['status_code'] = 200
+        return JsonResponse(dict_data, status=200)
+
+class UserMeView(generics.RetrieveAPIView):
+    serializer_class = CustomUserSerializer
+    def get_object(self, user_id):
+        return CustomUser.objects.get(uid=user_id)
+    def get(self, request, *args, **kwargs):
+        user_id = self.kwargs.get('uid')
+        user = self.get_object(user_id)
         serializer = self.get_serializer(user)
         return JsonResponse(serializer.data, status=200)
 
 class UserWinUpdateView(APIView):
     # permission_classes = [IsAuthenticated]
-    
+
     # @method_decorator(csrf_exempt, name='dispatch')
     def post(self, request):
         access_token = request.COOKIES.get('access_token')
@@ -54,7 +72,7 @@ class UserWinUpdateView(APIView):
 
 class UserLoseUpdateView(APIView):
     # permission_classes = [IsAuthenticated]
-    
+
     # @method_decorator(csrf_exempt, name='dispatch')
     def post(self, request):
         access_token = request.COOKIES.get('access_token')
