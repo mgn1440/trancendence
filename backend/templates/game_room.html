@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping Pong Game Room</title>
+    <style>
+        #startGameButton {
+            display: none;
+        }
+        #gameCanvas {
+            display: none;
+            border: 1px solid black;
+        }
+        #scoreBoard {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        #userNames {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ping Pong Game Room - {{ room_number }}</h1>
+    <div id="userNames">Loading...</div> <!-- 유저 이름 표시 -->
+    <div id="scoreBoard">Loading...</div> <!-- 초기 값을 로딩 중으로 설정 -->
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <button id="startGameButton" onclick="sendReady()">Start Game</button>
+    <script>
+        const gameSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/game/room/' + {{ room_number }} + '/'
+        );
+
+        let player = '';
+        let playerBar = { left: 250, right: 250 };
+        let ball = { x: 400, y: 300, radius: 10 };
+        let scores = { left: 0, right: 0 };
+        let usernames = {};
+        let roles = {};
+        const myUserId = '{{ request.user.id }}';  // Django template to insert the user ID
+
+        gameSocket.onopen = function(e) {
+            console.log('WebSocket connection established');
+            alert('게임 방에 입장했습니다.');
+        };
+
+        gameSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            console.log('Message received from server:', data); // 메시지 전체를 콘솔에 출력
+
+            if (data.type === 'start_game') {
+                document.getElementById('startGameButton').style.display = 'block';
+                player = data.roles[myUserId];  // Assign player role
+                scores = data.scores;  // Initialize scores
+                usernames = data.usernames;  // Initialize usernames
+                roles = data.roles;  // Initialize roles
+                updateScoreBoard();
+                updateUserNames();
+                alert(`You are the ${player} player!`);
+            } else if (data.type === 'initiate_game') {
+                document.getElementById('startGameButton').style.display = 'none';
+                document.getElementById('gameCanvas').style.display = 'block';
+                startGame();
+            } else if (data.type === 'move') {
+                if (data.player === 'left') {
+                    playerBar.left = data.position;
+                } else if (data.player === 'right') {
+                    playerBar.right = data.position;
+                }
+            } else if (data.type === 'ball_position') {
+                ball.x = data.ball.x;
+                ball.y = data.ball.y;
+            } else if (data.type === 'update_scores') {
+                scores = data.scores;  // Update the scores object
+                console.log('Updated Scores:', scores);  // 점수 업데이트 확인
+                updateScoreBoard();  // Update the scoreboard on the page
+            } else if (data.type === 'end_game') {
+                alert(`Game Over! Winner: ${usernames[data.winner]}`);
+                resetGame();
+            }
+        };
+
+        gameSocket.onclose = function(e) {
+            console.log('WebSocket connection closed');
+        };
+
+        gameSocket.onerror = function(e) {
+            console.error('WebSocket error observed:', e);
+        };
+
+        function sendReady() {
+            gameSocket.send(JSON.stringify({
+                'type': 'ready'
+            }));
+        }
+
+        function updateScoreBoard() {
+            console.log('Updating score board:', scores);  // 디버깅 메시지 추가
+            document.getElementById('scoreBoard').innerText = `Left: ${scores.left} - Right: ${scores.right}`;
+        }
+
+        function updateUserNames() {
+            const leftUsername = Object.keys(roles).find(key => roles[key] === 'left');
+            const rightUsername = Object.keys(roles).find(key => roles[key] === 'right');
+            document.getElementById('userNames').innerText = `Left: ${usernames[leftUsername] || 'N/A'} - Right: ${usernames[rightUsername] || 'N/A'}`;
+        }
+
+        function startGame() {
+            const canvas = document.getElementById('gameCanvas');
+            const context = canvas.getContext('2d');
+            let barHeight = 100;
+            let barWidth = 10;
+            let playerSpeed = 5;
+
+            function draw() {
+                context.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw left bar
+                context.fillStyle = 'black';
+                context.fillRect(0, playerBar.left, barWidth, barHeight);
+
+                // Draw right bar
+                context.fillRect(canvas.width - barWidth, playerBar.right, barWidth, barHeight);
+
+                // Draw ball
+                context.beginPath();
+                context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                context.fill();
+                context.closePath();
+
+                requestAnimationFrame(draw);
+            }
+
+            document.addEventListener('keydown', function(event) {
+                if (player === 'left') {
+                    if (event.key === 'ArrowUp' && playerBar.left > 0) {
+                        playerBar.left -= playerSpeed;
+                        sendPlayerMove(player, playerBar.left);
+                    } else if (event.key === 'ArrowDown' && playerBar.left < canvas.height - barHeight) {
+                        playerBar.left += playerSpeed;
+                        sendPlayerMove(player, playerBar.left);
+                    }
+                } else if (player === 'right') {
+                    if (event.key === 'ArrowUp' && playerBar.right > 0) {
+                        playerBar.right -= playerSpeed;
+                        sendPlayerMove(player, playerBar.right);
+                    } else if (event.key === 'ArrowDown' && playerBar.right < canvas.height - barHeight) {
+                        playerBar.right += playerSpeed;
+                        sendPlayerMove(player, playerBar.right);
+                    }
+                }
+            });
+
+            function sendPlayerMove(player, position) {
+                gameSocket.send(JSON.stringify({
+                    'type': 'move',
+                    'player': player,
+                    'position': position
+                }));
+            }
+
+            draw();
+        }
+
+        function resetGame() {
+            playerBar = { left: 250, right: 250 };
+            ball = { x: 400, y: 300, radius: 10 };
+            scores = { left: 0, right: 0 };
+            updateScoreBoard();
+            document.getElementById('gameCanvas').style.display = 'none';
+            document.getElementById('startGameButton').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
