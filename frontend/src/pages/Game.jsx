@@ -1,9 +1,9 @@
 import UserList from "./components/UserList";
-import Profile from "./components/Profile";
+import Profile from "./components/LobbyProfile";
 import LobbyRooms from "./components/LobbyRooms";
 import TopNavBar from "./components/TopNavBar";
 
-const MatchPage = () => {
+const LobbyPage = () => {
   return (
     <div>
       <div id="top">
@@ -20,4 +20,4 @@ const MatchPage = () => {
   );
 };
 
-export default MatchPage;
+export default LobbyPage;
