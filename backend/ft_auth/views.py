@@ -17,11 +17,17 @@ from django_otp.plugins.otp_email.models import EmailDevice
 from django.urls import reverse
 
 def oauth(request):
-	return redirect(API_AUTH_URI)
+	print('fucking')
+	
+	# request.META['Origin'] = 'http://localhost:8000/api/auth/callback'
+	response = HttpResponse(API_AUTH_URI)
+	# response['Origin'] = 'http://localhost:8000'
+	return response
 
 class Callback(View): # TODO: POST otp check function
 	def get(self, request):
 		code = request.GET.get('code')
+		print(code)
 		if code is None:
 			return JsonResponse({'error': 'No code'}, status=400)
 		data = {
@@ -63,7 +69,8 @@ class Callback(View): # TODO: POST otp check function
 			return redirect('otp')	
 			# return JsonResponse({'otp': 'true'}, status=200)
 		else:
-			return redirect_main_page(user)
+			# return redirect_main_page(user)
+			return JsonResponse({'otp': 'true'}, status=200)
 			# response = JsonResponse({'otp', 'false'}, status=200)
 			# tokens = generate_jwt(user)
 			# response.set_cookie('access_token', tokens['access_token'])

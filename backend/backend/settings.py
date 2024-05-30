@@ -62,6 +62,7 @@ INSTALLED_APPS = [
 	'django_otp.plugins.otp_email',
 	'rest_framework',
 	'rest_framework_simplejwt',
+    'corsheaders',
 ]
 
 # settings.py
@@ -94,6 +95,7 @@ SIMPLE_JWT = {
 AUTH_USER_MODEL = 'ft_user.CustomUser'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -103,6 +105,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	'ft_auth.middleware.CustomAuthentication',
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'backend.urls'
 

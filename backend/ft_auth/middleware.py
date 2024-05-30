@@ -28,6 +28,7 @@ class CustomAuthentication:
 			return self.get_response(request)
 		if any(valid_urls):
 			if request_user == None or request_user.is_anonymous:
+				print('here')
 				return JsonResponse({'error': 'Anonymous User'}, status=400)
 			if request_user.is_authenticated:
 				try:
@@ -47,4 +48,8 @@ class CustomAuthentication:
 						return JsonResponse({'error': 'Invalid Token'}, status=400)
 			else:
 				return JsonResponse({'error': 'not user authenticated'}, status=400)
-		return self.get_response(request)
+		# headers = request.headers
+		# origin = headers['Origin']
+		response = self.get_response(request)
+		# response.META['Access-Control-Allow-Origin'] = origin
+		return response
