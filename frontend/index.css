@@ -8,6 +8,7 @@
   --gray60: #585858;
   --gray70: #383838;
   --black: #181818;
+  --bs-scrollbar-width: 0;
 }
 
 @font-face {
@@ -22,8 +23,11 @@
   font-weight: normal;
 }
 
+::-webkit-scrollbar {
+  width: var(--bs-scrollbar-width);
+}
 body {
-  overflow: hidden;
+  /* overflow: hidden; */
   font-family: "Quantico";
   background-color: var(--black);
   color: var(--white);
@@ -92,4 +96,11 @@ div.modal-content {
   padding: 10px;
   border-radius: 10px;
   background-color: var(--gray10);
+}
+
+button {
+  background-color: var(--gray70);
+  color: var(--white);
+  border-radius: 10px;
+  padding: 5px 10px;
 }

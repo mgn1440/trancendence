@@ -1,99 +1,118 @@
 import { createElement } from "./client";
 
-const diffTextVDOM = (newVDOM, currentVDOM) => {
+const diff = (vOldNode, vNewNode) => {
+  if (vNewNode === undefined || vNewNode === null) {
+    // if new node is undefined, remove the old node
+    return ($node) => {
+      $node.remove();
+      return undefined;
+    };
+  }
+
   if (
-    (typeof newVDOM === "string" && typeof currentVDOM === "string") ||
-    (typeof newVDOM === "number" && typeof currentVDOM === "number") ||
-    (typeof newVDOM === "string" && typeof currentVDOM === "number") ||
-    (typeof newVDOM === "number" && typeof currentVDOM === "string")
+    typeof vOldNode === "string" ||
+    typeof vNewNode === "string" ||
+    typeof vOldNode === "number" ||
+    typeof vNewNode === "number"
   ) {
-    return true;
-  }
-  // if (newVDOM === currentVDOM) return false;
-  return false;
-};
-
-const updateElement = (parent, newVDOM, currentVDOM, index = 0) => {
-  let removeIndex;
-  const hasOnlyCurrentVDOM =
-    (newVDOM === null || newVDOM === undefined) &&
-    currentVDOM !== null &&
-    currentVDOM !== undefined;
-
-  const hasOnlyNewVDOM =
-    (currentVDOM === null || currentVDOM === undefined) &&
-    newVDOM !== null &&
-    newVDOM !== undefined;
-
-  if (parent.childNodes) {
-    if (hasOnlyCurrentVDOM) {
-      parent.removeChild(parent.childNodes[index]);
-      return index;
-    }
-  }
-
-  if (hasOnlyNewVDOM) {
-    parent.appendChild(createElement(newVDOM));
-    return;
-  }
-
-  // if (diffTextVDOM(newVDOM, currentVDOM)) {
-  if (diffTextVDOM(newVDOM, currentVDOM) && newVDOM != currentVDOM) {
-    parent.replaceChild(createElement(newVDOM), parent.childNodes[index]);
-    return;
-  }
-
-  if (
-    (typeof newVDOM === "number" || typeof newVDOM === "string") &&
-    (typeof currentVDOM === "number" || typeof currentVDOM === "string")
-  )
-    return;
-  if (!newVDOM || !currentVDOM) return;
-  if (newVDOM.type !== currentVDOM.type) {
-    parent.replaceChild(createElement(newVDOM), parent.childNodes[index]);
-    return;
-  }
-
-  updateAttributes(
-    parent.childNodes[index],
-    newVDOM.props ?? {},
-    currentVDOM.props ?? {}
-  );
-
-  const maxLength = Math.max(
-    newVDOM.children.length,
-    currentVDOM.children.length
-  );
-
-  for (let i = 0; i < maxLength; i++) {
-    const _removeIndex = updateElement(
-      parent.childNodes[index],
-      newVDOM.children[i],
-      currentVDOM.children[i],
-      removeIndex ?? i
-    );
-    removeIndex = _removeIndex;
-  }
-};
-
-const updateAttributes = (target, newProps, currentProps) => {
-  for (const [attr, value] of Object.entries(newProps)) {
-    if (currentProps[attr] !== newProps[attr])
-      // target.setAttribute(attr, value);
-      target[attr] = value;
-  }
-
-  for (const attr of Object.keys(currentProps)) {
-    if (newProps[attr] !== undefined) continue;
-    if (attr.startsWith("on")) {
-      // target.setAttribute(attr, null);
-      target[attr] = null;
-    } else if (attr.startsWith("class")) {
-      target.removeAttribute("class");
+    // if more than one of the nodes is a string
+    if (vOldNode !== vNewNode) {
+      console.log("vOldNode", vOldNode, vNewNode);
+      // if the strings are different, replace
+      return ($node) => {
+        const $newNode = createElement(vNewNode);
+        $node.replaceWith($newNode);
+        return $newNode;
+      };
     } else {
-      target.removeAttribute(attr);
+      // if the strings are the same, do nothing
+      return ($node) => $node;
     }
   }
+
+  if (vOldNode.type !== vNewNode.type) {
+    // if the tags are different, replace
+    return ($node) => {
+      const $newNode = createElement(vNewNode);
+      $node.replaceWith($newNode);
+      return $newNode;
+    };
+  }
+
+  const patchAttrs = diffAttrs(vOldNode.props, vNewNode.props);
+  const patchChildren = diffChildren(vOldNode.children, vNewNode.children);
+
+  return ($node) => {
+    patchAttrs($node);
+    patchChildren($node);
+    return $node;
+  };
 };
 
-export { updateElement };
+const diffAttrs = (oldAttrs, newAttrs) => {
+  const patches = [];
+
+  if (newAttrs) {
+    for (const [k, v] of Object.entries(newAttrs)) {
+      // push into
+      patches.push(($node) => {
+        // push newAttrs into patches
+        $node.setAttribute(k, v);
+        return $node;
+      });
+    }
+  }
+
+  for (const k in oldAttrs) {
+    if (!(k in newAttrs)) {
+      patches.push(($node) => {
+        // delete props
+        $node.removeAttribute(k);
+        return $node;
+      });
+    }
+  }
+
+  return ($node) => {
+    for (const patch of patches) {
+      patch($node);
+    }
+    return $node;
+  };
+};
+
+const diffChildren = (vOldChildren, vNewChildren) => {
+  const childPatches = [];
+  vOldChildren.forEach((vOldChild, i) => {
+    childPatches.push(diff(vOldChild, vNewChildren[i]));
+  });
+
+  const additionalPatches = [];
+  for (const additionalChild of vNewChildren.slice(vOldChildren.length)) {
+    additionalPatches.push(($node) => {
+      $node.appendChild(createElement(additionalChild));
+      return $node;
+    });
+  }
+
+  return ($parent) => {
+    for (const [patch, child] of zip(childPatches, $parent.childNodes)) {
+      patch(child);
+    }
+
+    for (const patch of additionalPatches) {
+      patch($parent);
+    }
+    return $parent;
+  };
+};
+
+const zip = (xs, ys) => {
+  const zipped = [];
+  for (let i = 0; i < Math.min(xs.length, ys.length); i++) {
+    zipped.push([xs[i], ys[i]]);
+  }
+  return zipped;
+};
+
+export default diff;
