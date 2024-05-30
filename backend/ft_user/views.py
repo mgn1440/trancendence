@@ -33,10 +33,10 @@ class UserDetailView(generics.RetrieveAPIView):
         serializer = self.get_serializer(user)
         return JsonResponse(serializer.data, status=200)
 
-@method_decorator(csrf_exempt, name='dispatch')
 class UserWinUpdateView(APIView):
     # permission_classes = [IsAuthenticated]
     
+    # @method_decorator(csrf_exempt, name='dispatch')
     def post(self, request):
         access_token = request.COOKIES.get('access_token')
         try:
@@ -52,10 +52,10 @@ class UserWinUpdateView(APIView):
         except CustomUser.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
 
-@method_decorator(csrf_exempt, name='dispatch')
 class UserLoseUpdateView(APIView):
     # permission_classes = [IsAuthenticated]
     
+    # @method_decorator(csrf_exempt, name='dispatch')
     def post(self, request):
         access_token = request.COOKIES.get('access_token')
         try:

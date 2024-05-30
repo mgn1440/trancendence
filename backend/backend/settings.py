@@ -59,6 +59,7 @@ INSTALLED_APPS = [
 	'ft_user',
 	'ft_auth',
 	'ft_game',
+	'ft_lounge',
 	'channels',
 	'django_otp',
     'django_otp.plugins.otp_totp',
@@ -92,7 +93,7 @@ from datetime import timedelta
 SIMPLE_JWT = {
   # It will work instead of the default serializer(TokenObtainPairSerializer).
 	"TOKEN_OBTAIN_SERIALIZER": "ft_auth.serializers.MyTokenObtainPairSerializer",
-	"ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+	"ACCESS_TOKEN_LIFETIME": timedelta(minutes=300),
 	"REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 	"ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,

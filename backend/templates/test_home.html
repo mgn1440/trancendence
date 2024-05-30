@@ -13,7 +13,8 @@
         <button type="button" onclick="sendOtpStatus()">Submit</button>
     </form>
 
-    <button id="joinGameButton">게임 방 입장</button>
+    <button id="joinGameButton1">게임 방 1 입장</button>
+    <button id="joinGameButton2">게임 방 2 입장</button>
 
     <script>
         function getCookie(name) {
@@ -54,8 +55,12 @@
             });
         }
 
-        document.getElementById('joinGameButton').addEventListener('click', function() {
-            window.location.href = '/api/game/game_room';
+        document.getElementById('joinGameButton1').addEventListener('click', function() {
+            window.location.href = '/api/game/room/1';
+        });
+
+        document.getElementById('joinGameButton2').addEventListener('click', function() {
+            window.location.href = '/api/game/room/2';
         });
     </script>
 </body>
