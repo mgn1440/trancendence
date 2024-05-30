@@ -59,6 +59,7 @@ INSTALLED_APPS = [
 	'ft_user',
 	'ft_auth',
 	'ft_game',
+	'ft_lounge',
 	'channels',
 	'django_otp',
     'django_otp.plugins.otp_totp',
