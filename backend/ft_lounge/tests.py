@@ -92,6 +92,7 @@ class CreateGameRoomViewTestCase(APITestCase):
 		response = self.client.post(url, data, format='json')
 		self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 		response_data = json.loads(response.json())
+		print(response_data)
 		self.assertEqual(response_data['room_name'], 'sunko_room')
 		self.assertEqual(response_data['room_size'], 2)
 		self.assertEqual(response_data['current_players'], 0)
