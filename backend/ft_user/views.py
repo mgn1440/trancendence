@@ -36,7 +36,7 @@ class UserDetailView(generics.RetrieveAPIView):
 class UserWinUpdateView(APIView):
     # permission_classes = [IsAuthenticated]
     
-    @method_decorator(csrf_exempt, name='dispatch')
+    # @method_decorator(csrf_exempt, name='dispatch')
     def post(self, request):
         access_token = request.COOKIES.get('access_token')
         try:
@@ -55,7 +55,7 @@ class UserWinUpdateView(APIView):
 class UserLoseUpdateView(APIView):
     # permission_classes = [IsAuthenticated]
     
-    @method_decorator(csrf_exempt, name='dispatch')
+    # @method_decorator(csrf_exempt, name='dispatch')
     def post(self, request):
         access_token = request.COOKIES.get('access_token')
         try:

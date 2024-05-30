@@ -92,7 +92,7 @@ from datetime import timedelta
 SIMPLE_JWT = {
   # It will work instead of the default serializer(TokenObtainPairSerializer).
 	"TOKEN_OBTAIN_SERIALIZER": "ft_auth.serializers.MyTokenObtainPairSerializer",
-	"ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+	"ACCESS_TOKEN_LIFETIME": timedelta(minutes=300),
 	"REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 	"ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
@@ -108,7 +108,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
