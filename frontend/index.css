@@ -97,3 +97,10 @@ div.modal-content {
   border-radius: 10px;
   background-color: var(--gray10);
 }
+
+button {
+  background-color: var(--gray70);
+  color: var(--white);
+  border-radius: 10px;
+  padding: 5px 10px;
+}

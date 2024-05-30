@@ -3,7 +3,8 @@ import MainPage from "../pages/Main";
 import LobbyPage from "../pages/Lobby";
 import RoomPage from "../pages/GameRoom";
 import GamePage from "../pages/Game";
-import TestPage from "../pages/Test";
+import TwoFactorAuthPage from "../pages/TwoFactorAuth";
+// import TestPage from "../pages/Test";
 
 export const routes = [
   {
@@ -11,6 +12,11 @@ export const routes = [
     element: MainPage,
     errorElement: NotFoundPage,
     children: [
+      {
+        path: "TwoFactorAuth",
+        element: TwoFactorAuthPage,
+        children: []
+      },
       {
         path: "lobby",
         element: LobbyPage,

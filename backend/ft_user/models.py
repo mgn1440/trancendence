@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
 class CustomUser(AbstractUser):
 	uid = models.IntegerField(unique=True, null=True)
 	otp_enabled = models.BooleanField(default=False, null=True)

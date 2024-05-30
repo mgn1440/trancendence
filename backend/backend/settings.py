@@ -49,6 +49,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -57,6 +58,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 	'ft_user',
 	'ft_auth',
+	'ft_game',
+	'ft_lounge',
+	'channels',
 	'django_otp',
     'django_otp.plugins.otp_totp',
 	'django_otp.plugins.otp_email',
@@ -64,6 +68,14 @@ INSTALLED_APPS = [
 	'rest_framework_simplejwt',
     'corsheaders',
 ]
+
+ASGI_APPLICATION = 'backend.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer'
+	}
+}
 
 # settings.py
 REST_FRAMEWORK = {
@@ -82,7 +94,7 @@ from datetime import timedelta
 SIMPLE_JWT = {
   # It will work instead of the default serializer(TokenObtainPairSerializer).
 	"TOKEN_OBTAIN_SERIALIZER": "ft_auth.serializers.MyTokenObtainPairSerializer",
-	"ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
+	"ACCESS_TOKEN_LIFETIME": timedelta(minutes=300),
 	"REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 	"ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
@@ -170,7 +182,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization 
+# Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
@@ -195,4 +207,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #load env
 
-
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'ASYNC_CLIENT_CLASS': "django_redis.client.AsyncClient", # add async cache
+        }
+    }
+}
