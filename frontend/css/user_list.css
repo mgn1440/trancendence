@@ -1,0 +1,59 @@
+@import url("./color.css");
+
+:root {
+  --bs-scrollbar-width: 0;
+}
+
+::-webkit-scrollbar {
+  width: var(--bs-scrollbar-width);
+}
+
+.user-list {
+  width: 16rem;
+  height: calc(100vh - 3rem);
+  background-color: var(--black);
+  border-left: 1px solid var(--white);
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: start;
+  align-items: start;
+  overflow-y: auto;
+}
+
+.user-item {
+  display: flex;
+  flex-flow: row nowrap;
+  margin-top: 1rem;
+  margin-left: 0.5rem;
+  align-items: center;
+  transition: transform 0.1s ease;
+}
+
+.user-item:hover {
+  z-index: 1;
+  transform: scale(1.03);
+}
+
+.user-item > .profile {
+  position: relative;
+}
+
+.user-item > .profile > img {
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 1.5rem;
+  border: 2px solid var(--gray40);
+}
+
+.user-item > .profile > span {
+  position: absolute;
+  color: var(--green);
+  left: 2.2rem;
+  top: 2.2rem;
+}
+
+.user-item > .user-info {
+  display: flex;
+  flex-flow: column nowrap;
+  margin-left: 0.5rem;
+}
