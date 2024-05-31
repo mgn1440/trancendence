@@ -1,15 +1,16 @@
 from django.shortcuts import render
 from django.views import View
-from .models import CustomUser
+from .models import CustomUser, GameRecord
 from django.http import JsonResponse
 from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
-from .serializers import CustomUserSerializer
+from .serializers import CustomUserSerializer, GameRecordSerializer
 from rest_framework import generics
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-
+from rest_framework.exceptions import NotFound
+from rest_framework.generics import ListAPIView
 
 class OtpUpdateView(APIView): #TODO: 미들웨어에서는 request.user가 잘 로그인 되어있다가 여기서는 AnonymousUser로 나옴. 이유를 찾아야함.
     # permission_classes = [IsAuthenticated]
@@ -88,3 +89,14 @@ class UserLoseUpdateView(APIView):
             return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=401)
         except CustomUser.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
+
+class GameRecordListView(ListAPIView):
+    serializer_class = GameRecordSerializer
+
+    def get_queryset(self):
+        user_id = self.kwargs['user_id']
+        try:
+            user = CustomUser.objects.get(uid=user_id)
+            return GameRecord.objects.filter(user=user)
+        except CustomUser.DoesNotExist:
+            raise NotFound("User does not exist")
