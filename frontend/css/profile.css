@@ -1,0 +1,186 @@
+@import url(./color.css);
+
+.profile-img {
+  width: 40%;
+  max-width: 35rem;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+}
+
+.profile-img > img {
+  width: 100%;
+  aspect-ratio: 1/1;
+  border-radius: 50%;
+  padding: 1rem;
+}
+
+.profile-img-btn {
+  width: 10rem;
+  height: 2rem;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  border-radius: 0.5rem;
+  padding-left: 1rem;
+  margin: 0.5rem;
+}
+
+.profile-img-btn > img {
+  margin-right: 0.5rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+.follow-btn {
+  width: 7rem;
+  height: 2rem;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  border-radius: 0.5rem;
+  padding-left: 1rem;
+  margin: 0.5rem;
+}
+
+.follow-btn > img {
+  margin-right: 0.5rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+.profile-main {
+  width: 60%;
+  height: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+  overflow-y: auto;
+}
+
+.profile-info {
+  padding: 1rem;
+}
+
+.profile-info > div > * {
+  display: inline-block;
+}
+
+.profile-info > div > p {
+  margin-left: 1rem;
+}
+
+.profile-info > p {
+  margin-top: 1rem;
+}
+
+.profile-log {
+  width: 100%;
+  flex: 1;
+  height: 70%;
+  max-height: 70%;
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+.profile-log > div {
+  height: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+  overflow-y: auto;
+}
+
+.profile-log > div > button {
+  width: 1.8rem;
+  height: 4rem;
+  border: 1px solid var(--white);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 1rem 0 0 0.2rem;
+}
+
+.profile-log > div > button.selected {
+  background-color: var(--white);
+  color: var(--primary-color);
+}
+
+.vertical-text {
+  transform: rotate(-90deg);
+  display: inline-block;
+}
+
+.log-container {
+  flex: 1;
+  margin-right: 1rem;
+  /* background-color: var(--black); */
+  border-radius: 0 0 0 1rem;
+  border-left: 2px solid var(--white);
+  display: flex;
+  flex-flow: column nowrap;
+  overflow-y: auto;
+}
+
+.log-single-item {
+  margin: 0.3rem 0.6rem;
+  padding: 0.5rem;
+  border-radius: 0 0.5rem 0 1rem;
+  border: 1px solid var(--white);
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.log-result {
+  margin-right: 1rem;
+}
+
+.log-multi-item {
+  margin: 0.3rem 0.6rem;
+  padding: 0.5rem;
+  border-radius: 0 0.5rem 0 1rem;
+  border: 1px solid var(--white);
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.log-multi-info {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+}
+
+.log-multi-info > div > div > img {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+}
+
+.log-multi-info > div > div > h6 {
+  margin: 0.5rem;
+}
+
+.log-multi-info > div > div > img.my-profile {
+  border: 2px solid var(--neon);
+}
+
+.log-multi-info > div > div > h6.my-profile {
+  color: var(--neon);
+}
+
+.log-single-item > div {
+  display: flex;
+  align-items: center;
+}
+
+.log-single-item > div > img {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+}
+
+.log-single-item > div > h4 {
+  margin-left: 1rem;
+}

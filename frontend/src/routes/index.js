@@ -4,7 +4,8 @@ import LobbyPage from "../pages/Lobby";
 import RoomPage from "../pages/GameRoom";
 import GamePage from "../pages/Game";
 import TwoFactorAuthPage from "../pages/TwoFactorAuth";
-// import TestPage from "../pages/Test";
+import ProfilePage from "../pages/Profile";
+import TestPage from "../pages/Test";
 
 export const routes = [
   {
@@ -15,7 +16,7 @@ export const routes = [
       {
         path: "TwoFactorAuth",
         element: TwoFactorAuthPage,
-        children: []
+        children: [],
       },
       {
         path: "lobby",
@@ -24,6 +25,19 @@ export const routes = [
           {
             path: ":id",
             element: RoomPage,
+          },
+        ],
+      },
+      {
+        path: "profile",
+        children: [
+          {
+            path: "me",
+            element: ProfilePage,
+          },
+          {
+            path: ":id",
+            element: ProfilePage,
           },
         ],
       },

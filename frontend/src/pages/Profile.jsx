@@ -1,18 +1,18 @@
 import UserList from "./components/UserList";
-import Profile from "./components/LobbyProfile";
-import LobbyRooms from "./components/LobbyRooms";
+import ProfileImg from "./components/ProfileImg";
+import ProfileInfo from "./components/ProfileInfo";
 import TopNavBar from "./components/TopNavBar";
 
-const LobbyPage = () => {
+const ProfilePage = () => {
   return (
     <div>
       <div id="top">
         <TopNavBar />
       </div>
       <div id="middle">
-        <div class="main-section flex-column">
-          <Profile />
-          <LobbyRooms />
+        <div class="main-section flex-row">
+          <ProfileImg />
+          <ProfileInfo />
         </div>
         <UserList />
       </div>
@@ -20,4 +20,4 @@ const LobbyPage = () => {
   );
 };
 
-export default LobbyPage;
+export default ProfilePage;

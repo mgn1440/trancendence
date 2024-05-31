@@ -10,7 +10,7 @@
   height: 90%;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
-  border: 1px solid var(--white);
+  /* border: 1px solid var(--white); */
   margin: 0.5rem;
 }
 
