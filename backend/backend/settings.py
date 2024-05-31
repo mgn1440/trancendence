@@ -67,7 +67,6 @@ INSTALLED_APPS = [
 	'django_otp.plugins.otp_email',
 	'rest_framework',
 	'rest_framework_simplejwt',
-    'corsheaders',
 ]
 
 ASGI_APPLICATION = 'backend.asgi.application'
