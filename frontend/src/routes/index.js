@@ -5,7 +5,6 @@ import RoomPage from "../pages/GameRoom";
 import GamePage from "../pages/Game";
 import TwoFactorAuthPage from "../pages/TwoFactorAuth";
 import ProfilePage from "../pages/Profile";
-import TestPage from "../pages/Test";
 
 export const routes = [
   {
@@ -14,7 +13,7 @@ export const routes = [
     errorElement: NotFoundPage,
     children: [
       {
-        path: "TwoFactorAuth",
+        path: "2fa",
         element: TwoFactorAuthPage,
         children: [],
       },

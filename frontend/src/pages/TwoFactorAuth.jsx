@@ -2,6 +2,11 @@ import { useEffect, useState } from "../lib/dom";
 import { createElement } from "../lib/createElement";
 import axios from "axios";
 
+function get_cookie(name) {
+  var value = document.cookie.match("(^|;) ?" + name + "=([^;]*)(;|$)");
+  return value ? value[2] : null;
+}
+
 const isFull = (inputs) => {
   for (let i = 0; i < inputs.length; i++) {
     if (inputs[i].value === "") {
@@ -12,6 +17,9 @@ const isFull = (inputs) => {
 };
 
 const OTP = ({ len }) => {
+  const MoveToLobby = () => {
+    window.location.href = "/lobby";
+  };
   useEffect(() => {
     const inputs = document.querySelectorAll(".otp .input");
     let backspacePressed = false;
@@ -20,11 +28,10 @@ const OTP = ({ len }) => {
       input.addEventListener("input", (e) => {
         const value = e.target.value;
         if (value != "") {
-          if(value.match(/[^0-9]/g)){
-            e.target.value =  e.target.value.replace(/[^0-9]/g, '');
+          if (value.match(/[^0-9]/g)) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, "");
             return;
-          }
-          else if (index !== len - 1) {
+          } else if (index !== len - 1) {
             inputs[index + 1].focus();
           } else if (isFull(inputs)) {
             inputs.forEach((input) => {
@@ -32,17 +39,19 @@ const OTP = ({ len }) => {
             });
             axios({
               method: "post",
-              url: "/api/auth/otp",
+              url: "http://localhost:8000/api/auth/otp/",
+              withCredentials: true,
               data: {
-                "otp": Array.from(inputs).map((input) => input.value).join("")
-              }
-            })
-            .then(
-              inputs.forEach((input) => {
-                input.classList.toggle("bg-gray30"); //css toggle
-              })
-            )
-            console.log(Array.from(inputs).map((input) => input.value).join(""));
+                otp: Array.from(inputs)
+                  .map((input) => input.value)
+                  .join(""),
+              },
+            }).then(MoveToLobby());
+            console.log(
+              Array.from(inputs)
+                .map((input) => input.value)
+                .join("")
+            );
           }
         }
       });
@@ -52,20 +61,18 @@ const OTP = ({ len }) => {
           if (index > 0 && index !== len - 1) {
             inputs[index - 1].focus();
             inputs[index - 1].value = "";
-          }
-          else if (index === len - 1 && inputs[index].value === "") {
+          } else if (index === len - 1 && inputs[index].value === "") {
             inputs[index - 1].focus();
             inputs[index - 1].value = "";
-          }
-          else if (index === len - 1 && inputs[index].value !== "") {
+          } else if (index === len - 1 && inputs[index].value !== "") {
             inputs[index].value = "";
             backspacePressed = false;
           }
-        }
-        else if (["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].includes(e.key)) {
+        } else if (
+          ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].includes(e.key)
+        ) {
           backspacePressed = false;
-        }
-        else {
+        } else {
           e.preventDefault();
           backspacePressed = false;
         }
@@ -73,8 +80,8 @@ const OTP = ({ len }) => {
       input.addEventListener("blur", (e) => {
         if ((e.target.value === "" && !backspacePressed) || isFull(inputs)) {
           if (!isResendClicked) {
-          e.preventDefault();
-          e.target.focus();
+            e.preventDefault();
+            e.target.focus();
           }
           isResendClicked = false;
         }
@@ -121,18 +128,22 @@ const resendBtn = () => {
     const z = document.createElement("button");
     z.className = "small-btn";
     z.innerText = "resend";
-    z.addEventListener('mousedown', (e) => {
+    z.addEventListener("mousedown", (e) => {
       e.preventDefault();
     });
     z.onclick = () => {
       isResendClicked = true;
       // /api/auth/otp #get 요청
+      axios({
+        method: "get",
+        url: "http://localhost:8000/api/auth/otp/",
+        withCredentials: true,
+      }).then(console.log("resend"));
       resendBtn();
     };
     bottom.appendChild(z);
   }, 5000); // 5000 밀리초 = 5초
 };
-
 
 const clearInputs = () => {
   const inputs = document.querySelectorAll(".otp input");
