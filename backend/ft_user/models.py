@@ -20,7 +20,7 @@ class CustomUser(AbstractUser):
 		self.refresh_token = refresh_token
 		self.save()
 
-class GameRecord(models.Model):
+class SingleGameRecord(models.Model):
 	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE) # 유저는 여러개의 전적을 가질 수 있다.
 	user_score = models.IntegerField()
 	opponent_id = models.IntegerField()

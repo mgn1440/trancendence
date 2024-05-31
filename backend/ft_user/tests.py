@@ -1,7 +1,7 @@
 from django.test import TestCase
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
-from .models import CustomUser, GameRecord
+from .models import CustomUser, SingleGameRecord
 from django.urls import reverse
 from .serializers import CustomUserSerializer
 import json
@@ -32,15 +32,15 @@ class UserDetailViewTest(APITestCase):
 		response = self.client.get('/api/user/2')
 		self.assertEqual(response.status_code, 301) # permission denied and redirect
 
-class GameRecordListTest(APITestCase):
+class SingleGameRecordListTest(APITestCase):
 	def setUp(self):
 		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
 		self.user2 = CustomUser.objects.create_user(username="guma", uid=2)
 
-		GameRecord.objects.create(user=self.user, user_id=self.user.uid, user_score=5, opponent_id=self.user2.uid, opponent_score=1)
-		GameRecord.objects.create(user=self.user, user_id=self.user.uid, user_score=3, opponent_id=self.user2.uid, opponent_score=5)
-		GameRecord.objects.create(user=self.user2, user_id=self.user2.uid, user_score=1, opponent_id=self.user.uid, opponent_score=5)
-		GameRecord.objects.create(user=self.user2, user_id=self.user2.uid, user_score=5, opponent_id=self.user.uid, opponent_score=3)
+		SingleGameRecord.objects.create(user=self.user, user_id=self.user.uid, user_score=5, opponent_id=self.user2.uid, opponent_score=1)
+		SingleGameRecord.objects.create(user=self.user, user_id=self.user.uid, user_score=3, opponent_id=self.user2.uid, opponent_score=5)
+		SingleGameRecord.objects.create(user=self.user2, user_id=self.user2.uid, user_score=1, opponent_id=self.user.uid, opponent_score=5)
+		SingleGameRecord.objects.create(user=self.user2, user_id=self.user2.uid, user_score=5, opponent_id=self.user.uid, opponent_score=3)
 
 	def test_get_game_records_for_user(self):
 		url = reverse('game_record', kwargs={'user_id': self.user.uid})

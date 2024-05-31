@@ -1,11 +1,11 @@
 from django.shortcuts import render
 from django.views import View
-from .models import CustomUser, GameRecord
+from .models import CustomUser, SingleGameRecord
 from django.http import JsonResponse
 from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
-from .serializers import CustomUserSerializer, GameRecordSerializer
+from .serializers import CustomUserSerializer, SingleGameRecordSerializer
 from rest_framework import generics
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -61,7 +61,7 @@ class UserMeView(generics.RetrieveAPIView):
 
 class UserWinUpdateView(View):
 	# permission_classes = [IsAuthenticated]
-	
+
 	# @method_decorator(csrf_exempt, name='dispatch')
 	def post(self, request):
 		access_token = request.token
@@ -95,14 +95,14 @@ class UserLoseUpdateView(View):
 		except CustomUser.DoesNotExist:
 			return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
 
-class GameRecordListView(ListAPIView):
-    serializer_class = GameRecordSerializer
+class SingleGameRecordListView(ListAPIView):
+    serializer_class = SingleGameRecordSerializer
 
     def get_queryset(self):
         user_id = self.kwargs['user_id']
         try:
             user = CustomUser.objects.get(uid=user_id)
-            return GameRecord.objects.filter(user=user)
+            return SingleGameRecord.objects.filter(user=user)
         except CustomUser.DoesNotExist:
             raise NotFound("User does not exist")
 
@@ -146,7 +146,7 @@ class FriendView(View):
 				return JsonResponse({'statusCode': '400', 'message': '존재하지 않는 유저입니다.'}, status=400)
 			print(e)
 			return JsonResponse({'statusCode': '400', 'message': '친구추가 에러'}, status=400)
-		
+
 def logout(request):
 	response = JsonResponse({'status': 'success'}, status=200)
 	response.delete_cookie('access_token')
