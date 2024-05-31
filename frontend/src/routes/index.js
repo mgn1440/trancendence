@@ -5,7 +5,8 @@ import RoomPage from "../pages/GameRoom";
 import GamePage from "../pages/Game";
 import TwoFactorAuthPage from "../pages/TwoFactorAuth";
 import ProfilePage from "../pages/Profile";
-import TestPage from "../pages/Test";
+import ProfileConfigPage from "../pages/ProfileConfig";
+// import TestPage from "../pages/Test";
 
 export const routes = [
   {
@@ -38,6 +39,12 @@ export const routes = [
           {
             path: ":id",
             element: ProfilePage,
+            children: [
+              {
+                path: "config",
+                element: ProfileConfigPage,
+              },
+            ],
           },
         ],
       },
