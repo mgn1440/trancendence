@@ -8,7 +8,7 @@ import random
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from ft_user.models import CustomUser
-
+from ft_lounge.manager import GameRoomManager
 
 class GameConsumer(AsyncWebsocketConsumer):
     games = {}
@@ -38,6 +38,8 @@ class GameConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
         print(f"{self.username} connected")
+        
+        
         
         #connected_users에 사용자 추가
         self.game['connected_users'].add(self.username)
