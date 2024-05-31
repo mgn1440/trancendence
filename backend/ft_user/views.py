@@ -1,14 +1,16 @@
 from django.shortcuts import render
 from django.views import View
-from .models import CustomUser
+from .models import CustomUser, GameRecord
 from django.http import JsonResponse
 from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
-from .serializers import CustomUserSerializer
+from .serializers import CustomUserSerializer, GameRecordSerializer
 from rest_framework import generics
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from rest_framework.exceptions import NotFound
+from rest_framework.generics import ListAPIView
 import json
 
 class OtpUpdateView(View):
@@ -78,7 +80,6 @@ class UserWinUpdateView(View):
 
 class UserLoseUpdateView(View):
 	# permission_classes = [IsAuthenticated]
-	
 	def post(self, request):
 		access_token = request.token
 		try:
@@ -93,6 +94,17 @@ class UserLoseUpdateView(View):
 			return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=401)
 		except CustomUser.DoesNotExist:
 			return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
+
+class GameRecordListView(ListAPIView):
+    serializer_class = GameRecordSerializer
+
+    def get_queryset(self):
+        user_id = self.kwargs['user_id']
+        try:
+            user = CustomUser.objects.get(uid=user_id)
+            return GameRecord.objects.filter(user=user)
+        except CustomUser.DoesNotExist:
+            raise NotFound("User does not exist")
 
 class FriendView(View):
 	def get(self, request):
@@ -141,3 +153,4 @@ def logout(request):
 	response.delete_cookie('refresh_token')
 	response.delete_cookie('sessionid')
 	return response
+
