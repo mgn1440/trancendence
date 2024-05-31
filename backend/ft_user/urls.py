@@ -7,7 +7,8 @@ urlpatterns = [
 	path('otp/', OtpUpdateView.as_view(), name='otp_update'),
 	path('me/', UserDetailView.as_view(), name='me'),
  	path('win/', UserWinUpdateView.as_view(), name='user_win_update'),
-    path('lose/', UserLoseUpdateView.as_view(), name='user_lose_update'),
+  path('lose/', UserLoseUpdateView.as_view(), name='user_lose_update'),
 	path('friend/', FriendView.as_view(), name='friend'),
 	path('logout/', logout, name='logout')
+  path('<int:uid>/', UserDetailView.as_view(), name='user_detail'),
 ]

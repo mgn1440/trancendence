@@ -67,6 +67,7 @@ INSTALLED_APPS = [
 	'django_otp.plugins.otp_email',
 	'rest_framework',
 	'rest_framework_simplejwt',
+    'corsheaders',
 ]
 
 ASGI_APPLICATION = 'backend.asgi.application'
@@ -134,6 +135,8 @@ MIDDLEWARE = [
 	'ft_auth.middleware.InsertJWT',
 	'ft_auth.middleware.CustomAuthentication',
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'backend.urls'
 

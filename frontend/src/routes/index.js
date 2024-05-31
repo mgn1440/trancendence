@@ -1,7 +1,7 @@
 import NotFoundPage from "../not-found";
 import MainPage from "../pages/Main";
-import MatchPage from "../pages/Match";
-import RoomPage from "../pages/Room";
+import LobbyPage from "../pages/Lobby";
+import RoomPage from "../pages/GameRoom";
 import GamePage from "../pages/Game";
 import TwoFactorAuthPage from "../pages/TwoFactorAuth";
 // import TestPage from "../pages/Test";
@@ -18,8 +18,8 @@ export const routes = [
         children: []
       },
       {
-        path: "match",
-        element: MatchPage,
+        path: "lobby",
+        element: LobbyPage,
         children: [
           {
             path: ":id",
@@ -36,10 +36,10 @@ export const routes = [
           },
         ],
       },
-      // {
-      //   path: "test",
-      //   element: TestPage,
-      // }
+      {
+        path: "test",
+        element: TestPage,
+      },
     ],
   },
 ];
