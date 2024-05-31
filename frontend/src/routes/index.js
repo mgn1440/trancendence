@@ -36,10 +36,10 @@ export const routes = [
           },
         ],
       },
-      {
-        path: "test",
-        element: TestPage,
-      },
+      // {
+      //   path: "test",
+      //   element: TestPage,
+      // },
     ],
   },
 ];

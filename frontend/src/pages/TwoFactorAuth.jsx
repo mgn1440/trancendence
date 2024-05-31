@@ -1,8 +1,6 @@
 import { useEffect, useState } from "../lib/dom";
 import { createElement } from "../lib/createElement";
-
-// const axios = require("axios");
-
+import axios from "axios";
 
 const isFull = (inputs) => {
   for (let i = 0; i < inputs.length; i++) {
@@ -29,7 +27,21 @@ const OTP = ({ len }) => {
           else if (index !== len - 1) {
             inputs[index + 1].focus();
           } else if (isFull(inputs)) {
-            // axios.post("backend_server", { otp: Array.from(inputs).map((input) => input.value).join("")});
+            inputs.forEach((input) => {
+              input.classList.toggle("bg-gray30"); // css toggle
+            });
+            axios({
+              method: "post",
+              url: "/api/auth/otp",
+              data: {
+                "otp": Array.from(inputs).map((input) => input.value).join("")
+              }
+            })
+            .then(
+              inputs.forEach((input) => {
+                input.classList.toggle("bg-gray30"); //css toggle
+              })
+            )
             console.log(Array.from(inputs).map((input) => input.value).join(""));
           }
         }
@@ -60,12 +72,17 @@ const OTP = ({ len }) => {
       });
       input.addEventListener("blur", (e) => {
         if ((e.target.value === "" && !backspacePressed) || isFull(inputs)) {
+          if (!isResendClicked) {
           e.preventDefault();
           e.target.focus();
+          }
+          isResendClicked = false;
         }
         backspacePressed = false;
-      }
-      );
+      });
+      input.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+      });
     });
   }, []);
   return (
@@ -77,48 +94,9 @@ const OTP = ({ len }) => {
   );
 };
 
-//   const TwoFAModal = () => {
-// 	return (
-// 	  <div
-// 		class="modal fade"
-// 		id="twoFAModal"
-// 		data-bs-backdrop="static"
-// 		data-bs-keyboard="false"
-// 		tabindex="-1"
-// 		aria-labelledby="twoFAModalLabel"
-// 		aria-hidden="true"
-// 	  >
-// 		<div class="modal-dialog">
-// 		  <div class="modal-content">
-// 			<div class="modal-header">
-// 			  <h5 class="modal-title" id="twoFAModalLabel">
-// 				2FA
-// 			  </h5>
-// 			  <button
-// 				type="button"
-// 				class="btn-close btn-close-white"
-// 				data-bs-dismiss="modal"
-// 				aria-label="Close"
-// 			  ></button>
-// 			</div>
-// 			<div class="modal-body d-flex justify-content-center align-items-center flex-column">
-// 			  <OTP len={6} />
-// 			</div>
-// 			<div class="modal-footer">
-// 			  <a class="mdSizeBtn" href="/match" data-link="true">
-// 				Submit
-// 			  </a>
-// 			</div>
-// 		  </div>
-// 		</div>
-// 	  </div>
-// 	);
-//   };
-
 const TwoFactorAuthPage = () => {
   useEffect(() => {
     const timer = document.querySelector(".timer");
-    timer.addEventListener("load", startTimer());
     timer.addEventListener("load", resendBtn());
   });
   return (
@@ -126,53 +104,13 @@ const TwoFactorAuthPage = () => {
       <h2 class="mention">Please check your otp!</h2>
       <OTP len={6} />
       <div class="bottom">
-        <div class="timer">
-          <span id="remaining__min">03</span>:<span id="remaining__sec">00</span>
-        </div>
+        <div class="timer"></div>
       </div>
     </div>
   );
 };
 
-let timerId = null;
-const startTimer = () => {
-  if (timerId !== null) {
-    clearInterval(timerId);
-    resendBtn();
-  }
-  const inputs = document.querySelectorAll(".otp .input");
-  inputs.forEach((input) => {
-    input.classList.remove("bg-gray");
-    input.removeAttribute("disabled"); 
-  });
-  inputs[0].focus();
-  const timer = document.querySelector(".timer");
-  timer.innerHTML = "<span id='remaining__min'>03</span>:<span id='remaining__sec'>00</span>";
-  const remainingMin = document.getElementById("remaining__min");
-  const remainingSec = document.getElementById("remaining__sec");
-  // let time = 180;
-  let time = 5;
-  timerId = setInterval(() => {
-    if (time > 0) {
-      time = time - 1;
-      let min = Math.floor(time / 60);
-      let sec = String(time % 60).padStart(2, "0");
-      remainingMin.innerText = min;
-      remainingSec.innerText = sec;
-    }
-    else {
-      clearInterval(timerId);
-      clearInputs();
-      inputs.forEach((input) => {
-        input.classList.add("bg-gray");
-        input.setAttribute("disabled", "true");
-      });
-      document.querySelector(".timer").innerHTML = "<span class='expired'>expired</span>"
-      console.log("time out");
-    }
-  }, 1000);
-};
-
+let isResendClicked = false;
 const resendBtn = () => {
   if (document.querySelector(".small-btn")) {
     document.querySelector(".small-btn").remove();
@@ -183,8 +121,13 @@ const resendBtn = () => {
     const z = document.createElement("button");
     z.className = "small-btn";
     z.innerText = "resend";
+    z.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+    });
     z.onclick = () => {
-      startTimer();
+      isResendClicked = true;
+      // /api/auth/otp #get 요청
+      resendBtn();
     };
     bottom.appendChild(z);
   }, 5000); // 5000 밀리초 = 5초
@@ -196,6 +139,7 @@ const clearInputs = () => {
   inputs.forEach((input) => {
     input.value = "";
   });
+  inputs[0].focus();
 };
 
 export default TwoFactorAuthPage;
