@@ -28,4 +28,16 @@ class SingleGameRecord(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):
-		return f"{self.user.username}'s record at {self.created_at}"
+		return f"{self.user.username}'s single-game-record at {self.created_at}"
+
+class MultiGameRecord(models.Model):
+	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE) # 유저는 여러개의 전적을 가질 수 있다.
+	user_win = models.BooleanField(default=False)
+	opponent1_id = models.IntegerField()
+	opponent2_id = models.IntegerField()
+	opponent3_id = models.IntegerField()
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return f"{self.user.username}'s multi-game-record at {self.created_at}"
+

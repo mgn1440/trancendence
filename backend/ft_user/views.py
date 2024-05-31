@@ -1,11 +1,11 @@
 from django.shortcuts import render
 from django.views import View
-from .models import CustomUser, SingleGameRecord
+from .models import CustomUser, SingleGameRecord, MultiGameRecord
 from django.http import JsonResponse
 from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
-from .serializers import CustomUserSerializer, SingleGameRecordSerializer
+from .serializers import CustomUserSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer
 from rest_framework import generics
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -97,7 +97,6 @@ class UserLoseUpdateView(View):
 
 class SingleGameRecordListView(ListAPIView):
 	serializer_class = SingleGameRecordSerializer
-
 	def get_queryset(self):
 		user_id = self.kwargs['user_id']
 		try:
@@ -105,6 +104,17 @@ class SingleGameRecordListView(ListAPIView):
 			return SingleGameRecord.objects.filter(user=user)
 		except CustomUser.DoesNotExist:
 			raise NotFound("User does not exist")
+
+class MultiGameRecordListView(ListAPIView):
+	serializer_class = MultiGameRecordSerializer
+	def get_queryset(self):
+		user_id = self.kwargs['user_id']
+		try:
+			user = CustomUser.objects.get(uid=user_id)
+			return MultiGameRecord.objects.filter(user=user)
+		except CustomUser.DoesNotExist:
+			raise NotFound("User does not exist")
+
 
 class FriendView(View):
 	def get(self, request):

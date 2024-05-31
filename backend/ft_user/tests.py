@@ -1,7 +1,7 @@
 from django.test import TestCase
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
-from .models import CustomUser, SingleGameRecord
+from .models import CustomUser, SingleGameRecord, MultiGameRecord
 from django.urls import reverse
 from .serializers import CustomUserSerializer
 import json
@@ -43,23 +43,46 @@ class SingleGameRecordListTest(APITestCase):
 		SingleGameRecord.objects.create(user=self.user2, user_id=self.user2.uid, user_score=5, opponent_id=self.user.uid, opponent_score=3)
 
 	def test_get_game_records_for_user(self):
-		url = reverse('game_record', kwargs={'user_id': self.user.uid})
+		url = reverse('single_game_record', kwargs={'user_id': self.user.uid})
 		response = self.client.get(url)
 
 		data_dict = json.loads(response.content)
-		print(data_dict)
+		# print(data_dict)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		self.assertEqual(len(data_dict), 2)
 
-		url = reverse('game_record', kwargs={'user_id': self.user2.uid})
+		url = reverse('single_game_record', kwargs={'user_id': self.user2.uid})
 		response = self.client.get(url)
 		data_dict = json.loads(response.content)
-		print(type(data_dict))
-		print(type(data_dict[0]))
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 	def test_get_game_records_for_user_404(self):
-		url = reverse('game_record', kwargs={'user_id': 100})
+		url = reverse('single_game_record', kwargs={'user_id': 100})
+		response = self.client.get(url)
+		# print(response.data)
+		self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+class MultiGameRecordListTest(APITestCase):
+	def setUp(self):
+		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
+		self.user2 = CustomUser.objects.create_user(username="guma", uid=2)
+		self.user3 = CustomUser.objects.create_user(username="ggomul", uid=3)
+		self.user4 = CustomUser.objects.create_user(username="pull", uid=4)
+
+		MultiGameRecord.objects.create(user=self.user, user_id=self.user.uid, user_win=True, opponent1_id=self.user2.uid, opponent2_id=self.user3.uid, opponent3_id=self.user4.uid)
+		MultiGameRecord.objects.create(user=self.user2, user_id=self.user2.uid, user_win=False, opponent1_id=self.user.uid, opponent2_id=self.user3.uid, opponent3_id=self.user4.uid)
+		MultiGameRecord.objects.create(user=self.user3, user_id=self.user3.uid, user_win=True, opponent1_id=self.user.uid, opponent2_id=self.user2.uid, opponent3_id=self.user4.uid)
+		MultiGameRecord.objects.create(user=self.user4, user_id=self.user4.uid, user_win=False, opponent1_id=self.user.uid, opponent2_id=self.user2.uid, opponent3_id=self.user3.uid)
+
+	def test_get_multi_game_records_for_user(self):
+		url = reverse('muti_game_record', kwargs={'user_id': self.user.uid})
 		response = self.client.get(url)
 		print(response.data)
-		self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+		data_dict = json.loads(response.content)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual(len(data_dict), 1)
+
+		url = reverse('muti_game_record', kwargs={'user_id': self.user2.uid})
+		response = self.client.get(url)
+		data_dict = json.loads(response.content)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
