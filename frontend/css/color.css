@@ -12,6 +12,7 @@
   --black: #000000;
   --red: #ff5050;
   --green: #00f040;
+  --neon: #dbff00;
 }
 
 .bg-primary {
@@ -20,6 +21,10 @@
 
 .bg-black {
   background-color: var(--black);
+}
+
+.bg-red {
+  background-color: var(--red);
 }
 
 .bg-white {
