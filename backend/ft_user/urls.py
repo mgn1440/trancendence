@@ -9,5 +9,5 @@ urlpatterns = [
 	path('win/', UserWinUpdateView.as_view(), name='user_win_update'),
 	path('lose/', UserLoseUpdateView.as_view(), name='user_lose_update'),
 	path('<int:uid>/', UserDetailView.as_view(), name='user_detail'),
-	path('<int:user_id>/game-records/', SingleGameRecordListView.as_view(), name='game_record'),
+	path('<int:user_id>/single-game-records/', SingleGameRecordListView.as_view(), name='game_record'),
 ]
