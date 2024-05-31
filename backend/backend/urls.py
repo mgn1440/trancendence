@@ -24,5 +24,6 @@ urlpatterns = [
 		path("user/", include("ft_user.urls")),
 		path("game/", include("ft_game.urls")),
 	    path("lounge/", include("ft_lounge.urls")),
+		path("game-record/", include("ft_record.urls")),
 	])),
 ]
