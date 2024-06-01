@@ -10,5 +10,5 @@ urlpatterns = [
 	path('lose/', UserLoseUpdateView.as_view(), name='user_lose_update'),
 	path('<int:uid>/', UserDetailView.as_view(), name='user_detail'),
 	path('<int:user_id>/single-game-records/', SingleGameRecordListView.as_view(), name='single_game_record'),
-	path('<int:user_id>/multi-game-records/', MultiGameRecordListView.as_view(), name='muti_game_record'),
+	path('<int:user_id>/multi-game-records/', MultiGameRecordListView.as_view(), name='multi_game_record'),
 ]

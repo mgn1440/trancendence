@@ -6,8 +6,6 @@ from django.urls import reverse
 from .serializers import CustomUserSerializer
 import json
 
-# Create your tests here.
-
 class UserDetailViewTest(APITestCase):
 	def setUp(self):
 		self.client = APIClient()
@@ -47,7 +45,6 @@ class SingleGameRecordListTest(APITestCase):
 		response = self.client.get(url)
 
 		data_dict = json.loads(response.content)
-		# print(data_dict)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		self.assertEqual(len(data_dict), 2)
 
@@ -59,7 +56,6 @@ class SingleGameRecordListTest(APITestCase):
 	def test_get_game_records_for_user_404(self):
 		url = reverse('single_game_record', kwargs={'user_id': 100})
 		response = self.client.get(url)
-		# print(response.data)
 		self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 class MultiGameRecordListTest(APITestCase):
@@ -75,14 +71,18 @@ class MultiGameRecordListTest(APITestCase):
 		MultiGameRecord.objects.create(user=self.user4, user_id=self.user4.uid, user_win=False, opponent1_id=self.user.uid, opponent2_id=self.user2.uid, opponent3_id=self.user3.uid)
 
 	def test_get_multi_game_records_for_user(self):
-		url = reverse('muti_game_record', kwargs={'user_id': self.user.uid})
+		url = reverse('multi_game_record', kwargs={'user_id': self.user.uid})
 		response = self.client.get(url)
-		print(response.data)
 		data_dict = json.loads(response.content)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		self.assertEqual(len(data_dict), 1)
 
-		url = reverse('muti_game_record', kwargs={'user_id': self.user2.uid})
+		url = reverse('multi_game_record', kwargs={'user_id': self.user2.uid})
 		response = self.client.get(url)
 		data_dict = json.loads(response.content)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+	def test_get_multi_game_records_for_user_404(self):
+		url = reverse('multi_game_record', kwargs={'user_id': 100})
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
