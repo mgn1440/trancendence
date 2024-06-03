@@ -60,6 +60,7 @@ INSTALLED_APPS = [
 	'ft_auth',
 	'ft_game',
 	'ft_lounge',
+	# 'ft_onlinestatus',
 	'channels',
 	'corsheaders',
 	'django_otp',
@@ -118,6 +119,7 @@ SIMPLE_JWT = {
     "UPDATE_LAST_LOGIN": False,
     "ALGORITHM": "HS256",
     "SIGNING_KEY": JWT_SECRET_KEY,
+    'USER_ID_FIELD': 'uid',
   # ...
 }
 

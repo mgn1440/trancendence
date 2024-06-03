@@ -59,6 +59,7 @@ class Callback(View): # TODO: POST otp check function
 				return JsonResponse({'error': f'Email Error: {e}'}, status=503)
 			return redirect('http://localhost:5173/otp/')
 		else:
+			print(f'user: {user}, uid : {user.uid} , email: {user.email}')
 			response = redirect('http://localhost:5173/test')
 			tokens = generate_jwt(user)
 			response.set_cookie('access_token', tokens['access_token'])
