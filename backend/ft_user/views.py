@@ -9,8 +9,9 @@ from .serializers import CustomUserSerializer, SingleGameRecordSerializer
 from rest_framework import generics
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, AuthenticationFailed
 from rest_framework.generics import ListAPIView
+from rest_framework.response import Response
 import json
 
 class OtpUpdateView(View):
@@ -51,21 +52,26 @@ class UserDetailView(generics.RetrieveAPIView):
 
 class UserMeView(generics.RetrieveAPIView):
 	serializer_class = CustomUserSerializer
-	def get_object(self, user_id):
+	def get_object(self):
+		access_token = self.request.token
 		try:
-			payload = jwt.decode(user_id, JWT_SECRET_KEY, algorithms=['HS256'])
-			return CustomUser.objects.get(uid=payload['uid'])
+			payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=['HS256'])
+			user = CustomUser.objects.get(uid=payload['uid'])
 		except jwt.ExpiredSignatureError:
-			return JsonResponse({'status': 'error', 'message': 'Token expired'}, status=401)
+			raise AuthenticationFailed('Token expired')
 		except jwt.InvalidTokenError:
-			return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=401)
+			raise AuthenticationFailed('Invalid token')
 		except CustomUser.DoesNotExist:
-			return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
+			raise AuthenticationFailed('User not found')
+		return user
 	def get(self, request, *args, **kwargs):
-		user_id = self.kwargs.get('uid')
-		user = self.get_object(user_id)
-		serializer = self.get_serializer(user)
-		return JsonResponse(serializer.data, status=200)
+		try:
+			user = self.get_object()
+			serializer = self.get_serializer(user)
+			return JsonResponse({'status_code': '200', 'message': serializer.data}, status=200)
+		except AuthenticationFailed as e:
+			return JsonResponse({'status_code': '401', 'message': str(e)}, status=401)
+
 
 class UserWinUpdateView(View):
 	# permission_classes = [IsAuthenticated]
