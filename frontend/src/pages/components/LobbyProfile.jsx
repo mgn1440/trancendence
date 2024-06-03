@@ -1,3 +1,5 @@
+import LobbyButton from "./ LobbyButton";
+
 const LobbyProfile = () => {
   const name = "Hyungjuk";
   const win = 6;
@@ -13,20 +15,7 @@ const LobbyProfile = () => {
           <p>Lose: {lose}</p>
           <p>Rate: {rate}%</p>
         </div>
-        <div>
-          <button class="lobby-game-btn">
-            <img src="/icon/user.svg"></img>
-            Offline Game
-          </button>
-          <button class="lobby-game-btn">
-            <img src="/icon/users.svg"></img>
-            Create Room
-          </button>
-          <button class="lobby-game-btn">
-            <img src="/icon/search.svg"></img>
-            Quick Match
-          </button>
-        </div>
+        <LobbyButton /> 
       </div>
     </div>
   );
