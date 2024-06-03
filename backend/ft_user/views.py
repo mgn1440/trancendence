@@ -52,7 +52,15 @@ class UserDetailView(generics.RetrieveAPIView):
 class UserMeView(generics.RetrieveAPIView):
 	serializer_class = CustomUserSerializer
 	def get_object(self, user_id):
-		return CustomUser.objects.get(uid=user_id)
+		try:
+			payload = jwt.decode(user_id, JWT_SECRET_KEY, algorithms=['HS256'])
+			return CustomUser.objects.get(uid=payload['uid'])
+		except jwt.ExpiredSignatureError:
+			return JsonResponse({'status': 'error', 'message': 'Token expired'}, status=401)
+		except jwt.InvalidTokenError:
+			return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=401)
+		except CustomUser.DoesNotExist:
+			return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
 	def get(self, request, *args, **kwargs):
 		user_id = self.kwargs.get('uid')
 		user = self.get_object(user_id)
