@@ -1,10 +1,12 @@
 import NotFoundPage from "../not-found";
 import MainPage from "../pages/Main";
-import MatchPage from "../pages/Match";
-import RoomPage from "../pages/Room";
+import LobbyPage from "../pages/Lobby";
+import RoomPage from "../pages/GameRoom";
 import GamePage from "../pages/Game";
 import TwoFactorAuthPage from "../pages/TwoFactorAuth";
-// import TestPage from "../pages/Test";
+import ProfilePage from "../pages/Profile";
+import ProfileConfigPage from "../pages/ProfileConfig";
+
 
 export const routes = [
   {
@@ -13,17 +15,36 @@ export const routes = [
     errorElement: NotFoundPage,
     children: [
       {
-        path: "TwoFactorAuth",
+        path: "2fa",
         element: TwoFactorAuthPage,
-        children: []
+        children: [],
       },
       {
-        path: "match",
-        element: MatchPage,
+        path: "lobby",
+        element: LobbyPage,
         children: [
           {
             path: ":id",
             element: RoomPage,
+          },
+        ],
+      },
+      {
+        path: "profile",
+        children: [
+          {
+            path: "me",
+            element: ProfilePage,
+          },
+          {
+            path: ":id",
+            element: ProfilePage,
+            children: [
+              {
+                path: "config",
+                element: ProfileConfigPage,
+              },
+            ],
           },
         ],
       },
@@ -39,7 +60,7 @@ export const routes = [
       // {
       //   path: "test",
       //   element: TestPage,
-      // }
+      // },
     ],
   },
 ];

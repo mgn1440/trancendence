@@ -19,8 +19,7 @@ class CustomUser(AbstractUser):
 	def update_refresh_token(self, refresh_token):
 		self.refresh_token = refresh_token
 		self.save()
-
-
+ 
 class FollowList(models.Model):
 	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 	following_uid = models.IntegerField()
@@ -34,3 +33,13 @@ class FollowList(models.Model):
 		if FollowList.objects.filter(user=self.user, following_uid=self.following_uid).exists():
 			raise Exception('이미 친구로 추가된 사용자입니다.')
 		super().save(*args, **kwargs)
+
+class SingleGameRecord(models.Model):
+	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE) # 유저는 여러개의 전적을 가질 수 있다.
+	user_score = models.IntegerField()
+	opponent_id = models.IntegerField()
+	opponent_score = models.IntegerField()
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return f"{self.user.username}'s record at {self.created_at}"

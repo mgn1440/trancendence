@@ -1,6 +1,6 @@
-const GameRoom = () => {
+const LobbyRoom = () => {
   return (
-    <div class="game-room">
+    <div class="lobby-room">
       <h6>Game Room</h6>
       <p>2/4</p>
     </div>
@@ -9,12 +9,19 @@ const GameRoom = () => {
 
 const LobbyRooms = () => {
   return (
-    <div class="game-rooms">
-      <GameRoom />
-      <GameRoom />
-      <GameRoom />
-      <GameRoom />
-      <GameRoom />
+    <div class="lobby-rooms-main">
+      <div class="lobby-rooms-nav">
+        <button class="selected">
+          <span class="vertical-text selected">Rooms</span>
+        </button>
+      </div>
+      <div class="lobby-rooms">
+        <LobbyRoom />
+        <LobbyRoom />
+        <LobbyRoom />
+        <LobbyRoom />
+        <LobbyRoom />
+      </div>
     </div>
   );
 };

@@ -38,6 +38,10 @@
   position: relative;
 }
 
+.user-item > .profile.sleep {
+  opacity: 0.3;
+}
+
 .user-item > .profile > img {
   width: 3.2rem;
   height: 3.2rem;
@@ -45,11 +49,18 @@
   border: 2px solid var(--gray40);
 }
 
-.user-item > .profile > span {
+.isloggedin.active {
   position: absolute;
   color: var(--green);
-  left: 2.2rem;
-  top: 2.2rem;
+  left: 2.3rem;
+  top: 2.3rem;
+}
+
+.isloggedin.sleep {
+  position: absolute;
+  color: var(--red);
+  left: 2.3rem;
+  top: 2.3rem;
 }
 
 .user-item > .user-info {

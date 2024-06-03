@@ -1,3 +1,4 @@
+@import "./color.css";
 @import "./reset.css";
 /* @import "./font.css"; */
 
@@ -11,13 +12,14 @@
 }
 
 .title{
-	font-size: 4.375rem;
-	font-family: MajorMonoDisplay;
 	text-align: center;
 	margin-bottom: 22px;
 }
 
 .large-btn{
+	background-color: var(--gray70);
+	border-radius: 10px;
+	text-align: center;
 	width: 18rem;
 	height: 4rem;
 	font-size: 2.5rem;

@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from .models import CustomUser, FollowList
+from .models import CustomUser, FollowList, SingleGameRecord
 
 class CustomUserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = CustomUser
-		fields = ['username', 'win', 'lose', 'otp_enabled']
+		fields = ['uid', 'username', 'win', 'lose', 'otp_enabled']
 
 class FollowListSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -20,3 +20,8 @@ class FollowListSerializer(serializers.ModelSerializer):
 		if FollowList.objects.filter(user=user, following_uid=following_uid).exists():
 			raise serializers.ValidationError('이미 친구로 추가된 사용자입니다.')
 		return data
+		
+class SingleGameRecordSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = SingleGameRecord
+		fields = ['user_id', 'user_score', 'opponent_id', 'opponent_score', 'created_at']
