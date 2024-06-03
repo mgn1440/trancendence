@@ -20,7 +20,7 @@ def oauth(request):
 	print('fucking')
 	
 	# request.META['Origin'] = 'http://localhost:8000/api/auth/callback'
-	response = HttpResponse(API_AUTH_URI)
+	response = redirect(API_AUTH_URI)
 	# response['Origin'] = 'http://localhost:8000'
 	return response
 
@@ -63,9 +63,9 @@ class Callback(View): # TODO: POST otp check function
 				send_email(SENDER_EMAIL, user.email, APP_PASSWORD, "Your OTP Code for 2FA", "dfasd", html)
 			except Exception as e:
 				return JsonResponse({'error': f'Email Error: {e}'}, status=503)
-			return redirect('http://localhost:5173/otp/')
+			return redirect('http://localhost:5173/2fa')
 		else:
-			response = redirect('http://localhost:5173/test')
+			response = redirect('http://localhost:5173/lobby')
 			tokens = generate_jwt(user)
 			response.set_cookie('access_token', tokens['access_token'])
 			response.set_cookie('refresh_token', tokens['refresh_token'])
@@ -91,9 +91,13 @@ class OTPView(View):
 		user = request.user
 		if user.otp_enabled:
 			device = EmailDevice.objects.filter(user=user).first()
-			otp_code = request.POST.get('otp')
+			data = json.loads(request.body)
+			print(data)
+			otp_code = data.get('otp')
+			print(otp_code)
+			print(user.username, user.email, user.otp_enabled, user.uid)
 			if otp_code is None:
-				return JsonResponse({'statusCode': 400, "message": "잘못된 otp 코드입니다."}, status=400)
+				return JsonResponse({'statusCode': 400, "message": "없어"}, status=400)
 			if device.verify_token(otp_code):
 				response = JsonResponse({'statusCode': 200, 'message': '인증이 완료 되었습니다'}, status=200)
 				tokens = generate_jwt(user)
@@ -101,9 +105,11 @@ class OTPView(View):
 				response.set_cookie('refresh_token', tokens['refresh_token'])
 				return response
 			else:
-				return JsonResponse({'statusCode': 400, "message": "잘못된 otp 코드입니다."}, status=400)
+				if device.token == otp_code:
+					return JsonResponse({'statusCode': 400, "message": "맞대"}, status=400)
+				return JsonResponse({'statusCode': 400, "message": "안돼"}, status=400)
 		else:
-			return JsonResponse({"'statusCode': 400, message": "잘못된 otp 코드입니다."}, status=400)
+			return JsonResponse({"'statusCode': 400, message": "패스"}, status=400)
 	
 def generate_jwt(user):
 	serializer = MyTokenObtainPairSerializer()
