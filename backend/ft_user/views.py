@@ -12,9 +12,7 @@ from django.utils.decorators import method_decorator
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.generics import ListCreateAPIView, DestroyAPIView
 from rest_framework.generics import ListAPIView
-from rest_framework.exceptions import NotFound
-from rest_framework.response import Response
-import json
+from rest_framework.exceptions import NotFound, ValidationError
 
 class OtpUpdateView(View):
 	# permission_classes = [IsAuthenticated]
@@ -119,12 +117,27 @@ class FriendView(ListCreateAPIView):
 
 	def get_queryset(self):
 		return FollowList.objects.filter(user=self.request.user)
-	
+
 	def perform_create(self, serializer):
 		try:
 			serializer.save(user=self.request.user)
 		except Exception as e:
 			raise ValidationError({'message': str(e)})
+
+class FriendDetailView(DestroyAPIView):
+	queryset = FollowList.objects.all()
+	serializer_class = FollowListSerializer
+
+	def get_object(self):
+		friend_id = self.kwargs['friend_id']
+		print("get_object", friend_id)
+		try:
+			return FollowList.objects.get(user=self.request.user, following_uid=friend_id)
+		except FollowList.DoesNotExist:
+			raise NotFound("Friend does not exist")
+
+	def perform_destroy(self, instance):
+		instance.delete()
 
 def logout(request):
 	response = JsonResponse({'status': 'success'}, status=200)
