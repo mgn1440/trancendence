@@ -61,6 +61,10 @@ const UserList = () => {
           <UserSleep />
         ))}
       </div>
+      <div class="user-search-bar">
+        <input class="user-search-input"></input>
+        <img src="/icon/search.svg"></img>
+      </div>
       <div class="overlay" onclick={userListToggleBack}></div>
     </div>
   );
