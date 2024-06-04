@@ -18,7 +18,7 @@ from django.urls import reverse
 
 def oauth(request):
 	print('fucking')
-	
+
 	# request.META['Origin'] = 'http://localhost:8000/api/auth/callback'
 	response = redirect(API_AUTH_URI)
 	# response['Origin'] = 'http://localhost:8000'
@@ -50,7 +50,7 @@ class Callback(View): # TODO: POST otp check function
 		id = user_data['id']
 		username = user_data['login']
 		email = user_data['email']
-		user, created = CustomUser.objects.get_or_create(uid=id, defaults={'username': username, 'email': email})
+		user, created = CustomUser.objects.get_or_create(uid=id, defaults={'username': username, 'email': email, 'multi_nickname': username})
 		if created:
 			device = EmailDevice.objects.create(user=user, email=user.email)
 		login(request, user)
@@ -84,9 +84,9 @@ class OTPView(View):
 			except Exception as e:
 				return JsonResponse({"message": "OTP 발급에 실패했습니다.", "statusCode": 400}, status=400)
 			return JsonResponse({"statusCode": 200, "message": "OTP 이메일이 전송되었습니다."}, status=200)
-		else:  
+		else:
 			return JsonResponse({"message": "OTP가 활성화되지 않았습니다.", "statusCode": 400}, status=400)
-                          
+
 	def post(self, request):
 		user = request.user
 		if user.otp_enabled:
@@ -110,7 +110,7 @@ class OTPView(View):
 				return JsonResponse({'statusCode': 400, "message": "안돼"}, status=400)
 		else:
 			return JsonResponse({"'statusCode': 400, message": "패스"}, status=400)
-	
+
 def generate_jwt(user):
 	serializer = MyTokenObtainPairSerializer()
 	token = serializer.get_token(user)
@@ -134,7 +134,7 @@ def refresh(request):
 		return JsonResponse({'error': 'No user'}, status=400)
 	real_user = CustomUser.objects.get(uid=user.uid)
 	if real_user.refresh_token != refresh_token:
-		return JsonResponse({'error': 'Invalid refresh token' , 'user_refresh_token': real_user.refresh_token, 
+		return JsonResponse({'error': 'Invalid refresh token' , 'user_refresh_token': real_user.refresh_token,
 					   'cookie_refresh_token': refresh_token}, status=400)
 	tokens = generate_jwt(user)
 	response = JsonResponse({'status': 'success'}, status=200)
