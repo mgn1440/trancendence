@@ -38,7 +38,7 @@ class UserDetailView(generics.RetrieveAPIView):
 	serializer_class = CustomUserSerializer
 	def get_object(self):
 		try:
-			return CustomUser.objects.get(uid=self.request.user.uid)
+			return CustomUser.objects.get(uid=self.kwargs['uid'])
 		except CustomUser.DoesNotExist:
 			return None
 	def get(self, request, *args, **kwargs):
@@ -46,9 +46,7 @@ class UserDetailView(generics.RetrieveAPIView):
 		if user is None:
 			return JsonResponse({'status_code': '400', 'message': 'User not found'}, status=400)
 		serializer = self.get_serializer(user)
-		dict_data = dict(serializer.data)
-		dict_data['status_code'] = 200
-		return JsonResponse(dict_data, status=200)
+		return JsonResponse({'status_code': '200', 'message': serializer.data}, status=200)
 
 class UserMeView(generics.RetrieveAPIView):
 	serializer_class = CustomUserSerializer
@@ -107,10 +105,8 @@ class MultiGameRecordListView(ListAPIView):
 class FriendView(ListCreateAPIView):
 	queryset = FollowList.objects.all()
 	serializer_class = FollowListSerializer
-
 	def get_queryset(self):
 		return FollowList.objects.filter(user=self.request.user)
-
 	def perform_create(self, serializer):
 		try:
 			serializer.save(user=self.request.user)
@@ -120,7 +116,6 @@ class FriendView(ListCreateAPIView):
 class FriendDetailView(DestroyAPIView):
 	queryset = FollowList.objects.all()
 	serializer_class = FollowListSerializer
-
 	def get_object(self):
 		friend_id = self.kwargs['friend_id']
 		print("get_object", friend_id)
@@ -128,7 +123,6 @@ class FriendDetailView(DestroyAPIView):
 			return FollowList.objects.get(user=self.request.user, following_uid=friend_id)
 		except FollowList.DoesNotExist:
 			raise NotFound("Friend does not exist")
-
 	def perform_destroy(self, instance):
 		instance.delete()
 
