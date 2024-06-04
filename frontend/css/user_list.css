@@ -14,17 +14,8 @@
   flex-flow: row nowrap;
 }
 
-.user-list {
-  width: 16rem;
-  height: calc(100vh - 6rem);
+#user-list-toggle {
   z-index: 999;
-  background-color: var(--black);
-  border-left: 1px solid var(--white);
-  display: flex;
-  flex-flow: column nowrap;
-  justify-content: start;
-  align-items: start;
-  overflow-y: auto;
   @media screen and (max-width: 768px) {
     position: fixed;
     /* animation: move-right 0.5s; */
@@ -32,7 +23,19 @@
   }
 }
 
-.user-list.active {
+.user-list {
+  width: 16rem;
+  height: calc(100vh - 6rem);
+  background-color: var(--black);
+  border-left: 1px solid var(--white);
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: start;
+  align-items: start;
+  overflow-y: auto;
+}
+
+#user-list-toggle.active {
   right: 0;
   animation: move-left 0.5s;
 }

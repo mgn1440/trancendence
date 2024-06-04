@@ -2,7 +2,7 @@
 
 .profile-img {
   width: 40%;
-  max-width: 35rem;
+  max-width: 30rem;
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
@@ -50,7 +50,7 @@
 }
 
 .profile-main {
-  width: 60%;
+  flex: 1;
   height: 100%;
   display: flex;
   flex-flow: column nowrap;
