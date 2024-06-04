@@ -8,9 +8,16 @@
   width: var(--bs-scrollbar-width);
 }
 
+.user-list-with-btn {
+  height: 100%;
+  display: flex;
+  flex-flow: row nowrap;
+}
+
 .user-list {
   width: 16rem;
   height: calc(100vh - 3rem);
+  z-index: 999;
   background-color: var(--black);
   border-left: 1px solid var(--white);
   display: flex;
@@ -18,6 +25,84 @@
   justify-content: start;
   align-items: start;
   overflow-y: auto;
+  @media screen and (max-width: 768px) {
+    position: fixed;
+    /* animation: move-right 0.5s; */
+    right: -16rem;
+  }
+}
+
+.user-list.active {
+  right: 0;
+  animation: move-left 0.5s;
+}
+
+@keyframes move-left {
+  from {
+    right: -16rem;
+  }
+  to {
+    right: 0;
+  }
+}
+
+@keyframes move-right {
+  from {
+    right: 0;
+  }
+  to {
+    right: -16rem;
+  }
+}
+
+.user-list-btn {
+  position: fixed;
+  right: 0;
+  bottom: 50%;
+  height: 2.5rem;
+  z-index: 997;
+  padding: 0 0.2rem;
+  border-radius: 50% 0 0 50%;
+  border: 1px solid var(--white);
+  border-right: 0;
+  display: none;
+  @media screen and (max-width: 768px) {
+    display: block;
+  }
+}
+
+.overlay {
+  position: fixed;
+  top: calc(3rem + 3px);
+  left: 0;
+  width: 100vw;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  display: none;
+}
+
+.overlay.active {
+  display: block;
+  animation: fade-in 0.5s;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .user-item {

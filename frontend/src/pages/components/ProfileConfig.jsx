@@ -1,3 +1,4 @@
+import { gotoPage } from "@/lib/libft.js";
 import { ItemInput, ItemToggle } from "./Items.jsx";
 
 const LobbyProfile = () => {
@@ -19,15 +20,18 @@ const LobbyProfile = () => {
         </div>
       </div>
       <div class="bottom">
-		<button class="config-btn bg-gray50">
-			<img src="/icon/close.svg"></img>
-			cancel
-		</button>
-		<button class="config-btn bg-gray70">
-			<img src="/icon/done.svg"></img>
-			save change
-		</button>
-	  </div>
+        <button
+          onclick={() => gotoPage("/profile/me")}
+          class="config-btn bg-gray50"
+        >
+          <img src="/icon/close.svg"></img>
+          cancel
+        </button>
+        <button class="config-btn bg-gray70">
+          <img src="/icon/done.svg"></img>
+          save change
+        </button>
+      </div>
     </div>
   );
 };

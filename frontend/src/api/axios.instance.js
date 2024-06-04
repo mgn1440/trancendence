@@ -1,11 +1,15 @@
 import axios from "axios";
 import { getCookie } from "@/api/cookie";
-import { STATUS_401_UNAUTHORIZED } from "@/constants/statusCode";
+import {
+  STATUS_401_UNAUTHORIZED,
+  STATUS_403_FORBIDDEN,
+} from "@/constants/statusCode";
 
 axios.defaults.withCredentials = true;
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_BE_HOST,
+  baseURL: "http://localhost:8000",
+  // baseURL: import.meta.env.VITE_BE_HOST,
   withCredentials: true,
 });
 
@@ -22,8 +26,11 @@ instance.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === STATUS_401_UNAUTHORIZED) {
-      window.location.href = "/login";
+    if (
+      error.response?.status === STATUS_401_UNAUTHORIZED ||
+      error.response?.status === STATUS_403_FORBIDDEN
+    ) {
+      window.location.href = "/";
       alert(error.response.data.message);
     }
     return Promise.reject(error);

@@ -3,7 +3,7 @@ import ProfileImg from "./components/ProfileImg";
 import ProfileConfig from "./components/ProfileConfig";
 import TopNavBar from "./components/TopNavBar";
 
-const ProfileConfigPage= () => {
+const ProfileConfigPage = () => {
   return (
     <div>
       <div id="top">
@@ -11,8 +11,8 @@ const ProfileConfigPage= () => {
       </div>
       <div id="middle">
         <div class="main-section flex-row">
-          <ProfileImg />
-		  <ProfileConfig />
+          <ProfileImg stat={1} />
+          <ProfileConfig />
         </div>
         <UserList />
       </div>
