@@ -100,18 +100,26 @@ class UserMeTest(APITestCase):
 		print(response.content)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-	# def test_get_me_404(self):
-	# 	self.client.force_authenticate(user=None)
-	# 	url = reverse('me')
-	# 	response = self.client.get(url)
-	# 	self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-	# def test_get_me_401(self):
-	# 	self.client.force_authenticate(user=None)
-	# 	url = reverse('me')
-	# 	response = self.client.get(url)
-	# 	self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-	# def test_get_me_400(self):
-	# 	self.client.force_authenticate(user=None)
-	# 	url = reverse('me')
-	# 	response = self.client.get(url)
-	# 	self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+class UserDetailViewTest(APITestCase):
+	def setUp(self):
+		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
+		self.client.force_authenticate(user=self.user)
+		self.jwt_token = jwt.encode(
+			{'uid': self.user.uid},
+			JWT_SECRET_KEY,
+			algorithm='HS256'
+		)
+		self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_token)
+
+		self.user2 = CustomUser.objects.create_user(username="guma", uid=2)
+	def test_get_user_detail(self):
+		url = reverse('user_detail', kwargs={'uid': self.user.uid})
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		print(response.content)
+
+	def test_get_user_detail_other(self):
+		url = reverse('user_detail', kwargs={'uid': self.user2.uid})
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		print(response.content)
