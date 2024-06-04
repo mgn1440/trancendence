@@ -82,25 +82,26 @@ class UserLoseUpdateView(View):
 			user.save()
 			return JsonResponse({'status': 'success', 'lose': user.lose}, status=200)
 
-class SingleGameRecordListView(ListAPIView):
-	serializer_class = SingleGameRecordSerializer
-	def get_queryset(self):
-		user_id = self.kwargs['user_id']
-		try:
-			user = CustomUser.objects.get(uid=user_id)
-			return SingleGameRecord.objects.filter(user=user)
-		except CustomUser.DoesNotExist:
-			raise NotFound("User does not exist")
 
-class MultiGameRecordListView(ListAPIView):
-	serializer_class = MultiGameRecordSerializer
-	def get_queryset(self):
-		user_id = self.kwargs['user_id']
+class SingleGameRecordListView(APIView):
+	def get(self, request, user_id):
 		try:
 			user = CustomUser.objects.get(uid=user_id)
-			return MultiGameRecord.objects.filter(user=user)
+			record_list = SingleGameRecord.objects.filter(user=user)
+			serializer = SingleGameRecordSerializer(record_list, many=True)
+			return JsonResponse({'statusCode': '200', 'record_list': serializer.data}, status=200)
 		except CustomUser.DoesNotExist:
-			raise NotFound("User does not exist")
+			return JsonResponse({'statusCode': '404', 'message': 'User does not exist'}, status=404)
+
+class MultiGameRecordListView(APIView):
+	def get(self, request, user_id):
+		try:
+			user = CustomUser.objects.get(uid=user_id)
+			record_list = MultiGameRecord.objects.filter(user=user)
+			serializer = MultiGameRecordSerializer(record_list, many=True)
+			return JsonResponse({'statusCode': '200', 'record_list': serializer.data}, status=200)
+		except CustomUser.DoesNotExist:
+			return JsonResponse({'statusCode': '404', 'message': 'User does not exist'}, status=404)
 
 class FriendView(ListCreateAPIView):
 	queryset = FollowList.objects.all()
@@ -118,7 +119,6 @@ class FriendDetailView(DestroyAPIView):
 	serializer_class = FollowListSerializer
 	def get_object(self):
 		friend_id = self.kwargs['friend_id']
-		print("get_object", friend_id)
 		try:
 			return FollowList.objects.get(user=self.request.user, following_uid=friend_id)
 		except FollowList.DoesNotExist:

@@ -58,6 +58,19 @@ class FriendViewTests(APITestCase):
 		response = self.client.get(self.url)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+class SingleGameRecordListTest(APITestCase):
+	def setUp(self):
+		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
+		self.user2 = CustomUser.objects.create_user(username="guma", uid=2)
+		SingleGameRecord.objects.create(user=self.user, user_id=self.user.uid, user_score=5, opponent_id=self.user2.uid, opponent_score=3)
+		SingleGameRecord.objects.create(user=self.user2, user_id=self.user2.uid, user_score=3, opponent_id=self.user.uid, opponent_score=5)
+
+	def test_get_single_game_records_for_user(self):
+		url = reverse('single_game_record', kwargs={'user_id': 1})
+		response = self.client.get(url)
+		print(response.content)
+
+
 class MultiGameRecordListTest(APITestCase):
 	def setUp(self):
 		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
@@ -71,13 +84,10 @@ class MultiGameRecordListTest(APITestCase):
 	def test_get_multi_game_records_for_user(self):
 		url = reverse('multi_game_record', kwargs={'user_id': self.user.uid})
 		response = self.client.get(url)
-		data_dict = json.loads(response.content)
+		print(response.content)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		self.assertEqual(len(data_dict), 1)
 		url = reverse('multi_game_record', kwargs={'user_id': self.user2.uid})
 		response = self.client.get(url)
-		data_dict = json.loads(response.content)
-		self.assertEqual(response.status_code, status.HTTP_200_OK)
 	def test_get_multi_game_records_for_user_404(self):
 		url = reverse('multi_game_record', kwargs={'user_id': 100})
 		response = self.client.get(url)

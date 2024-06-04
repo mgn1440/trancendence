@@ -14,6 +14,6 @@ urlpatterns = [
 	path('test_friend/', test_friend, name='test_friend'),
 	path('logout/', logout, name='logout'),
 	path('<int:uid>/', UserDetailView.as_view(), name='user_detail'),
-	path('<int:user_id>/single-game-records/', SingleGameRecordListView.as_view(), name='single_game_record'),
-	path('<int:user_id>/multi-game-records/', MultiGameRecordListView.as_view(), name='multi_game_record'),
+	path('<int:user_id>/record/single/', SingleGameRecordListView.as_view(), name='single_game_record'),
+	path('<int:user_id>/record/multi/', MultiGameRecordListView.as_view(), name='multi_game_record'),
 ]
