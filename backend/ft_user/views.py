@@ -52,26 +52,10 @@ class UserDetailView(generics.RetrieveAPIView):
 
 class UserMeView(generics.RetrieveAPIView):
 	serializer_class = CustomUserSerializer
-	def get_object(self):
-		access_token = self.request.token
-		try:
-			payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=['HS256'])
-			user = CustomUser.objects.get(uid=payload['uid'])
-		except jwt.ExpiredSignatureError:
-			raise AuthenticationFailed('Token expired')
-		except jwt.InvalidTokenError:
-			raise AuthenticationFailed('Invalid token')
-		except CustomUser.DoesNotExist:
-			raise AuthenticationFailed('User not found')
-		return user
 	def get(self, request, *args, **kwargs):
-		try:
-			user = self.get_object()
-			serializer = self.get_serializer(user)
-			return JsonResponse({'status_code': '200', 'message': serializer.data}, status=200)
-		except AuthenticationFailed as e:
-			return JsonResponse({'status_code': '401', 'message': str(e)}, status=401)
-
+		user = get_jwt_user(self.request)
+		serializer = self.get_serializer(user)
+		return JsonResponse({'status_code': '200', 'message': serializer.data}, status=200)
 
 class UserWinUpdateView(View):
 	# permission_classes = [IsAuthenticated]
