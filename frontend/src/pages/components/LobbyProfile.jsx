@@ -1,4 +1,4 @@
-import LobbyButton from "./ LobbyButton";
+import LobbyButton from "./LobbyButton";
 
 const LobbyProfile = () => {
   const name = "Hyungjuk";

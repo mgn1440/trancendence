@@ -17,7 +17,7 @@
 	flex: 1;
 	display: flex;
 	align-items: center;
-	justify-content: space-between;	
+	justify-content: space-between;
 }
 
 .modal-title-text {
@@ -43,4 +43,79 @@
 .modal img {
 	width: 1.875rem;
 	height: 1.875rem;
+}
+
+.modal .input {
+	margin-inline: 33px;
+	display: flex;
+	flex-direction: row;
+}
+
+.modal .input h6 {
+	width: 7rem;
+	text-align: left;
+}
+
+.modal .input input {
+	background-color: transparent;
+	border: none;
+	border-bottom: 1px solid white;
+	margin-left: 0.875rem;
+	flex: 1;
+	color: white;
+}
+
+.modal .input input:focus {
+	outline: none;
+	box-shadow: none;
+}
+
+.radio-check {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	gap: 2rem;
+}
+
+.radio-check .form-check {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 11rem;
+	padding: 0.9375rem 0.625rem;
+}
+
+.body-element {
+	margin-bottom: 1rem;
+}
+
+
+.form-check input[type=radio]{
+    display: none;
+}
+
+.form-check input[type=radio]+label{
+    display: inline-block;
+    cursor: pointer;
+    height: 1.5rem;
+    width: 7rem;
+    line-height: 24px;
+    text-align: center;
+    font-weight:bold;
+    font-size: 1rem;
+}
+
+.form-check input[type=radio]+label{
+    background-color: transparent;
+	color: var(--gray40);
+}
+.form-check input[type=radio]:checked+label{
+    background-color: var(--gray70);
+    color: #fff;
+	transition: 0.2s;
+}
+
+.form-check-label {
+	border-radius: 0.625rem;
 }
