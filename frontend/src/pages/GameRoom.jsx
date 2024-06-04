@@ -10,7 +10,7 @@ const LobbyPage = () => {
         <TopNavBar />
       </div>
       <div id="middle">
-        <div class="main-section">
+        <div class="main-section flex-column">
           <Profile />
           <LobbyRooms />
         </div>

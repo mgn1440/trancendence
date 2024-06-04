@@ -1,17 +1,18 @@
 from django.shortcuts import render
 from django.views import View
-from .models import CustomUser, SingleGameRecord, MultiGameRecord
+from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord
 from django.http import JsonResponse
 from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
-from .serializers import CustomUserSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer
+from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer
 from rest_framework import generics
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView
 from rest_framework.generics import ListAPIView
-import json
+from rest_framework.exceptions import NotFound, ValidationError
 
 class OtpUpdateView(View):
 	# permission_classes = [IsAuthenticated]
@@ -51,13 +52,26 @@ class UserDetailView(generics.RetrieveAPIView):
 
 class UserMeView(generics.RetrieveAPIView):
 	serializer_class = CustomUserSerializer
-	def get_object(self, user_id):
-		return CustomUser.objects.get(uid=user_id)
+	def get_object(self):
+		access_token = self.request.token
+		try:
+			payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=['HS256'])
+			user = CustomUser.objects.get(uid=payload['uid'])
+		except jwt.ExpiredSignatureError:
+			raise AuthenticationFailed('Token expired')
+		except jwt.InvalidTokenError:
+			raise AuthenticationFailed('Invalid token')
+		except CustomUser.DoesNotExist:
+			raise AuthenticationFailed('User not found')
+		return user
 	def get(self, request, *args, **kwargs):
-		user_id = self.kwargs.get('uid')
-		user = self.get_object(user_id)
-		serializer = self.get_serializer(user)
-		return JsonResponse(serializer.data, status=200)
+		try:
+			user = self.get_object()
+			serializer = self.get_serializer(user)
+			return JsonResponse({'status_code': '200', 'message': serializer.data}, status=200)
+		except AuthenticationFailed as e:
+			return JsonResponse({'status_code': '401', 'message': str(e)}, status=401)
+
 
 class UserWinUpdateView(View):
 	# permission_classes = [IsAuthenticated]
@@ -81,19 +95,10 @@ class UserWinUpdateView(View):
 class UserLoseUpdateView(View):
 	# permission_classes = [IsAuthenticated]
 	def post(self, request):
-		access_token = request.token
-		try:
-			payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=['HS256'])
-			user = CustomUser.objects.get(uid=payload['uid'])
+			user = get_jwt_user(request)
 			user.lose += 1
 			user.save()
 			return JsonResponse({'status': 'success', 'lose': user.lose}, status=200)
-		except jwt.ExpiredSignatureError:
-			return JsonResponse({'status': 'error', 'message': 'Token expired'}, status=401)
-		except jwt.InvalidTokenError:
-			return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=401)
-		except CustomUser.DoesNotExist:
-			return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
 
 class SingleGameRecordListView(ListAPIView):
 	serializer_class = SingleGameRecordSerializer
@@ -115,47 +120,33 @@ class MultiGameRecordListView(ListAPIView):
 		except CustomUser.DoesNotExist:
 			raise NotFound("User does not exist")
 
+class FriendView(ListCreateAPIView):
+	queryset = FollowList.objects.all()
+	serializer_class = FollowListSerializer
 
-class FriendView(View):
-	def get(self, request):
-		access_token = request.token
+	def get_queryset(self):
+		return FollowList.objects.filter(user=self.request.user)
+
+	def perform_create(self, serializer):
 		try:
-			payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=['HS256'])
-			user = CustomUser.objects.get(uid=payload['uid'])
-			friends = user.friend.all()
+			serializer.save(user=self.request.user)
 		except Exception as e:
-			print(e)
-			return JsonResponse({'statusCode': '400', 'message': '친구리스트 에러'}, status=400)
-		friend_list = []
-		for friend in friends:
-			friend_list.append({'uid': friend.uid, 'username': friend.username})
-		return JsonResponse({"friend_list": friend_list}, status=200)
-	def post(self, request):
-		access_token = request.token
+			raise ValidationError({'message': str(e)})
+
+class FriendDetailView(DestroyAPIView):
+	queryset = FollowList.objects.all()
+	serializer_class = FollowListSerializer
+
+	def get_object(self):
+		friend_id = self.kwargs['friend_id']
+		print("get_object", friend_id)
 		try:
-			payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=['HS256'])
-			user = CustomUser.objects.get(uid=payload['uid'])
-			jsondata = json.loads(request.body)
-			type = jsondata.get('type')
-			username = jsondata.get('username')
-			friend = CustomUser.objects.get(username=username)
-			if user.username == username:
-				return JsonResponse({'statusCode': '400', 'message': '자기 자신은 친구로 추가할 수 없습니다.'}, status=400)
-			if type == 'add':
-				if friend in user.friend.all():
-					return JsonResponse({'statusCode': '400', 'message': '이미 친구입니다.'}, status=400)
-				user.friend.add(friend)
-				return JsonResponse({'statusCode': 'success'}, status=201)
-			elif type == 'delete':
-				if friend not in user.friend.all():
-					return JsonResponse({'statusCode': '400', 'message': '친구가 아닙니다.'}, status=400)
-				user.friend.remove(friend)
-				return JsonResponse({'statusCode': 'success', 'message': '친구추가를 완료했습니다.'}, status=201)
-		except Exception as e:
-			if e.__class__.__name__ == 'DoesNotExist':
-				return JsonResponse({'statusCode': '400', 'message': '존재하지 않는 유저입니다.'}, status=400)
-			print(e)
-			return JsonResponse({'statusCode': '400', 'message': '친구추가 에러'}, status=400)
+			return FollowList.objects.get(user=self.request.user, following_uid=friend_id)
+		except FollowList.DoesNotExist:
+			raise NotFound("Friend does not exist")
+
+	def perform_destroy(self, instance):
+		instance.delete()
 
 def logout(request):
 	response = JsonResponse({'status': 'success'}, status=200)
@@ -164,3 +155,10 @@ def logout(request):
 	response.delete_cookie('sessionid')
 	return response
 
+def test_friend(request):
+	return render(request, 'online_test.html')
+
+def get_jwt_user(request):
+	access_token = request.token
+	payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=['HS256'])
+	return CustomUser.objects.get(uid=payload['uid'])

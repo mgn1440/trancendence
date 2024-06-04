@@ -1,11 +1,11 @@
-const Profile = () => {
+const LobbyProfile = () => {
   const name = "Hyungjuk";
   const win = 6;
   const lose = 4;
   const rate = 60;
   return (
     <div class="lobby-profile">
-      <img src="img/minji_1.jpg"></img>
+      <img src="/img/minji_1.jpg"></img>
       <div class="profile-space-btw">
         <div>
           <h3>{name}</h3>
@@ -15,15 +15,15 @@ const Profile = () => {
         </div>
         <div>
           <button class="lobby-game-btn">
-            <img src="icon/user.svg"></img>
+            <img src="/icon/user.svg"></img>
             Offline Game
           </button>
           <button class="lobby-game-btn">
-            <img src="icon/users.svg"></img>
+            <img src="/icon/users.svg"></img>
             Create Room
           </button>
           <button class="lobby-game-btn">
-            <img src="icon/search.svg"></img>
+            <img src="/icon/search.svg"></img>
             Quick Match
           </button>
         </div>
@@ -32,4 +32,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default LobbyProfile;

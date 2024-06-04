@@ -1,6 +1,6 @@
 const User = () => {
   const randNum = Math.ceil(Math.random() * 5);
-  const imgSrc = `img/minji_${randNum}.jpg`;
+  const imgSrc = `/img/minji_${randNum}.jpg`;
   return (
     <div class="user-item">
       <div class="profile">
@@ -20,7 +20,7 @@ const User = () => {
 
 const UserSleep = () => {
   const randNum = Math.ceil(Math.random() * 5);
-  const imgSrc = `img/minji_${randNum}.jpg`;
+  const imgSrc = `/img/minji_${randNum}.jpg`;
   return (
     <div class="user-item">
       <div class="profile sleep">
