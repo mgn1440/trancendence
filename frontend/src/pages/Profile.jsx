@@ -17,9 +17,11 @@ const ProfilePage = () => {
     const fetchProfile = async () => {
       let user = await axiosUserMe();
       const username = history.currentPath().split("/")[2];
-      if (user.data.message.username === username)
+      if (user.data.user_info.username === username)
         window.location.href = "/profile/me";
-      if (username !== "me") user = await axiosUserOther(username);
+      if (username !== "me") {
+        user = await axiosUserOther(username);
+      }
       setProfile(user.data);
     };
     fetchProfile();
