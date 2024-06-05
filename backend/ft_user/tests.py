@@ -62,8 +62,8 @@ class SingleGameRecordListTest(APITestCase):
 	def setUp(self):
 		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
 		self.user2 = CustomUser.objects.create_user(username="guma", uid=2)
-		SingleGameRecord.objects.create(user=self.user, user_id=self.user.uid, user_score=5, opponent_id=self.user2.uid, opponent_score=3)
-		SingleGameRecord.objects.create(user=self.user2, user_id=self.user2.uid, user_score=3, opponent_id=self.user.uid, opponent_score=5)
+		SingleGameRecord.objects.create(user=self.user, user_id=self.user.uid, user_score=5, opponent_id=self.user2.uid, opponent_name=self.user2.username, opponent_score=3)
+		SingleGameRecord.objects.create(user=self.user2, user_id=self.user2.uid, user_score=3, opponent_id=self.user.uid, opponent_name=self.user.username, opponent_score=5)
 
 	def test_get_single_game_records_for_user(self):
 		url = reverse('single_game_record', kwargs={'user_id': 1})
@@ -77,10 +77,17 @@ class MultiGameRecordListTest(APITestCase):
 		self.user2 = CustomUser.objects.create_user(username="guma", uid=2)
 		self.user3 = CustomUser.objects.create_user(username="ggomul", uid=3)
 		self.user4 = CustomUser.objects.create_user(username="pull", uid=4)
-		# MultiGameRecord.objects.create(user=self.user, user_id=self.user.uid, user_win=True, opponent1_id=self.user2.uid, opponent2_id=self.user3.uid, opponent3_id=self.user4.uid)
-		# MultiGameRecord.objects.create(user=self.user2, user_id=self.user2.uid, user_win=False, opponent1_id=self.user.uid, opponent2_id=self.user3.uid, opponent3_id=self.user4.uid)
-		# MultiGameRecord.objects.create(user=self.user3, user_id=self.user3.uid, user_win=True, opponent1_id=self.user.uid, opponent2_id=self.user2.uid, opponent3_id=self.user4.uid)
-		# MultiGameRecord.objects.create(user=self.user4, user_id=self.user4.uid, user_win=False, opponent1_id=self.user.uid, opponent2_id=self.user2.uid, opponent3_id=self.user3.uid)
+		MultiGameRecord.objects.create(
+			user=self.user,
+			user_id=self.user.uid,
+			user_win=True,
+			opponent1_id=self.user2.uid,
+			opponent1_name = self.user2.username,
+			opponent2_id=self.user3.uid,
+			opponent2_name=self.user3.username,
+			opponent3_id=self.user4.uid,
+			opponent3_name=self.user4.username
+		)
 	def test_get_multi_game_records_for_user(self):
 		url = reverse('multi_game_record', kwargs={'user_id': self.user.uid})
 		response = self.client.get(url)
