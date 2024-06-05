@@ -20,7 +20,7 @@ const ProfileConfig = ({ profile }) => {
         <ItemInput ItemName="Nickname" />
         <ItemInput ItemName="Multi-nickname" />
         <ItemToggle ItemName="2FA" isOn={true} />
-        <ItemToggle ItemName="2FA" isOn={false} />
+        {/* <ItemToggle ItemName="2FA" isOn={false} /> */}
       </div>
       <div class="profile-config-submit">
         <button
