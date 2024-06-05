@@ -19,14 +19,14 @@ class CustomUser(AbstractUser):
 	def update_refresh_token(self, refresh_token):
 		self.refresh_token = refresh_token
 		self.save()
- 
+
 class FollowList(models.Model):
 	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 	following_uid = models.IntegerField()
 
 	def __str__(self):
 		return f'{self.user} follows {self.following_uid}'
-	
+
 	def save(self, *args, **kwargs):
 		if self.user.uid == self.following_uid:
 			raise Exception('자기 자신을 친구로 추가할 수 없습니다.')

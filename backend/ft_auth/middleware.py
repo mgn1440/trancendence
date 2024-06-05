@@ -21,7 +21,7 @@ class CustomAuthentication:
 			re.compile(r'^(.*)/auth/otp/')
 		]
 	def __call__(self, request):
-		print(f'url is {request.path_info}')
+		# print(f'url is {request.path_info}')
 		path = request.path_info.lstrip('/')
 		valid_urls = (url.match(path) for url in self.API_URLS)
 		public = (url.match(path) for url in self.PUBLIC_URLS)
