@@ -140,3 +140,28 @@ class UserDetailViewTest(APITestCase):
 		response = self.client.get(url)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		print(response.content)
+
+
+class UserDeatilByNameViewTest(APITestCase):
+	def setUp(self):
+		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
+		self.client.force_authenticate(user=self.user)
+		self.jwt_token = jwt.encode(
+			{'uid': self.user.uid},
+			JWT_SECRET_KEY,
+			algorithm='HS256'
+		)
+		self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_token)
+		self.user2 = CustomUser.objects.create_user(username="guma", uid=2)
+
+	def test_get_user_detail(self):
+		url = reverse('user_detail_by_username', kwargs={'username': self.user.username})
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		print(response.content)
+
+	def test_get_user_detail_other(self):
+		url = reverse('user_detail_by_username', kwargs={'username': self.user2.username})
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		print(response.content)
