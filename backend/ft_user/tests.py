@@ -27,12 +27,13 @@ class FriendViewTests(APITestCase):
 		# GET 요청 테스트
 		response = self.client.get(self.url)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		print(response.content)
 	def test_create_follow(self):
 		# POST 요청 테스트
 		# 기존 USER1 팔로우 리스트 get
 		response = self.client.get(self.url)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		print(response.data)
+		print(response.content)
 		# 3번 유저를 팔로우
 		data = {'following_uid': self.user3.uid}
 		response = self.client.post(self.url, data, format='json')
@@ -40,7 +41,7 @@ class FriendViewTests(APITestCase):
 		# 팔로우 리스트 get
 		response = self.client.get(self.url)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		print(response.data)
+		print(response.content)
 	def test_prevent_self_follow(self):
 		# 자신을 팔로우하는 것을 방지하는 테스트
 		data = {'following_uid': self.user1.uid}

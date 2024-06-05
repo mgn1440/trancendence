@@ -103,7 +103,7 @@ class MultiGameRecordListView(APIView):
 		except CustomUser.DoesNotExist:
 			return JsonResponse({'statusCode': '404', 'message': 'User does not exist'}, status=404)
 
-class FriendView(ListCreateAPIView):
+class FollowView(ListCreateAPIView):
 	queryset = FollowList.objects.all()
 	serializer_class = FollowListSerializer
 	def get_queryset(self):
@@ -113,8 +113,16 @@ class FriendView(ListCreateAPIView):
 			serializer.save(user=self.request.user)
 		except Exception as e:
 			raise ValidationError({'message': str(e)})
+	def list(self, request, *args, **kwargs):
+		serializer = self.get_serializer(self.get_queryset(), many=True)
+		return JsonResponse({'status_code': '200', 'following_list': serializer.data}, status=200)
+	def create(self, request, *args, **kwargs):
+		serializer = self.get_serializer(data=request.data)
+		serializer.is_valid(raise_exception=True)
+		self.perform_create(serializer)
+		return JsonResponse({'status_code': '201', 'message': 'Friend added'}, status=201)
 
-class FriendDetailView(DestroyAPIView):
+class FollowDetailView(DestroyAPIView):
 	queryset = FollowList.objects.all()
 	serializer_class = FollowListSerializer
 	def get_object(self):
