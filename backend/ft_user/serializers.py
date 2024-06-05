@@ -30,4 +30,4 @@ class SingleGameRecordSerializer(serializers.ModelSerializer):
 class MultiGameRecordSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MultiGameRecord
-		fields = ['user_id', 'user_win', 'opponent1_name', 'opponent1_profile', 'opponent2_name', 'opponent2_profile', 'opponent3_name', 'opponent3_profile', 'created_at']
+		fields = ['user_win', 'opponent1_name', 'opponent1_profile', 'opponent2_name', 'opponent2_profile', 'opponent3_name', 'opponent3_profile', 'created_at']
