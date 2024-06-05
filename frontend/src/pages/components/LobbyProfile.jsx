@@ -3,7 +3,7 @@ import { isEmpty } from "@/lib/libft";
 
 const LobbyProfile = ({ data }) => {
   // console.log(data.message);
-  const myProfile = data.message;
+  const myProfile = data.user_info;
   const matchNum = myProfile.win + myProfile.lose;
   return (
     <div class="lobby-profile">

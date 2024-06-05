@@ -27,3 +27,13 @@ export const axiosUserMe = async () => {
     return error;
   }
 };
+
+export const axiosUserOther = async (username) => {
+  try {
+    const apiURL = axiosUserURL + "/" + username;
+    const response = await instance.get(apiURL);
+    return response;
+  } catch (error) {
+    return error;
+  }
+}

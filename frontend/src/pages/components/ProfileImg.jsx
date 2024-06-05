@@ -25,12 +25,15 @@ const ProfileImg = ({ stat }) => {
             Delete Profile Photo
           </button>
         </div>
-      ) : (
+      ) : stat === 2 ? (
         <div>
           <button class="follow-btn">
             <img src="/icon/user.svg"></img>
             Follow
           </button>
+        </div>
+      ) : (
+        <div>
           <button class="follow-btn">
             <img src="/icon/close.svg"></img>
             Unfollow

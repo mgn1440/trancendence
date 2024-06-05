@@ -68,7 +68,7 @@ const PlayStat = {
 const LobbyProfile = ({ data }) => {
   const [logStat, setLogStat] = useState(PlayStat.SINGLE);
 
-  const myProfile = data.message;
+  const myProfile = data.user_info;
   const matchNum = myProfile.win + myProfile.lose;
   const multiName = "Hyungjuk_multi";
   const logSingleNum = 7;

@@ -2,16 +2,28 @@ import UserList from "./components/UserList";
 import ProfileImg from "./components/ProfileImg";
 import ProfileInfo from "./components/ProfileInfo";
 import TopNavBar from "./components/TopNavBar";
-import { axiosUserMe } from "@/api/axios.custom";
+import { axiosUserMe, axiosUserOther } from "@/api/axios.custom";
 import { isEmpty } from "@/lib/libft";
 import { useState, useEffect } from "@/lib/dom";
 
 const ProfilePage = () => {
   const [myProfile, setMyProfile] = useState({});
+  const [stat, setStat] = useState(0); // [0: me, 1: config, 2: follow, 3: unfollow]
   useEffect(() => {
     const fetchProfile = async () => {
-      const userMe = await axiosUserMe();
-      setMyProfile(userMe.data);
+      let user = null;
+      let userName = window.location.pathname.split("/").pop();
+      if (userName === "me") {
+        user = await axiosUserMe();
+      } else {
+        user = await axiosUserOther(userName);
+        let follow = user.data.follow;
+        if (follow)
+          setStat(2);
+        else
+          setStat(3);
+      }
+      setMyProfile(user.data);
     };
     fetchProfile();
   }, []);
@@ -25,7 +37,7 @@ const ProfilePage = () => {
           </div>
           <div id="middle">
             <div class="main-section flex-row">
-              <ProfileImg stat={0} />
+              <ProfileImg stat={stat} />
               <ProfileInfo data={myProfile} />
             </div>
             <UserList />
