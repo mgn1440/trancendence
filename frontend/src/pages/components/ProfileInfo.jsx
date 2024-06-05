@@ -1,3 +1,5 @@
+import { useState, useEffect } from "@/lib/dom";
+
 const LogSingleItem = () => {
   const name = "Minji";
   const date = "9th May";
@@ -58,41 +60,62 @@ const LogMultiItem = () => {
   );
 };
 
-const LobbyProfile = () => {
-  const name = "Hyungjuk";
+const PlayStat = {
+  SINGLE: true,
+  MULTI: false,
+};
+
+const LobbyProfile = ({ data }) => {
+  const [logStat, setLogStat] = useState(PlayStat.SINGLE);
+
+  const myProfile = data.message;
+  const matchNum = myProfile.win + myProfile.lose;
   const multiName = "Hyungjuk_multi";
-  const win = 6;
-  const lose = 4;
-  const rate = 60;
   const logSingleNum = 7;
   const logMultiNum = 8;
+  const handleLogStat = (stat) => {
+    if (stat !== logStat) setLogStat(stat);
+  };
   return (
     <div class="profile-main">
       <div class="profile-info">
         <div>
-          <h3>{name}</h3>
+          <h3>{myProfile.username}</h3>
           <p>{multiName}</p>
         </div>
-        <p>Win: {win}</p>
-        <p>Lose: {lose}</p>
-        <p>Rate: {rate}%</p>
+        <p>Win: {myProfile.win}</p>
+        <p>Lose: {myProfile.lose}</p>
+        <p>Rate: {matchNum ? (myProfile.win / matchNum) * 100 : 0}%</p>
       </div>
       <div class="profile-log">
         <div>
-          <button class="selected">
+          <button
+            onclick={() => handleLogStat(PlayStat.SINGLE)}
+            class={logStat ? "selected" : ""}
+          >
             <span class="vertical-text">Single</span>
           </button>
-          <button>
+          <button
+            onclick={() => handleLogStat(PlayStat.MULTI)}
+            class={!logStat ? "selected" : ""}
+          >
             <span class="vertical-text">Multi</span>
           </button>
         </div>
         <div class="log-container">
-          {[...Array(parseInt(logSingleNum))].map((n) => (
-            <LogSingleItem />
-          ))}
-          {[...Array(parseInt(logSingleNum))].map((n) => (
-            <LogMultiItem />
-          ))}
+          {logStat ? (
+            <div>
+              {[...Array(parseInt(logSingleNum))].map((n) => (
+                <LogSingleItem />
+              ))}
+            </div>
+          ) : (
+            <div>
+              {[...Array(parseInt(logSingleNum))].map((n) => (
+                <LogMultiItem />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

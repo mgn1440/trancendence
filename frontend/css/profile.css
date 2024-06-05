@@ -76,6 +76,7 @@
 .profile-log {
   width: 100%;
   flex: 1;
+  margin-bottom: 1rem;
   height: 70%;
   max-height: 70%;
   display: flex;
