@@ -7,9 +7,17 @@ class CustomUserSerializer(serializers.ModelSerializer):
 		fields = ['uid', 'username', 'win', 'lose', 'otp_enabled', 'multi_nickname']
 
 class OtherUserSerializer(serializers.ModelSerializer):
+	is_following = serializers.SerializerMethodField()
 	class Meta:
 		model = CustomUser
-		fields = ['uid', 'username', 'win', 'lose', 'multi_nickname']
+		fields = ['uid', 'username', 'win', 'lose', 'multi_nickname', 'is_following']
+	def get_is_following(self, obj):
+		request = self.context.get('request', None)
+		if request is None:
+			return False
+		request_user = request.user
+		return FollowList.objects.filter(user=request_user, following_uid=obj.uid).exists()
+
 
 class FollowListSerializer(serializers.ModelSerializer):
 	class Meta:

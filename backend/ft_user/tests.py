@@ -127,8 +127,8 @@ class UserDetailViewTest(APITestCase):
 			algorithm='HS256'
 		)
 		self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_token)
+		self.user2 = CustomUser.objects.create_user(username="guma", uid=2)\
 
-		self.user2 = CustomUser.objects.create_user(username="guma", uid=2)
 	def test_get_user_detail(self):
 		url = reverse('user_detail', kwargs={'uid': self.user.uid})
 		response = self.client.get(url)
@@ -140,6 +140,13 @@ class UserDetailViewTest(APITestCase):
 		response = self.client.get(url)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		print(response.content)
+
+	def test_follow_feat(self):
+		FollowList.objects.create(user=self.user, following_uid=self.user2.uid)
+		url = reverse('user_detail', kwargs={'uid': self.user2.uid})
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		print('follow_test', response.content)
 
 
 class UserDeatilByNameViewTest(APITestCase):
@@ -165,3 +172,10 @@ class UserDeatilByNameViewTest(APITestCase):
 		response = self.client.get(url)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		print(response.content)
+
+	def test_follow_feat(self):
+		FollowList.objects.create(user=self.user, following_uid=self.user2.uid)
+		url = reverse('user_detail_by_username', kwargs={'username': self.user2.username})
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		print('follow_test', response.content)
