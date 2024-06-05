@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser
 
 class CustomUser(AbstractUser):
 	uid = models.IntegerField(primary_key=True)
+	username = models.CharField(max_length=128, unique=True)
 	otp_enabled = models.BooleanField(default=False, null=True)
 	password = models.CharField(max_length=128, null=True, blank=True)
 	refresh_token = models.CharField(max_length=1024, null=True, blank=True)

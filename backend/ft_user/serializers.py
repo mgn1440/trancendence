@@ -6,6 +6,11 @@ class CustomUserSerializer(serializers.ModelSerializer):
 		model = CustomUser
 		fields = ['uid', 'username', 'win', 'lose', 'otp_enabled', 'multi_nickname']
 
+class OtherUserSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = CustomUser
+		fields = ['uid', 'username', 'win', 'lose', 'multi_nickname']
+
 class FollowListSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = FollowList
