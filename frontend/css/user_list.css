@@ -16,7 +16,7 @@
 
 #user-list-toggle {
   z-index: 999;
-  @media screen and (max-width: 768px) {
+  @media screen and (max-width: 869px) {
     position: fixed;
     /* animation: move-right 0.5s; */
     right: -16rem;
@@ -69,7 +69,7 @@
   border: 1px solid var(--white);
   border-right: 0;
   display: none;
-  @media screen and (max-width: 768px) {
+  @media screen and (max-width: 869px) {
     display: block;
   }
 }

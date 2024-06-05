@@ -33,6 +33,7 @@ export const axiosUserMe = async () => {
     const response = await instance.get(axiosUserMeURL);
     return response;
   } catch (error) {
+    console.log(error);
     return error;
   }
 };

@@ -11,7 +11,6 @@ const LobbyPage = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       const userMe = await axiosUserMe();
-      console.log(userMe.data.message.username);
       setMyProfile(userMe.data);
     };
     fetchProfile();
