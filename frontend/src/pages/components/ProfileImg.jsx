@@ -1,6 +1,15 @@
 import { gotoPage } from "@/lib/libft";
+import { axiosUserFollow, axiosUserUnfollow } from "@/api/axios.custom";
 
-const ProfileImg = ({ stat }) => {
+const ProfileImg = ({ user_id, stat }) => {
+  const follow = (user_id) => {
+    axiosUserFollow(user_id);
+  };
+
+  const unfollow = (user_id) => {
+    axiosUserUnfollow(user_id);
+  };
+
   return (
     <div class="profile-img">
       <img src="/img/minji_1.jpg"></img>
@@ -27,14 +36,14 @@ const ProfileImg = ({ stat }) => {
         </div>
       ) : stat === 2 ? (
         <div>
-          <button class="follow-btn">
+          <button class="follow-btn" onclick={() => follow(user_id)}>
             <img src="/icon/user.svg"></img>
             Follow
           </button>
         </div>
       ) : (
         <div>
-          <button class="follow-btn">
+          <button class="follow-btn" onclick={() => unfollow(user_id)}>
             <img src="/icon/close.svg"></img>
             Unfollow
           </button>

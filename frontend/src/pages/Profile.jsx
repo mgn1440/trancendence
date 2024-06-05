@@ -9,6 +9,7 @@ import { useState, useEffect } from "@/lib/dom";
 const ProfilePage = () => {
   const [myProfile, setMyProfile] = useState({});
   const [stat, setStat] = useState(0); // [0: me, 1: config, 2: follow, 3: unfollow]
+  const [user_id, setUserID] = useState(0); // [0: me, 1: config, 2: follow, 3: unfollow]
   useEffect(() => {
     const fetchProfile = async () => {
       let user = null;
@@ -17,8 +18,10 @@ const ProfilePage = () => {
         user = await axiosUserMe();
       } else {
         user = await axiosUserOther(userName);
-        let follow = user.data.follow;
-        if (follow)
+        console.log(user.data);
+        let follow = user.data.is_following;
+        setUserID(user.data.user_id);
+        if (!follow)
           setStat(2);
         else
           setStat(3);
@@ -37,7 +40,7 @@ const ProfilePage = () => {
           </div>
           <div id="middle">
             <div class="main-section flex-row">
-              <ProfileImg stat={stat} />
+              <ProfileImg stat={stat} user_id={user_id} />
               <ProfileInfo data={myProfile} />
             </div>
             <UserList />
