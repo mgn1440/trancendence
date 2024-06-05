@@ -1,3 +1,4 @@
+import LobbyButton from "./LobbyButton";
 import { isEmpty } from "@/lib/libft";
 
 const LobbyProfile = ({ data }) => {
@@ -14,20 +15,7 @@ const LobbyProfile = ({ data }) => {
           <p>Lose: {myProfile.lose}</p>
           <p>Rate: {matchNum ? (myProfile.win / matchNum) * 100 : 0}%</p>
         </div>
-        <div>
-          <button class="lobby-game-btn">
-            <img src="/icon/user.svg"></img>
-            Offline Game
-          </button>
-          <button class="lobby-game-btn">
-            <img src="/icon/users.svg"></img>
-            Create Room
-          </button>
-          <button class="lobby-game-btn">
-            <img src="/icon/search.svg"></img>
-            Quick Match
-          </button>
-        </div>
+        <LobbyButton /> 
       </div>
     </div>
   );
