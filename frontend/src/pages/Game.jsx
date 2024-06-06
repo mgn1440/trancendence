@@ -28,7 +28,6 @@ import { history } from "@/lib/router";
 // :
 // Object
 let gameState;
-
 let canvas;
 let context;
 
