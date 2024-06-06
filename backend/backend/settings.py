@@ -59,7 +59,8 @@ INSTALLED_APPS = [
 	'ft_user',
 	'ft_auth',
 	'ft_game',
-	'ft_lounge',
+	'ft_lobby',
+	'ft_room',
 	# 'ft_onlinestatus',
 	'channels',
 	'corsheaders',
@@ -226,13 +227,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #load env
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'ASYNC_CLIENT_CLASS': "django_redis.client.AsyncClient", # add async cache
-        }
-    }
-}
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION': 'redis://127.0.0.1:6379/1',
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#             'ASYNC_CLIENT_CLASS': "django_redis.client.AsyncClient", # add async cache
+#         }
+#     }
+# }
