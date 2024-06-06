@@ -17,11 +17,17 @@ from django_otp.plugins.otp_email.models import EmailDevice
 from django.urls import reverse
 
 def oauth(request):
-	return redirect(API_AUTH_URI)
+	print('fucking')
+
+	# request.META['Origin'] = 'http://localhost:8000/api/auth/callback'
+	response = redirect(API_AUTH_URI)
+	# response['Origin'] = 'http://localhost:8000'
+	return response
 
 class Callback(View): # TODO: POST otp check function
 	def get(self, request):
 		code = request.GET.get('code')
+		print(code)
 		if code is None:
 			return JsonResponse({'error': 'No code'}, status=400)
 		data = {
@@ -44,13 +50,10 @@ class Callback(View): # TODO: POST otp check function
 		id = user_data['id']
 		username = user_data['login']
 		email = user_data['email']
-
-		user, created = CustomUser.objects.get_or_create(uid=id, defaults={'username': username, 'email': email})
-
+		user, created = CustomUser.objects.get_or_create(uid=id, defaults={'username': username, 'email': email, 'multi_nickname': username})
 		if created:
 			device = EmailDevice.objects.create(user=user, email=user.email)
 		login(request, user)
-
 		if user.otp_enabled:
 			device = EmailDevice.objects.filter(user=user).first()
 			device.generate_token(length=6, valid_secs=300)
@@ -59,76 +62,55 @@ class Callback(View): # TODO: POST otp check function
 			try:
 				send_email(SENDER_EMAIL, user.email, APP_PASSWORD, "Your OTP Code for 2FA", "dfasd", html)
 			except Exception as e:
-				return JsonResponse({'error': f'Email Error: {e}'}, status=400)
-			return redirect('otp')	
-			# return JsonResponse({'otp': 'true'}, status=200)
+				return JsonResponse({'error': f'Email Error: {e}'}, status=503)
+			return redirect('http://localhost:5173/2fa')
 		else:
-			return redirect_main_page(user)
-			# response = JsonResponse({'otp', 'false'}, status=200)
-			# tokens = generate_jwt(user)
-			# response.set_cookie('access_token', tokens['access_token'])
-			# response.set_cookie('refresh_token', tokens['refresh_token'])
-			# return response
-def check(request):
-	if request.user.is_authenticated:    #이부분이 이미 장고에의해 리퀘스트의 바디?에 user가 들어와있는지 확인하는부분. 따라서 user가 있는지도 확인해야함
-		otp_code = request.GET.get('otp_code')
-		user = request.user
-		if user.otp_enabled:
-			device = EmailDevice.objects.filter(user=user).first()
-			if device.verify_token(otp_code):
-
-				token = request.COOKIES.get('access_token') #이부분은 이후 Header에서 Authorization으로 받아오는 방식으로 바꿔야함
-				try:
-					payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256']) #이거는 try except으로 해야함. 사이닝 키로 유효성검사와 동시에 성공시 페이로드 리턴받아옴.
-					token_user = CustomUser.objects.get(uid=payload['uid'])
-					if token_user == user:
-						return HttpResponse('Fully 2FA and JWT Authenticated')
-					else:
-						return HttpResponse('Not Same User')
-				except:
-					return HttpResponse('Invalid Token')
-			else:
-				return HttpResponse('Invalid OTP')
-		else:
-			token = request.COOKIES.get('access_token')
-			payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256']) #이거는 try except으로 해야함. 사이닝 키로 유효성검사와 동시에 성공시 페이로드 리턴받아옴.
-			token_user = CustomUser.objects.get(uid=payload['uid'])
-			if token_user == user:
-				return HttpResponse('JWT Authenticated')
-			else:
-				return HttpResponse('Invalid JWT')
-	else:
-		return HttpResponse('Not Authenticated')
-	
-def number_input_view(request):
-	if not request.user or request.user.is_anonymous:
-		return redirect('test')
-	if not request.user.otp_enabled:
-		return redirect('test')
-	if request.method == 'POST':
-		data = json.loads(request.body)
-		combined_number = data.get('combined_number', '')
-		device = EmailDevice.objects.filter(user=request.user).first()
-		if device.verify_token(combined_number):
-			response = JsonResponse({'status': 'success', 'redirect_url': reverse('test_home')}, status=200)
-			tokens = generate_jwt(request.user)
+			response = redirect('http://localhost:5173/lobby')
+			tokens = generate_jwt(user)
 			response.set_cookie('access_token', tokens['access_token'])
 			response.set_cookie('refresh_token', tokens['refresh_token'])
 			return response
-		else:
-			return JsonResponse({'error': 'Invalid OTP'}, status=400)
-	if request.method == 'GET':
-		return render(request, 'twoFA.html')
-	return JsonResponse({'error': 'Invalid request'}, status=400)
 
-	
-def redirect_main_page(user):
-	response = redirect('test_home') # TODO: change main page
-	tokens = generate_jwt(user)
-	response.set_cookie('access_token', tokens['access_token'])
-	response.set_cookie('refresh_token', tokens['refresh_token'])
-	return response
-	
+class OTPView(View):
+	def get(self, request):
+		user = request.user
+		if user.otp_enabled:
+			device = EmailDevice.objects.filter(user=user).first()
+			device.generate_token(length=6, valid_secs=300)
+			otp_code = device.token
+			html = f'<html><body><p>Your OTP is {otp_code}</p></body></html>'
+			try:
+				send_email(SENDER_EMAIL, user.email, APP_PASSWORD, "Your OTP Code for 2FA", "dfasd", html)
+			except Exception as e:
+				return JsonResponse({"message": "OTP 발급에 실패했습니다.", "statusCode": 400}, status=400)
+			return JsonResponse({"statusCode": 200, "message": "OTP 이메일이 전송되었습니다."}, status=200)
+		else:
+			return JsonResponse({"message": "OTP가 활성화되지 않았습니다.", "statusCode": 400}, status=400)
+
+	def post(self, request):
+		user = request.user
+		if user.otp_enabled:
+			device = EmailDevice.objects.filter(user=user).first()
+			data = json.loads(request.body)
+			print(data)
+			otp_code = data.get('otp')
+			print(otp_code)
+			print(user.username, user.email, user.otp_enabled, user.uid)
+			if otp_code is None:
+				return JsonResponse({'statusCode': 400, "message": "없어"}, status=400)
+			if device.verify_token(otp_code):
+				response = JsonResponse({'statusCode': 200, 'message': '인증이 완료 되었습니다'}, status=200)
+				tokens = generate_jwt(user)
+				response.set_cookie('access_token', tokens['access_token'])
+				response.set_cookie('refresh_token', tokens['refresh_token'])
+				return response
+			else:
+				if device.token == otp_code:
+					return JsonResponse({'statusCode': 400, "message": "맞대"}, status=400)
+				return JsonResponse({'statusCode': 400, "message": "안돼"}, status=400)
+		else:
+			return JsonResponse({"'statusCode': 400, message": "패스"}, status=400)
+
 def generate_jwt(user):
 	serializer = MyTokenObtainPairSerializer()
 	token = serializer.get_token(user)
@@ -141,13 +123,6 @@ def generate_jwt(user):
 	}
 	return tokens
 
-def test(request):
-	return render(request, 'test.html')
-
-def test_home(request):
-	return render(request, 'test_home.html')
-
-
 def refresh(request):
 	# if request.method != 'POST':
 		# return JsonResponse({'error': 'Invalid request'}, status=400)
@@ -159,7 +134,7 @@ def refresh(request):
 		return JsonResponse({'error': 'No user'}, status=400)
 	real_user = CustomUser.objects.get(uid=user.uid)
 	if real_user.refresh_token != refresh_token:
-		return JsonResponse({'error': 'Invalid refresh token' , 'user_refresh_token': real_user.refresh_token, 
+		return JsonResponse({'error': 'Invalid refresh token' , 'user_refresh_token': real_user.refresh_token,
 					   'cookie_refresh_token': refresh_token}, status=400)
 	tokens = generate_jwt(user)
 	response = JsonResponse({'status': 'success'}, status=200)

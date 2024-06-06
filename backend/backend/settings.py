@@ -61,7 +61,9 @@ INSTALLED_APPS = [
 	'ft_game',
 	'ft_lobby',
 	'ft_room',
+	# 'ft_onlinestatus',
 	'channels',
+	'corsheaders',
 	'django_otp',
     'django_otp.plugins.otp_totp',
 	'django_otp.plugins.otp_email',
@@ -76,6 +78,23 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer'
 	}
 }
+
+
+CORS_ALLOWED_ORIGINS = [ 'http://localhost:5173' ]
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+]
+
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [ 'http://localhost:5173' ]
 
 # settings.py
 REST_FRAMEWORK = {
@@ -101,21 +120,25 @@ SIMPLE_JWT = {
     "UPDATE_LAST_LOGIN": False,
     "ALGORITHM": "HS256",
     "SIGNING_KEY": JWT_SECRET_KEY,
+    'USER_ID_FIELD': 'uid',
   # ...
 }
 
 AUTH_USER_MODEL = 'ft_user.CustomUser'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'ft_auth.middleware.InsertJWT',
 	'ft_auth.middleware.CustomAuthentication',
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'backend.urls'
 
