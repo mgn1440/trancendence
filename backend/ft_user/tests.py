@@ -22,17 +22,18 @@ class FriendViewTests(APITestCase):
 		self.follow2 = FollowList.objects.create(user=self.user3, following_uid=self.user4.uid)
 		self.follow3 = FollowList.objects.create(user=self.user1, following_uid=self.user4.uid)
 		# URL 설정
-		self.url = reverse('friend')
+		self.url = reverse('follow')
 	def test_get_friend_list(self):
 		# GET 요청 테스트
 		response = self.client.get(self.url)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		print(response.content)
 	def test_create_follow(self):
 		# POST 요청 테스트
 		# 기존 USER1 팔로우 리스트 get
 		response = self.client.get(self.url)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		print(response.data)
+		print(response.content)
 		# 3번 유저를 팔로우
 		data = {'following_uid': self.user3.uid}
 		response = self.client.post(self.url, data, format='json')
@@ -40,7 +41,7 @@ class FriendViewTests(APITestCase):
 		# 팔로우 리스트 get
 		response = self.client.get(self.url)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		print(response.data)
+		print(response.content)
 	def test_prevent_self_follow(self):
 		# 자신을 팔로우하는 것을 방지하는 테스트
 		data = {'following_uid': self.user1.uid}
@@ -53,9 +54,11 @@ class FriendViewTests(APITestCase):
 		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 	def test_delete_follow(self):
 		# 팔로우 삭제 테스트
-		response = self.client.delete(reverse('friend_detail', kwargs={'friend_id': 2}))
+		response = self.client.delete(reverse('follow_detail', kwargs={'follow_id': 2}))
 		# 팔로우 리스트 get
 		response = self.client.get(self.url)
+		print('delete', response)
+		print('delete', response.content)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 class SingleGameRecordListTest(APITestCase):
