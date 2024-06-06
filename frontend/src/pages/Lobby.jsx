@@ -49,8 +49,6 @@ const LobbyPage = () => {
   }, []);
 
   const sendLobbySocket = (roomData) => {
-    console.log("send lobby socket called");
-    console.log(lobbySocket.readyState);
     if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN) {
       lobbySocket.send(JSON.stringify(roomData));
       console.log(roomData);
@@ -70,12 +68,10 @@ const LobbyPage = () => {
                 data={myProfile}
                 sendLobbySocket={sendLobbySocket}
               />
-              {isEmpty(roomList) ? null : (
-                <LobbyRooms
-                  roomList={roomList}
-                  sendLobbySocket={sendLobbySocket}
-                />
-              )}
+              <LobbyRooms
+                roomList={roomList}
+                sendLobbySocket={sendLobbySocket}
+              />
             </div>
             <UserList />
           </div>

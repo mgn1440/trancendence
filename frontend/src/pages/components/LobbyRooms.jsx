@@ -6,8 +6,6 @@ import { BottomSection } from "./ModalSection";
 
 let roomHostName = "";
 
-// export const changeRoomHostName = (newHostName) => (roomHostName = newHostName);
-
 const LobbyRoom = ({ roomInfo, clickEvent }) => {
   return (
     <div class="lobby-room" onclick={() => clickEvent(roomInfo)}>

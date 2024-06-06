@@ -65,7 +65,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
-                    'type': 'room_full',
+                    'type': 'room_ready',
                     'host': self.host_username,
                 }
             )
@@ -185,11 +185,11 @@ class RoomConsumer(AsyncWebsocketConsumer):
             'user_list': user_list,
         }))
         
-    async def room_full(self, event):
+    async def room_ready(self, event):
         host = event['host']
         
         await self.send(text_data=json.dumps({
-            'type': 'room_full',
+            'type': 'room_ready',
             'you': self.scope['user'].username,
             'host': host,
         }))
