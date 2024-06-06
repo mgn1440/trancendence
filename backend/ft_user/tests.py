@@ -22,7 +22,7 @@ class FriendViewTests(APITestCase):
 		self.follow2 = FollowList.objects.create(user=self.user3, following_uid=self.user4.uid)
 		self.follow3 = FollowList.objects.create(user=self.user1, following_uid=self.user4.uid)
 		# URL 설정
-		self.url = reverse('friend')
+		self.url = reverse('follow')
 	def test_get_friend_list(self):
 		# GET 요청 테스트
 		response = self.client.get(self.url)
@@ -54,9 +54,11 @@ class FriendViewTests(APITestCase):
 		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 	def test_delete_follow(self):
 		# 팔로우 삭제 테스트
-		response = self.client.delete(reverse('friend_detail', kwargs={'friend_id': 2}))
+		response = self.client.delete(reverse('follow_detail', kwargs={'follow_id': 2}))
 		# 팔로우 리스트 get
 		response = self.client.get(self.url)
+		print('delete', response)
+		print('delete', response.content)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 class SingleGameRecordListTest(APITestCase):
