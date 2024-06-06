@@ -69,8 +69,9 @@ const LobbyProfile = ({ data }) => {
   useEffect(() => {
     // axios
     const getGameHistory = async () => {
+      console.log(data.user_info.uid);
       const gameRecordsApi = await axiosGameRecords({
-        user_id: data.message.uid,
+        user_id: data.user_info.uid,
         isSingle: logStat ? "SINGLE" : "MULTI",
       });
       console.log(gameRecordsApi.data.record_list);
@@ -80,7 +81,7 @@ const LobbyProfile = ({ data }) => {
     getGameHistory();
   }, [logStat]);
 
-  const profile = data.message;
+  const profile = data.user_info;
   const matchNum = profile.win + profile.lose;
   const multiName = "Hyungjuk_multi";
   const logSingleNum = 7;

@@ -2,53 +2,54 @@
 @import "./font.css";
 
 .game-room {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
 }
 
-.game-room > img{
-	position: absolute;
-	top: 15px;
-	left: 18px;
+.game-room > img {
+  position: absolute;
+  top: 0.9375rem;
+  left: 1.125rem;
 }
 
 .user-cards {
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-items: center;
-	gap: 25px;
-	margin-top: 20px;
-	margin-bottom: 112px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5625rem;
+  margin-top: 1.25rem;
+  margin-bottom: 7rem;
 }
 
 .user-cards .user-card {
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	border: 2px solid white;
-	border-radius: 10px;
-	width: 12rem;
-	height: 18rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid white;
+  border-radius: 10px;
+  width: 12rem;
+  height: 18rem;
 }
 
 .user-card > img {
-	flex: 1;
-	border-bottom: 2px solid white;
-	width: 100%;
-	height: 100%;
+  flex: 1;
+  border-bottom: 2px solid white;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.5rem 0.5rem 0 0;
 }
 
 .user-card > p {
-	text-align: left;
-	/* font-size: 1.5rem; */
+  text-align: left;
+  /* font-size: 1.5rem; */
 }
 
 .user-cards .clients {
-	border-color: #DBFF00;
+  border-color: #dbff00;
 }

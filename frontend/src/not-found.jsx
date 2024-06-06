@@ -1,8 +1,8 @@
-
 const NotFoundPage = () => {
-  return (
-    <div>not found!</div>
-  );
-}
+  window.location.href = "/lobby";
+  // return (
+  //   <div>not found!</div>
+  // );
+};
 
 export default NotFoundPage;

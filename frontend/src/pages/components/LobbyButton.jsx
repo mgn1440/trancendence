@@ -1,18 +1,34 @@
 import Modal from "./Modal";
 import { TitleSection, BottomSection } from "./ModalSection";
-import { InputBox, RadioCheck } from "./Inputs"
+import { InputBox, RadioCheck } from "./Inputs";
 import { useEffect } from "@/lib/dom";
 
-const LobbyButton = () => {
+const getModalInput = () => {
+  const modalElement = document.getElementById("CreateRoomModal");
+  const inputs = modalElement.querySelectorAll("input[type=text]");
+  inputs[0];
+  const radios = modalElement.querySelectorAll("input[type=radio]");
+
+  const retRoomData = {
+    type: "create_room",
+    room_name: inputs[0].value,
+    mode: radios[2].checked ? 2 : 4,
+    is_secret: radios[0].checked ? false : true,
+    password: radios[0].checked ? "" : inputs[1].value,
+  };
+  return retRoomData;
+};
+
+const LobbyButton = ({ data, sendLobbySocket }) => {
   useEffect(() => {
     const modalElement = document.getElementById("CreateRoomModal");
     const handleModalHidden = () => {
       console.log("Modal hidden");
       const inputs = modalElement.querySelectorAll("input[type=text]");
-      inputs.forEach(input => input.value = "");
+      inputs.forEach((input) => (input.value = ""));
 
       const radios = modalElement.querySelectorAll("input[type=radio]");
-      radios.forEach(radio => radio.checked = false);
+      radios.forEach((radio) => (radio.checked = false));
     };
 
     modalElement.addEventListener("hidden.bs.modal", handleModalHidden);
@@ -34,13 +50,13 @@ const LobbyButton = () => {
             <div>
               <InputBox text="Group Name" />
               <div class="radio-check body-element">
-                <RadioCheck text="Open Room" name="lock" id="open"/>
-                <RadioCheck text="Private" name="lock" id="private"/>
+                <RadioCheck text="Open Room" name="lock" id="open" />
+                <RadioCheck text="Private" name="lock" id="private" />
               </div>
               <InputBox text="Password" />
               <div class="radio-check body-element robby-game-btn">
-                <RadioCheck text="1 vs 1" name="battle" id="1vs1"/>
-                <RadioCheck text="Tournament" name="battle" id="tornament"/>
+                <RadioCheck text="1 vs 1" name="battle" id="1vs1" />
+                <RadioCheck text="Tournament" name="battle" id="tornament" />
               </div>
             </div>
           );
@@ -49,7 +65,10 @@ const LobbyButton = () => {
           BottomSection({
             ButtonName: "Create",
             ClickEvent: () => {
-              console.log("Create Room");
+              const roomData = getModalInput();
+              sendLobbySocket(roomData);
+              console.log(data.user_info.username);
+              window.location.href = `/lobby/${data.user_info.username}`;
             },
           })
         }

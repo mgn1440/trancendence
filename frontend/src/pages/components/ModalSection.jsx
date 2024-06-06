@@ -14,8 +14,14 @@ export const TitleSection = (props) => {
 
 export const BottomSection = (props) => {
   return (
-    <button class="small-btn" onclick={props.ClickEvent}>{props.ButtonName}</button>
-  )
+    <button
+      class="small-btn"
+      data-bs-dismiss="modal"
+      onclick={props.ClickEvent}
+    >
+      {props.ButtonName}
+    </button>
+  );
 };
 
 export default TitleSection;
