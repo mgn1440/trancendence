@@ -17,6 +17,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
+        print(data)
         if data['type'] == 'create_room':
             host = self.scope['user'].username
             room_info = {
@@ -26,15 +27,57 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                 'is_secret': data['is_secret'],
                 'password': data.get('password', ''),
                 'players': [],
+                'in_game_players': [],
+                'status': 'room',
             }
-            print(room_info)
             LobbyConsumer.rooms[host] = room_info
             await self.send(text_data=json.dumps({
                 'type': 'room_created',
                 'host': host,
 			}))
             await self.update_room_list()
-
+        elif data['type'] == 'join_room':
+            hostname = data['host']
+            if hostname in LobbyConsumer.rooms:
+                if LobbyConsumer.rooms[hostname]['status'] != 'room':
+                    await self.send(text_data=json.dumps({
+                        'type': 'join_denied',
+                        'message': 'This room is already playing a game.',
+                    }))
+                elif len(LobbyConsumer.rooms[hostname]['players']) >= 2:
+                    await self.send(text_data=json.dumps({
+                        'type': 'join_denied',
+                        'message': 'Room is full.',
+                    }))
+                elif LobbyConsumer.rooms[hostname]['is_secret']:
+                    await self.send(text_data=json.dumps({
+                        'type': 'password_required',
+                        'host': hostname,
+                    }))
+                else:
+                    await self.send(text_data=json.dumps({
+                        'type': 'join_approved',
+                        'host': hostname,
+                    }))
+            else:
+                await self.send(text_data=json.dumps({
+                    'type': 'join_denied',
+                    'message': 'Room does not exist.',
+                }))
+        elif data['type'] == 'join_secret_room':
+            hostname = data['host']
+            if hostname in LobbyConsumer.rooms:
+                if data['password'] == LobbyConsumer.rooms[hostname]['password']:
+                    await self.send(text_data=json.dumps({
+                        'type': 'join_approved',
+                        'host': hostname,
+                    }))
+                else:
+                    await self.send(text_data=json.dumps({
+                        'type': 'join_denied',
+                        'message': 'Wrong password.',
+                    }))
+   
     async def update_room_list(self):
         await self.channel_layer.group_send(
             "lobby",
