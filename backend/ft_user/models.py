@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser
 
 class CustomUser(AbstractUser):
 	uid = models.IntegerField(primary_key=True)
+	username = models.CharField(max_length=128, unique=True)
 	otp_enabled = models.BooleanField(default=False, null=True)
 	password = models.CharField(max_length=128, null=True, blank=True)
 	refresh_token = models.CharField(max_length=1024, null=True, blank=True)
@@ -38,6 +39,8 @@ class SingleGameRecord(models.Model):
 	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE) # 유저는 여러개의 전적을 가질 수 있다.
 	user_score = models.IntegerField()
 	opponent_id = models.IntegerField()
+	opponent_name = models.CharField(max_length=128, null=True, blank=True)
+	opponent_profile = models.CharField(max_length=1024, null=True, blank=True)
 	opponent_score = models.IntegerField()
 	created_at = models.DateTimeField(auto_now_add=True)
 
@@ -48,8 +51,14 @@ class MultiGameRecord(models.Model):
 	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE) # 유저는 여러개의 전적을 가질 수 있다.
 	user_win = models.BooleanField(default=False)
 	opponent1_id = models.IntegerField()
+	opponent1_name = models.CharField(max_length=128, null=True, blank=True)
+	opponent1_profile = models.CharField(max_length=1024, null=True, blank=True)
 	opponent2_id = models.IntegerField()
+	opponent2_name = models.CharField(max_length=128, null=True, blank=True)
+	opponent2_profile = models.CharField(max_length=1024, null=True, blank=True)
 	opponent3_id = models.IntegerField()
+	opponent3_name = models.CharField(max_length=128, null=True, blank=True)
+	opponent3_profile = models.CharField(max_length=1024, null=True, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):

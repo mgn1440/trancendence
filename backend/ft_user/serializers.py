@@ -6,6 +6,19 @@ class CustomUserSerializer(serializers.ModelSerializer):
 		model = CustomUser
 		fields = ['uid', 'username', 'win', 'lose', 'otp_enabled', 'multi_nickname']
 
+class OtherUserSerializer(serializers.ModelSerializer):
+	is_following = serializers.SerializerMethodField()
+	class Meta:
+		model = CustomUser
+		fields = ['uid', 'username', 'win', 'lose', 'multi_nickname', 'is_following']
+	def get_is_following(self, obj):
+		request = self.context.get('request', None)
+		if request is None:
+			return False
+		request_user = request.user
+		return FollowList.objects.filter(user=request_user, following_uid=obj.uid).exists()
+
+
 class FollowListSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = FollowList
@@ -24,10 +37,10 @@ class FollowListSerializer(serializers.ModelSerializer):
 class SingleGameRecordSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = SingleGameRecord
-		fields = ['user_id', 'user_score', 'opponent_id', 'opponent_score', 'created_at']
+		fields = ['user_score', 'opponent_name', 'opponent_profile', 'opponent_score', 'created_at']
 
 
 class MultiGameRecordSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MultiGameRecord
-		fields = ['user_id', 'user_win', 'opponent1_id', 'opponent2_id', 'opponent3_id', 'created_at']
+		fields = ['user_win', 'opponent1_name', 'opponent1_profile', 'opponent2_name', 'opponent2_profile', 'opponent3_name', 'opponent3_profile', 'created_at']

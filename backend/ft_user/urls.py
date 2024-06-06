@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import render
 from .views import OtpUpdateView, UserDetailView, UserWinUpdateView, UserLoseUpdateView, FollowView,\
-	logout, test_friend, SingleGameRecordListView, FollowDetailView, MultiGameRecordListView, UserMeView
+	logout, test_friend, SingleGameRecordListView, FollowDetailView, MultiGameRecordListView, UserMeView, UserNameDetailView
 
 urlpatterns = [
 	path('otp/', OtpUpdateView.as_view(), name='otp_update'),
@@ -16,4 +16,5 @@ urlpatterns = [
 	path('<int:uid>/', UserDetailView.as_view(), name='user_detail'),
 	path('<int:user_id>/record/single/', SingleGameRecordListView.as_view(), name='single_game_record'),
 	path('<int:user_id>/record/multi/', MultiGameRecordListView.as_view(), name='multi_game_record'),
+	path('<str:username>/', UserNameDetailView.as_view(), name='user_detail_by_username'),
 ]

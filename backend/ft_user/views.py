@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
-from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer
+from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer
 from rest_framework import generics
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -35,7 +35,7 @@ class OtpUpdateView(View):
 				return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
 
 class UserDetailView(generics.RetrieveAPIView):
-	serializer_class = CustomUserSerializer
+	serializer_class = OtherUserSerializer
 	def get_object(self):
 		try:
 			return CustomUser.objects.get(uid=self.kwargs['uid'])
@@ -46,14 +46,28 @@ class UserDetailView(generics.RetrieveAPIView):
 		if user is None:
 			return JsonResponse({'status_code': '400', 'message': 'User not found'}, status=400)
 		serializer = self.get_serializer(user)
-		return JsonResponse({'status_code': '200', 'message': serializer.data}, status=200)
+		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
+
+class UserNameDetailView(generics.RetrieveAPIView):
+	serializer_class = OtherUserSerializer
+	def get_object(self):
+		try:
+			return CustomUser.objects.get(username=self.kwargs['username'])
+		except CustomUser.DoesNotExist:
+			return None
+	def get(self, request, *args, **kwargs):
+		user = self.get_object()
+		if user is None:
+			return JsonResponse({'status_code': '400', 'message': 'User not found'}, status=400)
+		serializer = self.get_serializer(user)
+		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 
 class UserMeView(generics.RetrieveAPIView):
 	serializer_class = CustomUserSerializer
 	def get(self, request, *args, **kwargs):
 		user = get_jwt_user(self.request)
 		serializer = self.get_serializer(user)
-		return JsonResponse({'status_code': '200', 'message': serializer.data}, status=200)
+		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 
 class UserWinUpdateView(View):
 	# permission_classes = [IsAuthenticated]

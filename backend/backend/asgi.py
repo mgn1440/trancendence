@@ -12,7 +12,8 @@ from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 import ft_game.routing
-import ft_lounge.routing
+import ft_lobby.routing
+import ft_room.routing
 import ft_onlinestatus.routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
@@ -22,8 +23,9 @@ application = ProtocolTypeRouter({
     "websocket": AuthMiddlewareStack(
         URLRouter(
             ft_game.routing.websocket_urlpatterns +
-			ft_lounge.routing.websocket_urlpatterns +
-			ft_onlinestatus.routing.websocket_urlpatterns
+            ft_lobby.routing.websocket_urlpatterns +
+            ft_room.routing.websocket_urlpatterns +
+			      ft_onlinestatus.routing.websocket_urlpatterns
         )
     ),
 })
