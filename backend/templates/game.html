@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping Pong</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            color: white;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: white;
+        }
+        #gameCanvas {
+            border: 2px solid #fff;
+            background-color: #000;
+            display: none;
+        }
+        #info {
+            margin-bottom: 20px;
+        }
+        #scores {
+            font-size: 24px;
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #countdown {
+            font-size: 48px;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+        #errorMessage {
+            font-size: 24px;
+            color: red;
+            margin-bottom: 20px;
+        }
+        #players {
+            font-size: 24px;
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ping Pong</h1>
+    <div id="waitingMessage">상대 유저 기다리는 중...</div>
+    <div id="errorMessage"></div>
+    <div id="players" style="display: none;"></div>
+    <div id="scores">Scores: 0 - 0</div>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <div id="countdown">3</div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const countdownElement = document.getElementById('countdown');
+        const errorMessageElement = document.getElementById('errorMessage');
+
+        let game = {};
+        let playerRole = '';  // 'left' or 'right'
+
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/game/' + '{{ host_username }}' + '/');
+
+        socket.onopen = function(e) {
+            console.log("웹소켓 서버에 연결되었습니다.");
+        };
+
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            console.log("서버로부터 메시지를 받았습니다:", data);
+            if (data.type === 'game_start') {
+                displayPlayers(data.game);
+                startCountdown(data.game);
+                setPlayerRole(data.game);
+            } else if (data.type === 'error') {
+                showErrorAndRedirect(data.message);
+            } else if (data.type === 'update_game') {
+                game = data.game;
+                updateGameCanvas();
+            } else if (data.type === 'game_over') {
+				alert('게임이 종료되었습니다.');
+				window.location.href = '/api/room/' + '{{ host_username }}' + '/';
+			}
+        };
+
+        socket.onclose = function(e) {
+            console.log("웹소켓 서버와 연결이 끊어졌습니다.");
+        };
+
+        socket.onerror = function(e) {
+            console.error("웹소켓 에러 발생:", e);
+        };
+
+        function setPlayerRole(gameData) {
+            if (gameData.roles.left === '{{ user }}') {
+                playerRole = 'left';
+            } else if (gameData.roles.right === '{{ user }}') {
+                playerRole = 'right';
+            }
+        }
+
+        function showErrorAndRedirect(message) {
+            errorMessageElement.textContent = message;
+            setTimeout(() => {
+                window.location.href = '/api/lobby/';
+            }, 3000);
+        }
+
+        function displayPlayers(gameData) {
+            const playersElement = document.getElementById('players');
+            playersElement.textContent = `${gameData.roles.left} VS ${gameData.roles.right}`;
+            playersElement.style.display = 'block';
+        }
+
+        function startCountdown(gameData) {
+            game = gameData;
+            document.getElementById('waitingMessage').style.display = 'none';
+            document.getElementById('scores').style.display = 'block';
+            canvas.style.display = 'block';
+
+            let countdown = 3;
+            countdownElement.textContent = countdown;
+            countdownElement.style.display = 'block';
+
+            const interval = setInterval(() => {
+                countdown -= 1;
+                if (countdown > 0) {
+                    countdownElement.textContent = countdown;
+                } else {
+                    countdownElement.style.display = 'none';
+                    clearInterval(interval);
+                    sendStartGame();
+                }
+            }, 1000);
+        }
+
+        function sendStartGame() {
+            const startData = {
+                type: 'start_game',
+            };
+            socket.send(JSON.stringify(startData));
+        }
+
+        function updateGameCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw ball
+            ctx.beginPath();
+            ctx.arc(game.ball.x, game.ball.y, game.ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "#FFF";
+            ctx.fill();
+            ctx.closePath();
+
+            // Draw paddles
+            ctx.fillStyle = "#FFF";
+            ctx.fillRect(10, game.player_bar.left, 10, 100);
+            ctx.fillRect(canvas.width - 20, game.player_bar.right, 10, 100);
+
+            // Draw player names
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "white";
+            ctx.textAlign = "center";
+            ctx.fillText(game.roles.left, 100, 30);
+            ctx.fillText(game.roles.right, canvas.width - 100, 30);
+
+            // Draw VS
+            ctx.fillText("VS", canvas.width / 2, 30);
+
+            // Update scores
+            document.getElementById('scores').textContent = `Scores: ${game.scores.left} - ${game.scores.right}`;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (playerRole && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                const direction = e.key === 'ArrowUp' ? 'up' : 'down';
+                sendBarMove(direction);
+            }
+        });
+
+        function sendBarMove(direction) {
+            const moveData = {
+                type: 'move_bar',
+                direction: direction,
+                role: playerRole
+            };
+            socket.send(JSON.stringify(moveData));
+        }
+    </script>
+</body>
+</html>

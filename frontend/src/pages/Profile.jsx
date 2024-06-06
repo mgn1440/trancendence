@@ -2,9 +2,14 @@ import UserList from "./components/UserList";
 import ProfileImg from "./components/ProfileImg";
 import ProfileInfo from "./components/ProfileInfo";
 import TopNavBar from "./components/TopNavBar";
-import { axiosUserMe, axiosUserOther } from "@/api/axios.custom";
+import {
+  axiosUserMe,
+  axiosUserOther,
+  axiosGameRecords,
+} from "@/api/axios.custom";
 import { isEmpty } from "@/lib/libft";
 import { useState, useEffect } from "@/lib/dom";
+import { history } from "@/lib/router";
 
 const ProfilePage = () => {
   const [myProfile, setMyProfile] = useState({});
@@ -33,7 +38,7 @@ const ProfilePage = () => {
 
   return (
     <div>
-      {isEmpty(myProfile) ? null : (
+      {isEmpty(profile) ? null : (
         <div>
           <div id="top">
             <TopNavBar />

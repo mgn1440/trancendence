@@ -70,7 +70,8 @@ const domRenderer = () => {
     const state = states[index];
     const setState = (newState) => {
       // console.log(options.states); // debug
-      if (shallowEqual(state, newState)) return;
+      // TODO: diff알고리즘과 shallowEqual 함수 객체일 때 제대로 확인이 안되는 문제 발생 => 재정비 필요
+      // if (shallowEqual(state, newState)) return;
       states[index] = newState;
       // queueMicrotask(_render);
       _render();

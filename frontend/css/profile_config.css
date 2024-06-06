@@ -1,41 +1,47 @@
-
-
-.profile-config-main{
-	width: 60%;
-	height: 40%;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	margin-left: 62px;
+.profile-config-main {
+  width: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: start;
+  align-items: start;
+  padding-left: 2.5rem;
 }
 
-.top > h3{
-	padding: 16px 0px;
+.profile-config-main > h3 {
+  padding: 1rem 0;
 }
 
-.profile-config-main > .bottom {
-	margin-top: 20px;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center; 
-	gap: 4rem;
+.profile-config-list {
+  width: 100%;
+  max-width: 30rem;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: start;
+  padding-left: 1rem;
+}
+
+.profile-config-submit {
+  width: 100%;
+  max-width: 30rem;
+  padding-top: 4rem;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-around;
 }
 
 .config-btn {
-	width: 12rem;
-	height: 2.375rem;
-	display: flex;
-	flex-flow: row nowrap;
-	justify-content: center;
-	align-items: center;
-	border-radius: 0.5rem;
-	font-size: 1.25rem;
-	margin: 0.5rem;
+  width: 10rem;
+  height: 2rem;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0.5rem;
+  font-size: 1.25rem;
 }
 
-.config-btn > img{
-	width: 1.5rem;
-	height: 1.5rem;
-	margin-right: 0.625rem;
+.config-btn > img {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding-right: 0.625rem;
 }
