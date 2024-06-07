@@ -111,7 +111,7 @@ class MultiGameRecordListView(APIView):
 class FollowView(ListCreateAPIView):
 	queryset = FollowList.objects.all()
 	serializer_class = FollowListSerializer
-	permission_classes = [AllowAny]
+	# permission_classes = [AllowAny]
 	def get_queryset(self):
 		return FollowList.objects.filter(user=self.request.user)
 	def perform_create(self, serializer):
