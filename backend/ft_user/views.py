@@ -82,6 +82,8 @@ class ProfileImageView(RetrieveUpdateDestroyAPIView):
 		return user
 	def destroy(self, request, *args, **kwargs):
 		user = self.get_object()
+		if user.profile_image:
+			user.profile_image.delete(save=False)
 		user.profile_image = None
 		user.save()
 		return JsonResponse({'status_code': '204', 'message': 'Profile image deleted'}, status=204)
