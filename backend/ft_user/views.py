@@ -1,19 +1,18 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 from django.views import View
 from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord
 from django.http import JsonResponse
 from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
-from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer
-from rest_framework import generics
+from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView
 from rest_framework.exceptions import NotFound, ValidationError
 import json
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class OtpUpdateView(View):
 	def post(self, request):
@@ -32,7 +31,7 @@ class OtpUpdateView(View):
 			except CustomUser.DoesNotExist:
 				return JsonResponse({'status_code': '401', 'message': 'User not found'}, status=404)
 
-class UserNameDetailView(generics.RetrieveAPIView):
+class UserNameDetailView(RetrieveAPIView):
 	serializer_class = OtherUserSerializer
 	def get_object(self):
 		try:
@@ -46,7 +45,7 @@ class UserNameDetailView(generics.RetrieveAPIView):
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 
-class UserMeView(generics.RetrieveAPIView):
+class UserMeView(RetrieveAPIView):
 	serializer_class = CustomUserSerializer
 	def get(self, request, *args, **kwargs):
 		user = get_jwt_user(self.request)
@@ -72,6 +71,22 @@ class UserLoseUpdateView(View):
 			return JsonResponse({'status_code': '200', 'lose': user.lose}, status=200)
 		except CustomUser.DoesNotExist:
 			return JsonResponse({'status_code': '404', 'message': 'User not found'}, status=404)
+
+class ProfileImageView(RetrieveUpdateDestroyAPIView):
+	queryset = CustomUser.objects.all()
+	serializer_class = ProfileImageSerializer
+	parser_classes = [MultiPartParser, FormParser]
+	def get_object(self):
+		username = self.kwargs['username']
+		user = get_object_or_404(CustomUser, username=username)
+		return user
+	def destroy(self, request, *args, **kwargs):
+		user = self.get_object()
+		if user.profile_image:
+			user.profile_image.delete(save=False)
+		user.profile_image = None
+		user.save()
+		return JsonResponse({'status_code': '204', 'message': 'Profile image deleted'}, status=204)
 
 
 class SingleGameRecordListView(APIView):
