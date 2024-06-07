@@ -111,7 +111,6 @@ class MultiGameRecordListView(APIView):
 class FollowView(ListCreateAPIView):
 	queryset = FollowList.objects.all()
 	serializer_class = FollowListSerializer
-	# permission_classes = [AllowAny]
 	def get_queryset(self):
 		return FollowList.objects.filter(user=self.request.user)
 	def perform_create(self, serializer):
@@ -133,9 +132,9 @@ class FollowDetailView(DestroyAPIView):
 	queryset = FollowList.objects.all()
 	serializer_class = FollowListSerializer
 	def get_object(self):
-		friend_id = self.kwargs['follow_id']
+		follow_username = self.kwargs['username']
 		try:
-			return FollowList.objects.get(user=self.request.user, following_uid=friend_id)
+			return FollowList.objects.get(user=self.request.user, following_username=follow_username)
 		except FollowList.DoesNotExist:
 			raise NotFound("follow user does not exist")
 	def perform_destroy(self, instance):
