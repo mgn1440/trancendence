@@ -85,6 +85,7 @@ CORS_ALLOWED_ORIGINS = [ 'http://localhost:5173' ]
 CORS_ALLOW_METHODS = [
     'GET',
     'POST',
+    'DELETE',
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -99,10 +100,8 @@ CSRF_TRUSTED_ORIGINS = [ 'http://localhost:5173' ]
 # settings.py
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-        # JWT 인증을 사용하는 경우:
+        #  JWT 인증을 사용하는 경우:
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }

@@ -17,7 +17,6 @@ from django_otp.plugins.otp_email.models import EmailDevice
 from django.urls import reverse
 
 def oauth(request):
-	print('fucking')
 
 	# request.META['Origin'] = 'http://localhost:8000/api/auth/callback'
 	response = redirect(API_AUTH_URI)
@@ -92,10 +91,8 @@ class OTPView(View):
 		if user.otp_enabled:
 			device = EmailDevice.objects.filter(user=user).first()
 			data = json.loads(request.body)
-			print(data)
 			otp_code = data.get('otp')
-			print(otp_code)
-			print(user.username, user.email, user.otp_enabled, user.uid)
+			# print(device.verify_token(otp_code))
 			if otp_code is None:
 				return JsonResponse({'statusCode': 400, "message": "없어"}, status=400)
 			if device.verify_token(otp_code):
