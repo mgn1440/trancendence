@@ -1,18 +1,52 @@
-import { useEffect } from "@/lib/dom";
-
+import { useEffect, useState } from "@/lib/dom";
+import { isEmpty } from "@/lib/libft";
+import { history } from "@/lib/router";
+// game
+// :
+// ball
+// :
+// {x: 500, y: 500, radius: 10, speedX: 10, speedY: 10}
+// player_bar
+// :
+// {left: 400, right: 400}
+// players
+// :
+// (2) ['hyungjuk', 'surkim']
+// roles
+// :
+// {left: 'hyungjuk', right: 'surkim'}
+// scores
+// :
+// {left: 0, right: 0}
+// [[Prototype]]
+// :
+// Object
+// type
+// :
+// "game_start"
+// [[Prototype]]
+// :
+// Object
+let gameState;
 let canvas;
 let context;
 
 const drawPaddle = (x, y) => {
   context.fillStyle = "#ffffff";
-  context.fillRect(x, y, 20, canvas.height / 5);
+  context.fillRect(x, (canvas.height * y) / 1000, 20, canvas.height / 5);
 };
 
 const drawBall = (x, y) => {
   context.fillStyle = "#ffffff";
   // context.fillRect(x, y, 20, 20);
   context.beginPath();
-  context.arc(x, y, 10, 0, Math.PI * 2);
+  context.arc(
+    (gameState.ball.x * canvas.width) / 1000,
+    (gameState.ball.y * canvas.height) / 1000,
+    gameState.ball.radius,
+    0,
+    Math.PI * 2
+  );
   context.fill();
   context.closePath();
 };
@@ -31,37 +65,134 @@ const draw = () => {
   context.fillStyle = "#181818";
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.fillStyle = "#ffffff";
-  drawPaddle(20, 200);
-  drawPaddle(canvas.width - 40, 500);
-  drawBall(400, 400);
+  drawPaddle(20, gameState.player_bar.left);
+  drawPaddle(canvas.width - 40, gameState.player_bar.right);
+  drawBall(gameState.ball.x, gameState.ball.y);
   drawLine();
   // context.font = "20px Quantico";
   // context.fillText("User1", 10, 20);
 };
 
 const update = () => {
+  console.log("update");
   draw();
   requestAnimationFrame(() => update());
 };
 
+const dirStat = {
+  STOP: 0,
+  UP: 1,
+  DOWN: 2,
+};
+
 const GamePage = () => {
+  const [gameUsers, setGameUsers] = useState({});
+  const [gameScore, setGameScore] = useState({});
+  let direction = dirStat.STOP;
+  let startFlag = false;
   useEffect(() => {
+    const socketAsync = async () => {
+      const socket = new WebSocket(
+        "ws://" +
+          "localhost:8000" +
+          `/ws/game/${history.currentPath().split("/")[2]}/`
+      );
+
+      socket.onopen = (e) => {
+        console.log("Game Socket Connected");
+        const waitOpponent = async () => {
+          await new Promise((resolve) => setTimeout(resolve, 10000));
+          if (!startFlag) {
+            console.log("timeout");
+            socket.send(JSON.stringify({ type: "error", message: "timeout" }));
+          }
+        };
+        waitOpponent();
+      };
+
+      socket.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        console.log(data);
+        if (data.type === "game_start") {
+          startFlag = true;
+          gameState = data.game;
+          console.log(gameState);
+          setGameScore(data.game.scores);
+          setGameUsers(data.game.roles);
+          setInterval(() => {}, 1000);
+          socket.send(JSON.stringify({ type: "start_game" }));
+          document.addEventListener("keydown", (e) => {
+            if (
+              // direction === dirStat.STOP &&
+              e.key === "ArrowUp" ||
+              e.key === "ArrowDown"
+            ) {
+              direction = e.key === "ArrowUp" ? dirStat.UP : dirStat.DOWN;
+              socket.send(
+                JSON.stringify({
+                  type: "move_bar",
+                  direction: direction === dirStat.UP ? "up" : "down",
+                  role: data.you,
+                })
+              );
+            }
+          });
+          document.addEventListener("keyup", (e) => {
+            if (
+              direction !== dirStat.STOP &&
+              // (e.key === "ArrowUp" || e.key === "ArrowDown")
+              ((e.key === "ArrowUp" && direction === dirStat.UP) ||
+                (e.key === "ArrowDown" && direction === dirStat.DOWN))
+            ) {
+              direction = dirStat.STOP;
+              socket.send(
+                JSON.stringify({
+                  type: "stop_bar",
+                  role: data.you,
+                })
+              );
+            }
+          });
+        } else if (data.type === "update_game") {
+          gameState = data.game;
+          // setGameScore(data.game.scores);
+          // setGameUsers(data.game.roles);
+        } else if (data.type === "game_over") {
+          alert(data.winner + " win!");
+          console.log(data);
+          window.location.href = `/lobby/${data.host_username}`;
+        } else if (data.type === "error") {
+          alert(data.message);
+          window.location.href = "/lobby";
+        }
+      };
+    };
+    socketAsync();
+  }, []);
+
+  useEffect(() => {
+    if (isEmpty(gameUsers) || isEmpty(gameScore)) return;
     canvas = document.getElementById("pong-game");
+    console.log(window.innerHeight, window.innerWidth);
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     context = canvas.getContext("2d");
     context.scale(1, 1);
 
     update();
-  }, []);
+  }, [gameUsers, gameScore]);
   return (
     <div>
-      <canvas id="pong-game"></canvas>
-      <div class="pong-game-info">
-        <p class="user1">User1</p>
-        <p class="user2">User2</p>
-        <h6 class="user1">Score 1</h6>
-        <h6 class="user2">Score 2</h6>
+      <div>
+        <canvas id="pong-game"></canvas>
+        {isEmpty(gameUsers) || isEmpty(gameScore) ? null : (
+          <div class="pong-game-info">
+            <p class="user1">{gameUsers.left}</p>
+            <p class="user2">{gameUsers.right}</p>
+            <h6 class="user1">{gameScore.left}</h6>
+            <h6 class="user2">{gameScore.right}</h6>
+          </div>
+        )}
       </div>
     </div>
   );
