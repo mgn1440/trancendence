@@ -1,0 +1,37 @@
+@import url(./color.css);
+
+#pong-game {
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
+.pong-game-info {
+  z-index: 999;
+  color: var(--white);
+  /* left: 50%; */
+}
+
+.pong-game-info > p.user1 {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+}
+
+.pong-game-info > p.user2 {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+
+.pong-game-info > h6.user1 {
+  position: absolute;
+  top: 0.5rem;
+  right: 52%;
+}
+
+.pong-game-info > h6.user2 {
+  position: absolute;
+  top: 0.5rem;
+  left: 52%;
+}

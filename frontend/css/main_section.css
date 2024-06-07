@@ -2,6 +2,15 @@
 
 .main-section {
   flex: 1;
+  max-height: calc(100vh - 3rem);
+}
+
+.flex-column {
   display: flex;
   flex-flow: column nowrap;
+}
+
+.flex-row {
+  display: flex;
+  flex-flow: row nowrap;
 }

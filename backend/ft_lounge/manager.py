@@ -15,8 +15,9 @@ class GameRoomManager:
 			'password': password,
 			'current_players': 0,
 		}
-		room_data_json = json.dumps(room_data)
-		cache.set(f'game_room_{room_number}', room_data_json)
+		room_data_json_str = json.dumps(room_data)
+		cache.set(f'game_room_{room_number}', room_data_json_str)
+		room_data_json = json.loads(room_data_json_str)
 		GameRoomManager.send_room_list_channel_group()
 		return room_data_json
 
@@ -24,16 +25,17 @@ class GameRoomManager:
 	def get_room(room_number):
 		room_data = cache.get(f'game_room_{room_number}')
 		if room_data:
-			return json.loads(room_data)
+			return room_data
 		return None
 
 	@staticmethod
 	def add_player(room_number):
 		room_data = GameRoomManager.get_room(room_number)
-		if room_data:
-			if room_data['current_players'] < room_data['room_size']:
-				room_data['current_players'] += 1
-				cache.set(f'game_room_{room_number}', json.dumps(room_data))
+		room_data_dict = json.loads(room_data)
+		if room_data_dict:
+			if room_data_dict['current_players'] < room_data_dict['room_size']:
+				room_data_dict['current_players'] += 1
+				cache.set(f'game_room_{room_number}', json.dumps(room_data_dict))
 				GameRoomManager.send_room_list_channel_group()
 			else:
 				raise Exception('Room is full')
@@ -63,6 +65,7 @@ class GameRoomManager:
 		rooms = []
 		for key in sorted_keys:
 			room_data = cache.get(key)
+			print(type(room_data))
 			if room_data:
 				rooms.append(json.loads(room_data))
 		return rooms

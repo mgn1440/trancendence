@@ -59,7 +59,8 @@ INSTALLED_APPS = [
 	'ft_user',
 	'ft_auth',
 	'ft_game',
-	'ft_lounge',
+	'ft_lobby',
+	'ft_room',
 	# 'ft_onlinestatus',
 	'channels',
 	'corsheaders',
@@ -84,6 +85,7 @@ CORS_ALLOWED_ORIGINS = [ 'http://localhost:5173' ]
 CORS_ALLOW_METHODS = [
     'GET',
     'POST',
+    'DELETE',
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -98,10 +100,7 @@ CSRF_TRUSTED_ORIGINS = [ 'http://localhost:5173' ]
 # settings.py
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-        # JWT 인증을 사용하는 경우:
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
@@ -136,6 +135,8 @@ MIDDLEWARE = [
 	'ft_auth.middleware.InsertJWT',
 	'ft_auth.middleware.CustomAuthentication',
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -224,13 +225,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #load env
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'ASYNC_CLIENT_CLASS': "django_redis.client.AsyncClient", # add async cache
-        }
-    }
-}
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION': 'redis://127.0.0.1:6379/1',
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#             'ASYNC_CLIENT_CLASS': "django_redis.client.AsyncClient", # add async cache
+#         }
+#     }
+# }

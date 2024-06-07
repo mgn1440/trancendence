@@ -1,0 +1,55 @@
+@import url(./color.css);
+
+.lobby-rooms-main {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+.lobby-rooms-nav {
+  display: flex;
+  flex-flow: column nowrap;
+  margin-left: 1rem;
+}
+
+.lobby-rooms-nav > button {
+  width: 1.8rem;
+  height: 4rem;
+  border: 1px solid var(--white);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 1rem 0 0 0.2rem;
+}
+.lobby-rooms-nav > button.selected {
+  background-color: var(--white);
+  color: var(--primary-color);
+}
+
+.lobby-rooms {
+  flex: 1;
+  margin-bottom: 1rem;
+  margin-right: 1rem;
+  border-radius: 0.5rem;
+  border-radius: 0 0 0 1rem;
+  border-left: 2px solid var(--white);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(12rem, auto));
+  grid-template-rows: repeat(5, minmax(4rem, auto));
+  gap: 0.8rem;
+  padding: 1rem;
+}
+
+.lobby-room {
+  border: 1px solid var(--white);
+  border-radius: 0 0.5rem 0 1rem;
+  /* margin: 0.2rem; */
+  padding: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.lobby-room:hover {
+  z-index: 1;
+  transform: scale(1.03);
+}
