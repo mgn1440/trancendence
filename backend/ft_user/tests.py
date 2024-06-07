@@ -1,8 +1,6 @@
-from django.test import TestCase
-from .serializers import CustomUserSerializer
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APITestCase
 from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord
 import json, jwt
 from backend.settings import JWT_SECRET_KEY
@@ -65,11 +63,11 @@ class SingleGameRecordListTest(APITestCase):
 	def setUp(self):
 		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
 		self.user2 = CustomUser.objects.create_user(username="guma", uid=2)
-		SingleGameRecord.objects.create(user=self.user, user_id=self.user.uid, user_score=5, opponent_id=self.user2.uid, opponent_name=self.user2.username, opponent_score=3)
-		SingleGameRecord.objects.create(user=self.user2, user_id=self.user2.uid, user_score=3, opponent_id=self.user.uid, opponent_name=self.user.username, opponent_score=5)
+		SingleGameRecord.objects.create(user=self.user, user_score=5, opponent_name=self.user2.username, opponent_score=3)
+		SingleGameRecord.objects.create(user=self.user2, user_score=3, opponent_name=self.user.username, opponent_score=5)
 
 	def test_get_single_game_records_for_user(self):
-		url = reverse('single_game_record', kwargs={'user_id': 1})
+		url = reverse('single_game_record', kwargs={'username': self.user.username})
 		response = self.client.get(url)
 		print(response.content)
 
@@ -82,24 +80,20 @@ class MultiGameRecordListTest(APITestCase):
 		self.user4 = CustomUser.objects.create_user(username="pull", uid=4)
 		MultiGameRecord.objects.create(
 			user=self.user,
-			user_id=self.user.uid,
 			user_win=True,
-			opponent1_id=self.user2.uid,
 			opponent1_name = self.user2.username,
-			opponent2_id=self.user3.uid,
 			opponent2_name=self.user3.username,
-			opponent3_id=self.user4.uid,
 			opponent3_name=self.user4.username
 		)
 	def test_get_multi_game_records_for_user(self):
-		url = reverse('multi_game_record', kwargs={'user_id': self.user.uid})
+		url = reverse('multi_game_record', kwargs={'username': self.user.username})
 		response = self.client.get(url)
 		print('multi', response.content)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		url = reverse('multi_game_record', kwargs={'user_id': self.user2.uid})
+		url = reverse('multi_game_record', kwargs={'username': self.user2.username})
 		response = self.client.get(url)
 	def test_get_multi_game_records_for_user_404(self):
-		url = reverse('multi_game_record', kwargs={'user_id': 100})
+		url = reverse('multi_game_record', kwargs={'username': 'non_exist_user'})
 		response = self.client.get(url)
 		self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -119,38 +113,6 @@ class UserMeTest(APITestCase):
 		# me informations
 		print(response.content)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-class UserDetailViewTest(APITestCase):
-	def setUp(self):
-		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
-		self.client.force_authenticate(user=self.user)
-		self.jwt_token = jwt.encode(
-			{'uid': self.user.uid},
-			JWT_SECRET_KEY,
-			algorithm='HS256'
-		)
-		self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_token)
-		self.user2 = CustomUser.objects.create_user(username="guma", uid=2)\
-
-	def test_get_user_detail(self):
-		url = reverse('user_detail', kwargs={'uid': self.user.uid})
-		response = self.client.get(url)
-		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		print(response.content)
-
-	def test_get_user_detail_other(self):
-		url = reverse('user_detail', kwargs={'uid': self.user2.uid})
-		response = self.client.get(url)
-		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		print(response.content)
-
-	def test_follow_feat(self):
-		FollowList.objects.create(user=self.user, following_username=self.user2.username)
-		url = reverse('user_detail', kwargs={'uid': self.user2.uid})
-		response = self.client.get(url)
-		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		print('follow_test', response.content)
-
 
 class UserDeatilByNameViewTest(APITestCase):
 	def setUp(self):

@@ -32,20 +32,6 @@ class OtpUpdateView(View):
 			except CustomUser.DoesNotExist:
 				return JsonResponse({'status_code': '401', 'message': 'User not found'}, status=404)
 
-class UserDetailView(generics.RetrieveAPIView):
-	serializer_class = OtherUserSerializer
-	def get_object(self):
-		try:
-			return CustomUser.objects.get(uid=self.kwargs['uid'])
-		except CustomUser.DoesNotExist:
-			return None
-	def get(self, request, *args, **kwargs):
-		user = self.get_object()
-		if user is None:
-			return JsonResponse({'status_code': '400', 'message': 'User not found'}, status=400)
-		serializer = self.get_serializer(user)
-		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
-
 class UserNameDetailView(generics.RetrieveAPIView):
 	serializer_class = OtherUserSerializer
 	def get_object(self):
@@ -89,9 +75,9 @@ class UserLoseUpdateView(View):
 
 
 class SingleGameRecordListView(APIView):
-	def get(self, request, user_id):
+	def get(self, request, username):
 		try:
-			user = CustomUser.objects.get(uid=user_id)
+			user = CustomUser.objects.get(username=username)
 			record_list = SingleGameRecord.objects.filter(user=user)
 			serializer = SingleGameRecordSerializer(record_list, many=True)
 			return JsonResponse({'statusCode': '200', 'record_list': serializer.data}, status=200)
@@ -99,9 +85,9 @@ class SingleGameRecordListView(APIView):
 			return JsonResponse({'statusCode': '404', 'message': 'User does not exist'}, status=404)
 
 class MultiGameRecordListView(APIView):
-	def get(self, request, user_id):
+	def get(self, request, username):
 		try:
-			user = CustomUser.objects.get(uid=user_id)
+			user = CustomUser.objects.get(username=username)
 			record_list = MultiGameRecord.objects.filter(user=user)
 			serializer = MultiGameRecordSerializer(record_list, many=True)
 			return JsonResponse({'statusCode': '200', 'record_list': serializer.data}, status=200)
