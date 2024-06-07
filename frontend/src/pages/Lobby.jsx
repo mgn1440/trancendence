@@ -4,7 +4,7 @@ import LobbyRooms from "./components/LobbyRooms";
 import TopNavBar from "./components/TopNavBar";
 import { axiosUserMe } from "@/api/axios.custom";
 import { useState, useEffect } from "@/lib/dom";
-import { isEmpty } from "@/lib/libft";
+import { isEmpty, gotoPage } from "@/lib/libft";
 
 const LobbyPage = () => {
   const [myProfile, setMyProfile] = useState({});
@@ -63,6 +63,7 @@ const LobbyPage = () => {
         <div>
           <div id="top">
             <TopNavBar />
+            <button onclick={() => gotoPage("/profile/hyungjuk")}>test</button>
           </div>
           <div id="middle">
             <div class="main-section flex-column">

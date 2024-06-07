@@ -13,14 +13,23 @@ import { history } from "@/lib/router";
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState({});
+  const [stat, setStat] = useState(0); // [0: me, 1: config, 2: follow, 3: unfollow]
+  const [user_id, setUserID] = useState(0); // [0: me, 1: config, 2: follow, 3: unfollow]
   useEffect(() => {
     const fetchProfile = async () => {
-      let user = await axiosUserMe();
-      const username = history.currentPath().split("/")[2];
-      if (user.data.user_info.username === username)
-        window.location.href = "/profile/me";
-      if (username !== "me") {
-        user = await axiosUserOther(username);
+      let user = null;
+      let userName = window.location.pathname.split("/").pop();
+      if (userName === "me") {
+        user = await axiosUserMe();
+      } else {
+        user = await axiosUserOther(userName);
+        console.log(user.data);
+        let follow = user.data.user_info.is_following;
+        setUserID(user.data.user_info.uid);
+        if (!follow)
+          setStat(2);
+        else
+          setStat(3);
       }
       setProfile(user.data);
     };
@@ -36,7 +45,7 @@ const ProfilePage = () => {
           </div>
           <div id="middle">
             <div class="main-section flex-row">
-              <ProfileImg stat={0} />
+              <ProfileImg stat={stat} user_id={user_id} />
               <ProfileInfo data={profile} />
             </div>
             <UserList />

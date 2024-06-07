@@ -76,7 +76,7 @@ const LobbyProfile = ({ data }) => {
       });
       console.log(gameRecordsApi.data.record_list);
       setGameRecords(gameRecordsApi.data.record_list);
-      console.log(data.message.uid);
+      console.log(data.user_info.uid);
     };
     getGameHistory();
   }, [logStat]);

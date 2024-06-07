@@ -1,11 +1,7 @@
 import { useEffect, useState } from "../lib/dom";
 import { createElement } from "../lib/createElement";
+import { axiosVerfiyOTP } from "@/api/axios.custom";
 import axios from "axios";
-
-function get_cookie(name) {
-  var value = document.cookie.match("(^|;) ?" + name + "=([^;]*)(;|$)");
-  return value ? value[2] : null;
-}
 
 const isFull = (inputs) => {
   for (let i = 0; i < inputs.length; i++) {
@@ -25,7 +21,7 @@ const OTP = ({ len }) => {
     let backspacePressed = false;
     inputs[0].focus();
     inputs.forEach((input, index) => {
-      input.addEventListener("input", (e) => {
+      input.addEventListener("input", async (e) => {
         const value = e.target.value;
         if (value != "") {
           if (value.match(/[^0-9]/g)) {
@@ -37,21 +33,18 @@ const OTP = ({ len }) => {
             inputs.forEach((input) => {
               input.classList.toggle("bg-gray30"); // css toggle
             });
-            axios({
-              method: "post",
-              url: "http://localhost:8000/api/auth/otp/",
-              withCredentials: true,
-              data: {
-                otp: Array.from(inputs)
-                  .map((input) => input.value)
-                  .join(""),
-              },
-            }).then(MoveToLobby());
-            console.log(
+            let ret = await axiosVerfiyOTP(
               Array.from(inputs)
                 .map((input) => input.value)
                 .join("")
-            );
+            )
+              if (ret.status === 200) {
+                MoveToLobby();
+              } else {
+                setTimeout(() => {
+                  window.location.href = "/2fa";
+                }, 1500);
+              }
           }
         }
       });

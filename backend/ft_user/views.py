@@ -13,7 +13,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.generics import ListCreateAPIView, DestroyAPIView
 from rest_framework.generics import ListAPIView
 from rest_framework.exceptions import NotFound, ValidationError
-from rest_framework.permissions import IsAuthenticated
+import json
 
 class OtpUpdateView(View):
 	def post(self, request):
@@ -111,6 +111,7 @@ class MultiGameRecordListView(APIView):
 class FollowView(ListCreateAPIView):
 	queryset = FollowList.objects.all()
 	serializer_class = FollowListSerializer
+	permission_classes = [AllowAny]
 	def get_queryset(self):
 		return FollowList.objects.filter(user=self.request.user)
 	def perform_create(self, serializer):
@@ -122,7 +123,8 @@ class FollowView(ListCreateAPIView):
 		serializer = self.get_serializer(self.get_queryset(), many=True)
 		return JsonResponse({'status_code': '200', 'following_list': serializer.data}, status=200)
 	def create(self, request, *args, **kwargs):
-		serializer = self.get_serializer(data=request.data)
+		json_data = json.loads(request.body)
+		serializer = self.get_serializer(data=json_data)
 		serializer.is_valid(raise_exception=True)
 		self.perform_create(serializer)
 		return JsonResponse({'status_code': '201', 'message': 'Friend added'}, status=201)

@@ -30,8 +30,8 @@ instance.interceptors.response.use(
       error.response?.status === STATUS_401_UNAUTHORIZED ||
       error.response?.status === STATUS_403_FORBIDDEN
     ) {
-      window.location.href = "/";
-      alert(error.response.data.message);
+      // window.location.href = "/";
+      // alert(error.response.data.message);
     }
     return Promise.reject(error);
   }
