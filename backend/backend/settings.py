@@ -101,7 +101,6 @@ CSRF_TRUSTED_ORIGINS = [ 'http://localhost:5173' ]
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        #  JWT 인증을 사용하는 경우:
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
