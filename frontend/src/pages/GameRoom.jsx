@@ -48,7 +48,12 @@ const RoomPage = () => {
           }
         } else if (data.type === "goto_game") {
           // console.log(`/game/${data.host}/`);
-          window.location.href = `/game/${data.host}`;
+          const test = async () => {
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+            window.location.href = `/game/${data.host}`;
+          };
+          test();
+          // window.location.href = `/game/${data.host}`;
         }
       };
 

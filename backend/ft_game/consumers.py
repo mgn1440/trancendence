@@ -14,6 +14,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         self.host_username = self.scope['url_route']['kwargs']['host_username']
         self.room_group_name = self.host_username
         self.status = 'waiting'
+        self.bar_move = False
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -43,6 +44,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 'scores': {'left': 0, 'right': 0},
                 'players': [],
                 'roles': {},
+                'bar_move': {'left': 0, 'right': 0},
             }
 
         LobbyConsumer.rooms[self.host_username]['game']['players'].append(self.scope['user'].username)
@@ -105,6 +107,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
+        print(data)
         if data['type'] == 'start_game':
             if self.host_username in LobbyConsumer.rooms and len(LobbyConsumer.rooms[self.host_username]['game']['players']) != 2:
                 await self.channel_layer.group_send(
@@ -119,7 +122,15 @@ class GameConsumer(AsyncWebsocketConsumer):
             if self.host_username in LobbyConsumer.rooms and self.scope['user'].username == LobbyConsumer.rooms[self.host_username]['game']['roles']['left']:
                 asyncio.create_task(self.start_ball_movement())
         elif data['type'] == 'move_bar':
+            # asyncio.create_task(self.update_bar_position(data['direction'], data['role']))
             self.update_bar_position(data['direction'], data['role'])
+        elif data['type'] == 'stop_bar':
+            print('stop')
+            self.game['bar_move'][data['role']] = 0
+        elif data['type'] == 'error':
+            await self.send_error_message(data['message'])
+            del LobbyConsumer.rooms[self.host_username]
+            await self.update_room_list()
 
     async def start_ball_movement(self):
         while self.status == 'playing' and self.host_username in LobbyConsumer.rooms and len(LobbyConsumer.rooms[self.host_username]['game']['players']) == 2:
@@ -134,18 +145,21 @@ class GameConsumer(AsyncWebsocketConsumer):
             await asyncio.sleep(0.03)
 
     def update_ball_position(self):
+        
+        self.game['player_bar']['left'] = max(0, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
+        self.game['player_bar']['right'] = min(800, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
         self.game['ball']['x'] += self.game['ball']['speedX']
         self.game['ball']['y'] += self.game['ball']['speedY']
 
         if self.game['ball']['y'] + self.game['ball']['radius'] > 1000 or self.game['ball']['y'] - self.game['ball']['radius'] < 0:
             self.game['ball']['speedY'] = -self.game['ball']['speedY']
 
-        if self.game['ball']['x'] - self.game['ball']['radius'] < 30:
-            if self.game['ball']['y'] > self.game['player_bar']['left'] and self.game['ball']['y'] < self.game['player_bar']['left'] + 100:
+        if self.game['ball']['x'] - self.game['ball']['radius'] < 40:
+            if self.game['ball']['y'] > self.game['player_bar']['left'] and self.game['ball']['y'] < self.game['player_bar']['left'] + 200:
                 self.game['ball']['speedX'] = -self.game['ball']['speedX']
 
-        if self.game['ball']['x'] + self.game['ball']['radius'] > 970:
-            if self.game['ball']['y'] > self.game['player_bar']['right'] and self.game['ball']['y'] < self.game['player_bar']['right'] + 100:
+        if self.game['ball']['x'] + self.game['ball']['radius'] > 960:
+            if self.game['ball']['y'] > self.game['player_bar']['right'] and self.game['ball']['y'] < self.game['player_bar']['right'] + 200:
                 self.game['ball']['speedX'] = -self.game['ball']['speedX']
 
         if (self.game['ball']['x'] - self.game['ball']['radius'] < 0) or (self.game['ball']['x'] + self.game['ball']['radius'] > 1000):
@@ -180,15 +194,17 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     async def game_end(self, winner, loser):
         self.status = 'game_over'
-        del LobbyConsumer.rooms[self.host_username]['game']
         LobbyConsumer.rooms[self.host_username]['status'] = 'room'
         LobbyConsumer.rooms[self.host_username]['in_game_players'] = []
+        winner_username = LobbyConsumer.rooms[self.host_username]['game']['roles'][winner]
+        loser_username = LobbyConsumer.rooms[self.host_username]['game']['roles'][loser]
+        del LobbyConsumer.rooms[self.host_username]['game']
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'game_over',
-                'winner': winner,
-                'loser': loser,
+                'winner': winner_username,
+                'loser': loser_username,
             }
         )
         await self.update_room_list()
@@ -205,28 +221,32 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     def update_bar_position(self, direction, role):
         if direction == 'up':
-            self.game['player_bar'][role] = max(0, self.game['player_bar'][role] - 10)
+            self.game['bar_move'][role] = -10
         elif direction == 'down':
-            self.game['player_bar'][role] = min(300, self.game['player_bar'][role] + 10)  # Assuming bar height is 100
+            self.game['bar_move'][role] = 10
 
     async def game_start(self, event):
         await self.send(text_data=json.dumps({
             'type': 'game_start',
-            'game': event['game']
+            'game': event['game'],
+            'you': 'left' if self.scope['user'].username == event['game']['roles']['left'] else 'right'
         }))
 
     async def update_game(self, event):
         await self.send(text_data=json.dumps({
             'type': 'update_game',
-            'game': event['game']
+            'game': event['game'],
+            'you': 'left' if self.scope['user'].username == event['game']['roles']['left'] else 'right'
         }))
 
     async def game_over(self, event):
         self.status = 'game_over'
+        self.bar_move = False
         await self.send(text_data=json.dumps({
             'type': 'game_over',
             'winner': event['winner'],
             'loser': event['loser'],
+            'host_username': self.host_username
         }))
         
     async def error(self, event):
