@@ -13,6 +13,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.generics import ListCreateAPIView, DestroyAPIView
 from rest_framework.generics import ListAPIView
 from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.permissions import IsAuthenticated
 
 class OtpUpdateView(View):
 	def post(self, request):

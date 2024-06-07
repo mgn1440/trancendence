@@ -17,8 +17,6 @@ from django_otp.plugins.otp_email.models import EmailDevice
 from django.urls import reverse
 
 def oauth(request):
-	print('fucking')
-
 	# request.META['Origin'] = 'http://localhost:8000/api/auth/callback'
 	response = redirect(API_AUTH_URI)
 	# response['Origin'] = 'http://localhost:8000'
@@ -47,6 +45,7 @@ class Callback(View): # TODO: POST otp check function
 		if user_info.status_code != 200:
 			return JsonResponse({'error': '42 API /v2/me Error'}, status=400)
 		user_data = user_info.json()
+		print(user_data)
 		id = user_data['id']
 		username = user_data['login']
 		email = user_data['email']
