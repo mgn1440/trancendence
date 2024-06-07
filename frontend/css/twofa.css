@@ -42,7 +42,7 @@
 }
 
 .otp .input:focus {
-	outline: none;
+	/* outline: none; */
 }
 
 .otp .bg-gray30{

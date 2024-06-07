@@ -19,6 +19,16 @@ const OTP = ({ len }) => {
   useEffect(() => {
     const inputs = document.querySelectorAll(".otp .input");
     let backspacePressed = false;
+    const blurEvent = (e) => {
+      if ((e.target.value === "" && !backspacePressed) || isFull(inputs)) {
+        if (!isResendClicked) {
+          e.preventDefault();
+          e.target.focus();
+        }
+        isResendClicked = false;
+      }
+      backspacePressed = false;
+    };
     inputs[0].focus();
     inputs.forEach((input, index) => {
       input.addEventListener("input", async (e) => {
@@ -62,7 +72,8 @@ const OTP = ({ len }) => {
             backspacePressed = false;
           }
         } else if (
-          ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].includes(e.key)
+          ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].includes(e.key) ||
+          (e) // temp
         ) {
           backspacePressed = false;
         } else {
@@ -70,18 +81,18 @@ const OTP = ({ len }) => {
           backspacePressed = false;
         }
       });
-      input.addEventListener("blur", (e) => {
-        if ((e.target.value === "" && !backspacePressed) || isFull(inputs)) {
-          if (!isResendClicked) {
-            e.preventDefault();
-            e.target.focus();
-          }
-          isResendClicked = false;
-        }
-        backspacePressed = false;
-      });
+      input.addEventListener("blur", blurEvent);
       input.addEventListener("mousedown", (e) => {
         e.preventDefault();
+      });
+      input.addEventListener("paste", (e) => {
+        console.log(e.clipboardData.getData("text"));
+        let pastedData = e.clipboardData.getData("text");
+        for (let i = 0; i < 6; i++) {
+          inputs[i].removeEventListener("blur", blurEvent);
+          inputs[i].value = pastedData[i];
+        }
+        inputs[5].focus();
       });
     });
   }, []);
