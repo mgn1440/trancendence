@@ -26,6 +26,7 @@ class FollowListSerializer(serializers.ModelSerializer):
 
 	def validate(self, data):
 		user = self.context['request'].user
+		print(data)
 		follow_username = data['following_username']
 
 		if user.username == follow_username:

@@ -2,7 +2,6 @@ import LobbyButton from "./LobbyButton";
 import { isEmpty } from "@/lib/libft";
 
 const LobbyProfile = ({ data, sendLobbySocket }) => {
-  console.log(data);
   const myProfile = data.user_info;
   const matchNum = myProfile.win + myProfile.lose;
   return (

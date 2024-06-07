@@ -2,15 +2,15 @@ import { gotoPage } from "@/lib/libft";
 import { axiosUserFollow, axiosUserUnfollow } from "@/api/axios.custom";
 import { render, useEffect, useState } from "@/lib/dom";
 
-const ProfileImg = ({ user_id, stat }) => {
+const ProfileImg = ({ user_name, stat }) => {
   const [status, setFollowStat] = useState(stat);
-  const follow = async (user_id) => {
-    await axiosUserFollow(user_id);
+  const follow = async (user_name) => {
+    await axiosUserFollow(user_name);
     setFollowStat(3);
   };
 
-  const unfollow = async (user_id) => {
-    await axiosUserUnfollow(user_id);
+  const unfollow = async (user_name) => {
+    await axiosUserUnfollow(user_name);
     setFollowStat(2);
   };
 
@@ -40,14 +40,14 @@ const ProfileImg = ({ user_id, stat }) => {
         </div>
       ) : status === 2 ? (
         <div>
-          <button class="follow-btn" onclick={() => follow(user_id)}>
+          <button class="follow-btn" onclick={() => follow(user_name)}>
             <img src="/icon/user.svg"></img>
             Follow
           </button>
         </div>
       ) : (
         <div>
-          <button class="follow-btn" onclick={() => unfollow(user_id)}>
+          <button class="follow-btn" onclick={() => unfollow(user_name)}>
             <img src="/icon/close.svg"></img>
             Unfollow
           </button>

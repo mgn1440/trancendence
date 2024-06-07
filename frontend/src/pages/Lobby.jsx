@@ -19,12 +19,12 @@ const LobbyPage = () => {
       const socket = new WebSocket("ws://" + "localhost:8000" + "/ws/lobby/");
 
       socket.onopen = (e) => {
-        console.log("WebSocket Connected");
+        // console.log("WebSocket Connected");
       };
 
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
+        // console.log(data);
         if (data.type === "room_list") {
           setRoomList(data.rooms);
         } else if (data.type === "join_approved") {
@@ -61,7 +61,6 @@ const LobbyPage = () => {
         <div>
           <div id="top">
             <TopNavBar />
-            <button onclick={() => gotoPage("/profile/hyungjuk")}>test</button>
           </div>
           <div id="middle">
             <div class="main-section flex-column">

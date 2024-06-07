@@ -66,20 +66,20 @@ const LobbyProfile = ({ data }) => {
   const [logStat, setLogStat] = useState(PlayStat.SINGLE);
   const [gameRecords, setGameRecords] = useState([]);
 
-  useEffect(() => {
-    // axios
-    const getGameHistory = async () => {
-      console.log(data.user_info.uid);
-      const gameRecordsApi = await axiosGameRecords({
-        user_id: data.user_info.uid,
-        isSingle: logStat ? "SINGLE" : "MULTI",
-      });
-      console.log(gameRecordsApi.data.record_list);
-      setGameRecords(gameRecordsApi.data.record_list);
-      console.log(data.user_info.uid);
-    };
-    getGameHistory();
-  }, [logStat]);
+  // useEffect(() => {
+  //   // axios
+  //   const getGameHistory = async () => {
+  //     console.log(data.user_info.uid);
+  //     const gameRecordsApi = await axiosGameRecords({
+  //       user_id: data.user_info.uid,
+  //       isSingle: logStat ? "SINGLE" : "MULTI",
+  //     });
+  //     console.log(gameRecordsApi.data.record_list);
+  //     setGameRecords(gameRecordsApi.data.record_list);
+  //     console.log(data.user_info.uid);
+  //   };
+  //   getGameHistory();
+  // }, [logStat]);
 
   const profile = data.user_info;
   const matchNum = profile.win + profile.lose;
@@ -116,7 +116,7 @@ const LobbyProfile = ({ data }) => {
           </button>
         </div>
         <div class="log-container">
-          {gameRecords ? (
+          {/* {gameRecords ? (
             logStat ? (
               <div>
                 {gameRecords.map((record) => (
@@ -130,7 +130,7 @@ const LobbyProfile = ({ data }) => {
                 ))}
               </div>
             )
-          ) : null}
+          ) : null} */}
         </div>
       </div>
     </div>
