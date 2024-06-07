@@ -3,67 +3,47 @@ import Modal from "@/pages/components/Modal";
 import { TitleSection, BottomSection } from "./components/ModalSection";
 
 const TestPage = () => {
-  const handleModal = () => {
-    document.getElementById("exampleModal");
-    let testmodal = new bootstrap.Modal(
-      document.getElementById("exampleModal")
-    );
+  function toggleInputFields() {
+    const enableRadio = document.getElementById("enable");
+    const textInput = document.getElementById("textInput");
 
-    testmodal.show();
-    // .addEventListener("show.bs.modal", function (event) {
-    //   console.log("show.bs.modal");
-    // });
-  };
+    if (enableRadio.checked) {
+      textInput.disabled = false;
+    } else {
+      textInput.disabled = true;
+    }
+  }
   return (
     <div>
-      <button
-        type="button"
-        class="btn btn-primary"
-        data-bs-toggle="modal"
-        data-bs-target="#exampleModal"
-      >
-        Launch demo modal
-      </button>
-      <button type="button" class="btn btn-primary" onclick={handleModal}>
-        click me!
-      </button>
-
-      <div
-        class="modal fade"
-        id="exampleModal"
-        tabindex="-1"
-        aria-labelledby="exampleModalLabel"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="exampleModalLabel">
-                Modal title
-              </h1>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div class="modal-body">...</div>
-            <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-              <button type="button" class="btn btn-primary">
-                Save changes
-              </button>
-            </div>
-          </div>
-        </div>
+      <div class="form-check">
+        <input
+          type="radio"
+          id="enable"
+          name="toggle"
+          value="enable"
+          onchange={toggleInputFields}
+        />
+        <label class="form-check-label" for="enable">
+          Enable
+        </label>
       </div>
+      <div class="form-check">
+        <input
+          type="radio"
+          id="disable"
+          name="toggle"
+          value="disable"
+          onchange={toggleInputFields}
+        />
+        <label class="form-check-label" for="disable">
+          Disable
+        </label>
+      </div>
+      <input
+        type="text"
+        id="textInput"
+        placeholder="This will be enabled or disabled"
+      />
     </div>
   );
 };

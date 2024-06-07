@@ -19,6 +19,8 @@ const createElement = (node) => {
     } else {
       if (attr === "onclick") {
         element.onclick = value;
+      } else if (attr === "onchange") {
+        element.onchange = value;
       } else {
         // element.dataset[attr] = value;
         element.setAttribute(attr, value);

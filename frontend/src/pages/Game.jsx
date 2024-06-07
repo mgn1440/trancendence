@@ -33,7 +33,7 @@ let context;
 
 const drawPaddle = (x, y) => {
   context.fillStyle = "#ffffff";
-  context.fillRect(x, (canvas.height * y) / 1000, 20, canvas.height / 5);
+  context.fillRect(x, (canvas.height * y) / 900, 20, canvas.height / 5);
 };
 
 const drawBall = (x, y) => {
@@ -41,8 +41,8 @@ const drawBall = (x, y) => {
   // context.fillRect(x, y, 20, 20);
   context.beginPath();
   context.arc(
-    (gameState.ball.x * canvas.width) / 1000,
-    (gameState.ball.y * canvas.height) / 1000,
+    (gameState.ball.x * canvas.width) / 1200,
+    (gameState.ball.y * canvas.height) / 900,
     gameState.ball.radius,
     0,
     Math.PI * 2
@@ -171,11 +171,16 @@ const GamePage = () => {
   }, []);
 
   useEffect(() => {
-    if (isEmpty(gameUsers) || isEmpty(gameScore)) return;
+    // if (isEmpty(gameUsers) || isEmpty(gameScore)) return;
     canvas = document.getElementById("pong-game");
     console.log(window.innerHeight, window.innerWidth);
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    if (window.innerHeight / 3 > window.innerWidth / 4) {
+      canvas.width = window.innerWidth - 10;
+      canvas.height = (window.innerWidth * 3) / 4 - 10;
+    } else {
+      canvas.height = window.innerHeight - 10;
+      canvas.width = (window.innerHeight * 4) / 3 - 10;
+    }
     context = canvas.getContext("2d");
     context.scale(1, 1);
 
@@ -183,7 +188,7 @@ const GamePage = () => {
   }, [gameUsers, gameScore]);
   return (
     <div>
-      <div>
+      <div class="pong-game-main">
         <canvas id="pong-game"></canvas>
         {isEmpty(gameUsers) || isEmpty(gameScore) ? null : (
           <div class="pong-game-info">

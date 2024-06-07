@@ -9,12 +9,16 @@ const getModalInput = () => {
   inputs[0];
   const radios = modalElement.querySelectorAll("input[type=radio]");
 
+  if (radios[1].checked && inputs[1].value == "") {
+    alert("Please enter the password");
+    return false;
+  }
   const retRoomData = {
     type: "create_room",
     room_name: inputs[0].value,
     mode: radios[2].checked ? 2 : 4,
-    is_secret: radios[0].checked ? false : true,
-    password: radios[0].checked ? "" : inputs[1].value,
+    is_secret: radios[1].checked ? true : false,
+    password: radios[1].checked ? inputs[1].value : "",
   };
   return retRoomData;
 };
@@ -32,6 +36,13 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     };
 
     modalElement.addEventListener("hidden.bs.modal", handleModalHidden);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const radios = modalElement.querySelectorAll("input[type=radio]");
+      const inputs = modalElement.querySelectorAll("input[type=text]");
+      if (radios[0].checked == true) inputs[1].disable = true;
+      else inputs[1].disable = false;
+    });
 
     return () => {
       modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
@@ -66,6 +77,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
             ButtonName: "Create",
             ClickEvent: () => {
               const roomData = getModalInput();
+              if (!roomData) return;
               sendLobbySocket(roomData);
               console.log(data.user_info.username);
               window.location.href = `/lobby/${data.user_info.username}`;
