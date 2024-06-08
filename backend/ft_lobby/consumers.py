@@ -3,6 +3,8 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 
 class LobbyConsumer(AsyncWebsocketConsumer):
     rooms = {}
+    matchmaking_queue = []
+    match_user_host = {}
 
     async def connect(self):
         await self.channel_layer.group_add("lobby", self.channel_name)
@@ -77,6 +79,39 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                         'type': 'join_denied',
                         'message': 'Wrong password.',
                     }))
+        elif data['type'] == 'matchmaking':
+            await self.matchmaking()
+            
+    async def matchmaking(self):
+        username = self.scope['user'].username
+        LobbyConsumer.matchmaking_queue.append(username)
+        await self.send(text_data=json.dumps({
+            'type': 'matchmaking_waiting',
+		}))
+        await self.check_matchmaking()
+
+    async def check_matchmaking(self):
+        while len(LobbyConsumer.matchmaking_queue) >= 2:
+            player1 = LobbyConsumer.matchmaking_queue.pop(0)
+            player2 = LobbyConsumer.matchmaking_queue.pop(0)
+            room_info = {
+                'room_name': 'Matchmaking Room',
+                'host': player1,
+                'mode': 'matchmaking',
+                'is_secret': False,
+                'players': [],
+                'in_game_players': [player1, player2],
+                'status': 'game',
+            }
+            LobbyConsumer.match_user_host[player1] = player1
+            LobbyConsumer.match_user_host[player2] = player1
+            LobbyConsumer.rooms[player1] = room_info
+            await self.channel_layer.group_send(
+                "lobby",
+                {
+                    'type': 'goto_matchmaking_game',
+                }
+            )
    
     async def update_room_list(self):
         await self.channel_layer.group_send(
@@ -93,3 +128,12 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             'type': 'room_list',
             'rooms': rooms
         }))
+
+    async def goto_matchmaking_game(self, event):
+        current_user = self.scope['user'].username
+        if current_user in LobbyConsumer.match_user_host:
+            await self.send(text_data=json.dumps({
+                'type': 'goto_matchmaking_game',
+                'host': LobbyConsumer.match_user_host[current_user],
+            }))
+            del LobbyConsumer.match_user_host[current_user]
