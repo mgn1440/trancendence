@@ -8,6 +8,8 @@ import random
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
 from ft_lobby.consumers import LobbyConsumer
+from ft_user.models import CustomUser, SingleGameRecord
+from asgiref.sync import sync_to_async
 
 class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -145,7 +147,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             await asyncio.sleep(0.03)
 
     def update_ball_position(self):
-        
+
         self.game['player_bar']['left'] = min(720, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
         self.game['player_bar']['right'] = min(720, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
         self.game['player_bar']['left'] = max(0, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
@@ -203,6 +205,39 @@ class GameConsumer(AsyncWebsocketConsumer):
         del LobbyConsumer.rooms[self.host_username]['game']
         if LobbyConsumer.rooms[self.host_username]['mode'] == 'matchmaking':
             del LobbyConsumer.rooms[self.host_username]
+
+        try:
+            winner = await sync_to_async(CustomUser.objects.get)(username=winner_username)
+            loser = await sync_to_async(CustomUser.objects.get)(username=loser_username)
+
+            #TODO: left, right로 구분하는 방법보다 더 좋은 것 요망
+            if self.game['scores']['left'] > self.game['scores']['right']:
+                winner_score = self.game['scores']['left']
+                loser_score = self.game['scores']['right']
+            else:
+                winner_score = self.game['scores']['right']
+                loser_score = self.game['scores']['left']
+
+            winner_profile_url = winner.profile_image.url if winner.profile_image else None
+            loser_profile_url = loser.profile_image.url if loser.profile_image else None
+            await sync_to_async(SingleGameRecord.objects.create)(
+                user=winner,
+                user_score=winner_score,
+                opponent_name=loser.username,
+                opponent_profile=loser_profile_url,
+                opponent_score=loser_score,
+            )
+            await sync_to_async(SingleGameRecord.objects.create)(
+                user=loser,
+                user_score=loser_score,
+                opponent_name=winner.username,
+                opponent_profile=winner_profile_url,
+                opponent_score=winner_score,
+            )
+        except Exception as e:
+            # TODO: 에러 처리
+            print(e)
+            pass
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -252,7 +287,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             'loser': event['loser'],
             'host_username': self.host_username
         }))
-        
+
     async def error(self, event):
         await self.send(text_data=json.dumps({
             'type': 'error',
