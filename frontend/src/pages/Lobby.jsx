@@ -23,6 +23,8 @@ const LobbyPage = () => {
 
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
+
+        console.log(data); // debug
         if (data.type === "room_list") {
           setRoomList(data.rooms);
         } else if (data.type === "join_approved") {
@@ -34,6 +36,10 @@ const LobbyPage = () => {
             document.getElementById("PswdRoomModal")
           );
           enterModal.show();
+        } else if (data.type === "matchmaking_waiting") {
+          console.log("matchmaking_waiting"); //debug
+        } else if (data.type === "goto_matchmaking_game") {
+          gotoPage(`/game/${data.host}`);
         }
       };
 
