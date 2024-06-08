@@ -3,7 +3,7 @@ import { useEffect, useState } from "@/lib/dom";
 import { isEmpty } from "@/lib/libft";
 
 const moveToProfile = (userName) => {
-  if (window.location.pathname === `/profile/${userName}`) {  
+  if (window.location.pathname === `/profile/${userName}` || userName === undefined) {  
     return ;
   }
   window.location.href = `/profile/${userName}`;
