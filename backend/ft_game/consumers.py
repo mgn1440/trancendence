@@ -199,6 +199,8 @@ class GameConsumer(AsyncWebsocketConsumer):
         winner_username = LobbyConsumer.rooms[self.host_username]['game']['roles'][winner]
         loser_username = LobbyConsumer.rooms[self.host_username]['game']['roles'][loser]
         del LobbyConsumer.rooms[self.host_username]['game']
+        if LobbyConsumer.rooms[self.host_username]['mode'] == 'matchmaking':
+            del LobbyConsumer.rooms[self.host_username]
         await self.channel_layer.group_send(
             self.room_group_name,
             {

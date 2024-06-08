@@ -17,7 +17,7 @@
         h1 {
             margin-bottom: 20px;
         }
-        #createRoomButton {
+        #createRoomButton, #matchmakingButton {
             margin-bottom: 20px;
             padding: 10px 20px;
             font-size: 16px;
@@ -109,6 +109,7 @@
 <body>
     <h1>Lobby Page</h1>
     <button id="createRoomButton">방 만들기</button>
+    <button id="matchmakingButton">매치메이킹</button>
 
     <!-- 방 만들기 옵션 폼 -->
     <div id="createRoomForm">
@@ -168,6 +169,10 @@
                 window.location.href = '/api/room/' + data.host;
             } else if (data.type === 'join_denied') {
                 alert(data.message);
+            } else if (data.type === 'matchmaking_waiting') {
+                alert("매치메이킹 대기 중...");
+            } else if (data.type === 'goto_matchmaking_game') {
+                window.location.href = '/api/game/' + data.host;
             }
         };
 
@@ -192,6 +197,14 @@
                 passwordField.disabled = true;
                 passwordField.value = '';
             }
+        });
+
+        document.getElementById('matchmakingButton').addEventListener('click', function() {
+            const matchmakingData = {
+                'type': 'matchmaking'
+            };
+            console.log("매치메이킹 요청 전송:", matchmakingData);
+            socket.send(JSON.stringify(matchmakingData));
         });
 
         function createRoom() {
