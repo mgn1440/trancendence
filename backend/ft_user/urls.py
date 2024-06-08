@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import render
-from .views import OtpUpdateView, UserDetailView, UserWinUpdateView, UserLoseUpdateView, FollowView,\
+from .views import OtpUpdateView, UserWinUpdateView, UserLoseUpdateView, FollowView, ProfileImageView,\
 	logout, SingleGameRecordListView, FollowDetailView, MultiGameRecordListView, UserMeView, UserNameDetailView
 
 urlpatterns = [
@@ -10,10 +10,10 @@ urlpatterns = [
 	path('win/', UserWinUpdateView.as_view(), name='user_win_update'),
 	path('lose/', UserLoseUpdateView.as_view(), name='user_lose_update'),
 	path('follow/', FollowView.as_view(), name='follow'),
-	path('follow/<int:follow_id>/', FollowDetailView.as_view(), name='follow_detail'),
+	path('follow/<str:username>/', FollowDetailView.as_view(), name='follow_detail'),
 	path('logout/', logout, name='logout'),
-	path('<int:uid>/', UserDetailView.as_view(), name='user_detail'),
-	path('<int:user_id>/record/single/', SingleGameRecordListView.as_view(), name='single_game_record'),
-	path('<int:user_id>/record/multi/', MultiGameRecordListView.as_view(), name='multi_game_record'),
+	path('<str:username>/profile-image/', ProfileImageView.as_view(), name='profile_image'),
+	path('<str:username>/record/single/', SingleGameRecordListView.as_view(), name='single_game_record'),
+	path('<str:username>/record/multi/', MultiGameRecordListView.as_view(), name='multi_game_record'),
 	path('<str:username>/', UserNameDetailView.as_view(), name='user_detail_by_username'),
 ]
