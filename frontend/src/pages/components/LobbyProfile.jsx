@@ -1,8 +1,8 @@
 import LobbyButton from "./LobbyButton";
 import { isEmpty } from "@/lib/libft";
+import { MainProfileState } from "../GameRoom";
 
-const LobbyProfile = ({ data, sendLobbySocket }) => {
-  console.log(data);
+const LobbyProfile = ({ data, sendLobbySocket, stat }) => {
   const myProfile = data.user_info;
   const matchNum = myProfile.win + myProfile.lose;
   return (
@@ -15,7 +15,9 @@ const LobbyProfile = ({ data, sendLobbySocket }) => {
           <p>Lose: {myProfile.lose}</p>
           <p>Rate: {matchNum ? (myProfile.win / matchNum) * 100 : 0}%</p>
         </div>
-        <LobbyButton data={data} sendLobbySocket={sendLobbySocket} />
+        {stat === MainProfileState.LOBBY ? (
+          <LobbyButton data={data} sendLobbySocket={sendLobbySocket} />
+        ) : null}
       </div>
     </div>
   );

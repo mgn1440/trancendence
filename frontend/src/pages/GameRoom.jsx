@@ -8,9 +8,14 @@ import { isEmpty } from "@/lib/libft";
 import GameRoom from "./components/GameRoom";
 import { history } from "@/lib/router";
 
+export const MainProfileState = {
+  LOBBY: 1,
+  ROOM: 2,
+};
+
 const RoomPage = () => {
   const [myProfile, setMyProfile] = useState({});
-  const [userList, setUserList] = useState([]);
+  const [gameData, setGameData] = useState([]);
   const [roomSocket, setRoomSocket] = useState({});
   const [startBtn, setStartBtn] = useState(false);
   useEffect(() => {
@@ -27,15 +32,15 @@ const RoomPage = () => {
           "/"
       );
 
-      socket.onopen = function (e) {
-        console.log("Game Room Socket Connected");
-      };
+      socket.onopen = function (e) {};
 
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
-        if (data.type === "connect_user" || data.type === "disconnect_user") {
-          setUserList(data.user_list);
+        if (data.type === "room_info" || data.type === "connect_user") {
+          setGameData(data);
+        } else if (data.type === "disconnect_user") {
+          setGameData(data);
+          setStartBtn(false);
         } else if (
           data.type === "room_destroyed" ||
           data.type === "room_full" ||
@@ -47,13 +52,7 @@ const RoomPage = () => {
             setStartBtn(true);
           }
         } else if (data.type === "goto_game") {
-          // console.log(`/game/${data.host}/`);
-          const test = async () => {
-            await new Promise((resolve) => setTimeout(resolve, 3000));
-            window.location.href = `/game/${data.host}`;
-          };
-          test();
-          // window.location.href = `/game/${data.host}`;
+          window.location.href = `/game/${data.host}`;
         }
       };
 
@@ -81,10 +80,10 @@ const RoomPage = () => {
           </div>
           <div id="middle">
             <div class="main-section flex-column">
-              <Profile data={myProfile} />
+              <Profile data={myProfile} stat={MainProfileState.ROOM} />
 
               <GameRoom
-                userList={userList}
+                gameData={gameData}
                 isStart={startBtn}
                 sendRoomSocket={sendRoomSocket}
               />

@@ -150,18 +150,18 @@ class GameConsumer(AsyncWebsocketConsumer):
         self.game['player_bar']['right'] = min(800, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
         self.game['ball']['x'] += self.game['ball']['speedX']
         self.game['ball']['y'] += self.game['ball']['speedY']
-
+        # 위 야래 벽에 부딪히면 방향 바꾸기
         if self.game['ball']['y'] + self.game['ball']['radius'] > 1000 or self.game['ball']['y'] - self.game['ball']['radius'] < 0:
             self.game['ball']['speedY'] = -self.game['ball']['speedY']
-
+        # 왼쪽 player bar에 부딪히면 방향 바꾸기
         if self.game['ball']['x'] - self.game['ball']['radius'] < 40:
             if self.game['ball']['y'] > self.game['player_bar']['left'] and self.game['ball']['y'] < self.game['player_bar']['left'] + 200:
                 self.game['ball']['speedX'] = -self.game['ball']['speedX']
-
+        # 오른쪽 player bar에 부딪히면 방향 바꾸기
         if self.game['ball']['x'] + self.game['ball']['radius'] > 960:
             if self.game['ball']['y'] > self.game['player_bar']['right'] and self.game['ball']['y'] < self.game['player_bar']['right'] + 200:
                 self.game['ball']['speedX'] = -self.game['ball']['speedX']
-
+        # 왼쪽, 오른쪽 벽에 부딪히면 점수 올리기
         if (self.game['ball']['x'] - self.game['ball']['radius'] < 0) or (self.game['ball']['x'] + self.game['ball']['radius'] > 1000):
             if self.game['ball']['x'] - self.game['ball']['radius'] < 0:
                 self.game['scores']['right'] += 1

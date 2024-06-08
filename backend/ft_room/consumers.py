@@ -50,6 +50,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
             'room_name': LobbyConsumer.rooms[self.host_username]['room_name'],
             'host': self.host_username,
             'mode': LobbyConsumer.rooms[self.host_username]['mode'],
+            'user_list': LobbyConsumer.rooms[self.host_username]['players'],
         }))
 
         await self.channel_layer.group_send(
@@ -57,6 +58,10 @@ class RoomConsumer(AsyncWebsocketConsumer):
             {
                 'type': 'connect_user',
                 'new_user': self.scope['user'].username,
+                # 'user_list': LobbyConsumer.rooms[self.host_username]['players'],
+                'room_name': LobbyConsumer.rooms[self.host_username]['room_name'],
+                'host': self.host_username,
+                'mode': LobbyConsumer.rooms[self.host_username]['mode'],
                 'user_list': LobbyConsumer.rooms[self.host_username]['players'],
             }
         )
@@ -106,6 +111,10 @@ class RoomConsumer(AsyncWebsocketConsumer):
             {
                 'type': 'disconnect_user',
                 'disconnected_user': self.scope['user'].username,
+                # 'user_list': LobbyConsumer.rooms[self.host_username]['players'],
+                'room_name': LobbyConsumer.rooms[self.host_username]['room_name'],
+                'host': self.host_username,
+                'mode': LobbyConsumer.rooms[self.host_username]['mode'],
                 'user_list': LobbyConsumer.rooms[self.host_username]['players'],
             }
         )
@@ -172,7 +181,11 @@ class RoomConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'connect_user',
             'new_user': new_user,
-            'user_list': user_list,
+            # 'user_list': user_list,
+            'room_name': LobbyConsumer.rooms[self.host_username]['room_name'],
+            'host': self.host_username,
+            'mode': LobbyConsumer.rooms[self.host_username]['mode'],
+            'user_list': LobbyConsumer.rooms[self.host_username]['players'],
         }))
         
     async def disconnect_user(self, event):
@@ -182,7 +195,11 @@ class RoomConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'disconnect_user',
             'disconnected_user': disconnected_user,
-            'user_list': user_list,
+            # 'user_list': user_list,
+            'room_name': LobbyConsumer.rooms[self.host_username]['room_name'],
+            'host': self.host_username,
+            'mode': LobbyConsumer.rooms[self.host_username]['mode'],
+            'user_list': LobbyConsumer.rooms[self.host_username]['players'],
         }))
         
     async def room_ready(self, event):

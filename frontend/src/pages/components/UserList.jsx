@@ -46,7 +46,6 @@ const UserList = () => {
     document.querySelector(".overlay").classList.toggle("active");
   };
   const userListToggleBack = () => {
-    console.log("overlay clicked");
     document.querySelector("#user-list-toggle").classList.toggle("active");
     document.querySelector(".overlay").classList.toggle("active");
   };

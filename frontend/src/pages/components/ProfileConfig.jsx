@@ -5,7 +5,6 @@ import { axiosUserMe } from "@/api/axios.custom.js";
 import { isEmpty } from "@/lib/libft.js";
 
 const ProfileConfig = ({ profile }) => {
-  console.log(profile);
   const name = "Hyungjuk";
   const multiName = "Hyungjuk_multi";
   const win = 6;

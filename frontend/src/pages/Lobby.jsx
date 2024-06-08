@@ -5,6 +5,7 @@ import TopNavBar from "./components/TopNavBar";
 import { axiosUserMe } from "@/api/axios.custom";
 import { useState, useEffect } from "@/lib/dom";
 import { isEmpty, gotoPage } from "@/lib/libft";
+import { MainProfileState } from "./GameRoom";
 
 const LobbyPage = () => {
   const [myProfile, setMyProfile] = useState({});
@@ -18,13 +19,10 @@ const LobbyPage = () => {
     const socketAsync = async () => {
       const socket = new WebSocket("ws://" + "localhost:8000" + "/ws/lobby/");
 
-      socket.onopen = (e) => {
-        console.log("WebSocket Connected");
-      };
+      socket.onopen = (e) => {};
 
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
         if (data.type === "room_list") {
           setRoomList(data.rooms);
         } else if (data.type === "join_approved") {
@@ -61,13 +59,13 @@ const LobbyPage = () => {
         <div>
           <div id="top">
             <TopNavBar />
-            <button onclick={() => gotoPage("/profile/hyungjuk")}>test</button>
           </div>
           <div id="middle">
             <div class="main-section flex-column">
               <LobbyProfile
                 data={myProfile}
                 sendLobbySocket={sendLobbySocket}
+                stat={MainProfileState.LOBBY}
               />
               <LobbyRooms
                 roomList={roomList}
