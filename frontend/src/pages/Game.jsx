@@ -74,7 +74,6 @@ const draw = () => {
 };
 
 const update = () => {
-  console.log("update");
   draw();
   requestAnimationFrame(() => update());
 };
@@ -99,11 +98,9 @@ const GamePage = () => {
       );
 
       socket.onopen = (e) => {
-        console.log("Game Socket Connected");
         const waitOpponent = async () => {
           await new Promise((resolve) => setTimeout(resolve, 10000));
           if (!startFlag) {
-            console.log("timeout");
             socket.send(JSON.stringify({ type: "error", message: "timeout" }));
           }
         };
@@ -112,11 +109,9 @@ const GamePage = () => {
 
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
         if (data.type === "game_start") {
           startFlag = true;
           gameState = data.game;
-          console.log(gameState);
           setGameScore(data.game.scores);
           setGameUsers(data.game.roles);
           setInterval(() => {}, 1000);
@@ -159,7 +154,6 @@ const GamePage = () => {
           // setGameUsers(data.game.roles);
         } else if (data.type === "game_over") {
           alert(data.winner + " win!");
-          console.log(data);
           window.location.href = `/lobby/${data.host_username}`;
         } else if (data.type === "error") {
           alert(data.message);
@@ -173,7 +167,6 @@ const GamePage = () => {
   useEffect(() => {
     // if (isEmpty(gameUsers) || isEmpty(gameScore)) return;
     canvas = document.getElementById("pong-game");
-    console.log(window.innerHeight, window.innerWidth);
     if (window.innerHeight / 3 > window.innerWidth / 4) {
       canvas.width = window.innerWidth - 10;
       canvas.height = (window.innerWidth * 3) / 4 - 10;

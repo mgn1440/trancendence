@@ -3,7 +3,6 @@ import { isEmpty } from "@/lib/libft";
 import { MainProfileState } from "../GameRoom";
 
 const LobbyProfile = ({ data, sendLobbySocket, stat }) => {
-  console.log(data);
   const myProfile = data.user_info;
   const matchNum = myProfile.win + myProfile.lose;
   return (

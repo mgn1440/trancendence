@@ -3,7 +3,7 @@ import { TitleSection, BottomSection } from "./ModalSection";
 import { InputBox, RadioCheck } from "./Inputs";
 import { useEffect } from "@/lib/dom";
 
-const getModalInput = () => {
+const getModalInput = (data) => {
   const modalElement = document.getElementById("CreateRoomModal");
   const inputs = modalElement.querySelectorAll("input[type=text]");
   inputs[0];
@@ -15,7 +15,10 @@ const getModalInput = () => {
   }
   const retRoomData = {
     type: "create_room",
-    room_name: inputs[0].value,
+    room_name:
+      inputs[0].value === ""
+        ? `${data.user_info.username}'s Room`
+        : inputs[0].value,
     mode: radios[2].checked ? 2 : 4,
     is_secret: radios[1].checked ? true : false,
     password: radios[1].checked ? inputs[1].value : "",
@@ -27,7 +30,6 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
   useEffect(() => {
     const modalElement = document.getElementById("CreateRoomModal");
     const handleModalHidden = () => {
-      console.log("Modal hidden");
       const inputs = modalElement.querySelectorAll("input[type=text]");
       inputs.forEach((input) => (input.value = ""));
 
@@ -59,12 +61,15 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
         body={() => {
           return (
             <div>
-              <InputBox text="Group Name" />
+              <InputBox
+                text="Group Name"
+                defaultValue={`${data.user_info.username}'s Room`}
+              />
               <div class="radio-check body-element">
                 <RadioCheck text="Open Room" name="lock" id="open" />
                 <RadioCheck text="Private" name="lock" id="private" />
               </div>
-              <InputBox text="Password" />
+              <InputBox text="Password" defaultValue="" />
               <div class="radio-check body-element robby-game-btn">
                 <RadioCheck text="1 vs 1" name="battle" id="1vs1" />
                 <RadioCheck text="Tournament" name="battle" id="tornament" />
@@ -76,10 +81,9 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
           BottomSection({
             ButtonName: "Create",
             ClickEvent: () => {
-              const roomData = getModalInput();
+              const roomData = getModalInput(data);
               if (!roomData) return;
               sendLobbySocket(roomData);
-              console.log(data.user_info.username);
               window.location.href = `/lobby/${data.user_info.username}`;
             },
           })

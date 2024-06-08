@@ -50,3 +50,11 @@
 .cl-white {
   color: var(--white);
 }
+
+.outline-black {
+  border: 1px solid var(--black);
+}
+
+.outline-gray50 {
+  border: 1px solid var(--gray50);
+}

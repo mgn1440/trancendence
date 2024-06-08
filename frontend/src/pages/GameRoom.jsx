@@ -32,13 +32,10 @@ const RoomPage = () => {
           "/"
       );
 
-      socket.onopen = function (e) {
-        console.log("Game Room Socket Connected");
-      };
+      socket.onopen = function (e) {};
 
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
         if (data.type === "room_info" || data.type === "connect_user") {
           setGameData(data);
         } else if (data.type === "disconnect_user") {
@@ -55,13 +52,7 @@ const RoomPage = () => {
             setStartBtn(true);
           }
         } else if (data.type === "goto_game") {
-          // console.log(`/game/${data.host}/`);
-          const test = async () => {
-            await new Promise((resolve) => setTimeout(resolve, 3000));
-            window.location.href = `/game/${data.host}`;
-          };
-          test();
-          // window.location.href = `/game/${data.host}`;
+          window.location.href = `/game/${data.host}`;
         }
       };
 

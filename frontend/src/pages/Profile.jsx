@@ -23,13 +23,10 @@ const ProfilePage = () => {
         user = await axiosUserMe();
       } else {
         user = await axiosUserOther(userName);
-        console.log(user.data);
         let follow = user.data.user_info.is_following;
         setUserID(user.data.user_info.uid);
-        if (!follow)
-          setStat(2);
-        else
-          setStat(3);
+        if (!follow) setStat(2);
+        else setStat(3);
       }
       setProfile(user.data);
     };

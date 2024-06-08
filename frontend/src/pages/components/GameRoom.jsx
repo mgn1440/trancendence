@@ -4,12 +4,9 @@ import UserCard from "@/pages/components/UserCard";
 import UserList from "./UserList";
 
 const GameRoom = ({ gameData, isStart, sendRoomSocket }) => {
-  console.log(isStart);
   const handleStartBtn = () => {
     sendRoomSocket({ type: "start_game" });
-    console.log("Game Start Button Clicked!");
   };
-  console.log(gameData);
   return (
     <div class="game-room-main">
       <div class="game-room-nav">

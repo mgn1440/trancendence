@@ -1,4 +1,3 @@
-
 import Modal from "./Modal";
 import { TitleSection, BottomSection } from "./ModalSection";
 import { gotoPage } from "@/lib/libft";

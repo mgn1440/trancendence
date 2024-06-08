@@ -19,13 +19,10 @@ const LobbyPage = () => {
     const socketAsync = async () => {
       const socket = new WebSocket("ws://" + "localhost:8000" + "/ws/lobby/");
 
-      socket.onopen = (e) => {
-        console.log("WebSocket Connected");
-      };
+      socket.onopen = (e) => {};
 
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
         if (data.type === "room_list") {
           setRoomList(data.rooms);
         } else if (data.type === "join_approved") {

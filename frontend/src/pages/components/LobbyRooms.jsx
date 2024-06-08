@@ -7,22 +7,28 @@ import { BottomSection } from "./ModalSection";
 let roomHostName = "";
 
 const LobbyRoom = ({ roomInfo, clickEvent }) => {
+  console.log(roomInfo);
   return (
-    <div class="lobby-room" onclick={() => clickEvent(roomInfo)}>
+    <div
+      class={`lobby-room ${
+        roomInfo.status === "room" ? "" : "bg-gray50 outline-gray50"
+      }`}
+      onclick={() => clickEvent(roomInfo)}
+    >
       <h6>{roomInfo.room_name}</h6>
       <p>
-        {roomInfo.players.length}/{roomInfo.mode}
+        {roomInfo.status === "game"
+          ? "Playing..."
+          : `${roomInfo.players.length}/${roomInfo.mode}`}
       </p>
     </div>
   );
 };
 
 const LobbyRooms = ({ roomList, sendLobbySocket }) => {
-  console.log(roomList);
   useEffect(() => {
     const modalElement = document.getElementById("PswdRoomModal");
     const handleModalHidden = () => {
-      console.log("Modal hidden");
       const inputs = modalElement.querySelectorAll("input[type=text]");
       inputs.forEach((input) => (input.value = ""));
     };
@@ -39,7 +45,6 @@ const LobbyRooms = ({ roomList, sendLobbySocket }) => {
       "PswdRoomModal"
     ).childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[1].innerText =
       roomInfo.room_name;
-    console.log(roomInfo);
     roomHostName = roomInfo.host;
     sendLobbySocket({
       type: "join_room",
@@ -55,7 +60,7 @@ const LobbyRooms = ({ roomList, sendLobbySocket }) => {
           TitleSection({ IconPath: "/icon/enter.svg", Title: "basic room" })
         }
         body={() => {
-          return <InputBox text="Password" />;
+          return <InputBox text="Password" defaultValue="" />;
         }}
         footer={() =>
           BottomSection({

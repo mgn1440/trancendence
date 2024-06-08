@@ -2,7 +2,7 @@ export const InputBox = (props) => {
   return (
     <div class="input body-element">
       <h6>{props.text}</h6>
-      <input type="text" />
+      <input type="text" placeholder={props.defaultValue} />
     </div>
   );
 };
