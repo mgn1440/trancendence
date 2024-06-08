@@ -39,8 +39,8 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         if 'game' not in LobbyConsumer.rooms[self.host_username]:
             LobbyConsumer.rooms[self.host_username]['game'] = {
-                'ball': {'x': 500, 'y': 500, 'radius': 10, 'speedX': 10, 'speedY': 10},
-                'player_bar': {'left': 400, 'right': 400},
+                'ball': {'x': 600, 'y': 450, 'radius': 10, 'speedX': 10, 'speedY': 10},
+                'player_bar': {'left': 360, 'right': 360},
                 'scores': {'left': 0, 'right': 0},
                 'players': [],
                 'roles': {},
@@ -146,23 +146,25 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     def update_ball_position(self):
         
+        self.game['player_bar']['left'] = min(720, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
+        self.game['player_bar']['right'] = min(720, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
         self.game['player_bar']['left'] = max(0, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
-        self.game['player_bar']['right'] = min(800, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
+        self.game['player_bar']['right'] = max(0, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
         self.game['ball']['x'] += self.game['ball']['speedX']
         self.game['ball']['y'] += self.game['ball']['speedY']
         # 위 야래 벽에 부딪히면 방향 바꾸기
-        if self.game['ball']['y'] + self.game['ball']['radius'] > 1000 or self.game['ball']['y'] - self.game['ball']['radius'] < 0:
+        if self.game['ball']['y'] + self.game['ball']['radius'] > 900 or self.game['ball']['y'] - self.game['ball']['radius'] < 0:
             self.game['ball']['speedY'] = -self.game['ball']['speedY']
         # 왼쪽 player bar에 부딪히면 방향 바꾸기
         if self.game['ball']['x'] - self.game['ball']['radius'] < 40:
-            if self.game['ball']['y'] > self.game['player_bar']['left'] and self.game['ball']['y'] < self.game['player_bar']['left'] + 200:
+            if self.game['ball']['y'] > self.game['player_bar']['left'] and self.game['ball']['y'] < self.game['player_bar']['left'] + 180:
                 self.game['ball']['speedX'] = -self.game['ball']['speedX']
         # 오른쪽 player bar에 부딪히면 방향 바꾸기
-        if self.game['ball']['x'] + self.game['ball']['radius'] > 960:
-            if self.game['ball']['y'] > self.game['player_bar']['right'] and self.game['ball']['y'] < self.game['player_bar']['right'] + 200:
+        if self.game['ball']['x'] + self.game['ball']['radius'] > 1160:
+            if self.game['ball']['y'] > self.game['player_bar']['right'] and self.game['ball']['y'] < self.game['player_bar']['right'] + 180:
                 self.game['ball']['speedX'] = -self.game['ball']['speedX']
         # 왼쪽, 오른쪽 벽에 부딪히면 점수 올리기
-        if (self.game['ball']['x'] - self.game['ball']['radius'] < 0) or (self.game['ball']['x'] + self.game['ball']['radius'] > 1000):
+        if (self.game['ball']['x'] - self.game['ball']['radius'] < 0) or (self.game['ball']['x'] + self.game['ball']['radius'] > 1200):
             if self.game['ball']['x'] - self.game['ball']['radius'] < 0:
                 self.game['scores']['right'] += 1
             else:
@@ -172,8 +174,8 @@ class GameConsumer(AsyncWebsocketConsumer):
             self.reset_ball()
 
     def reset_ball(self):
-        self.game['ball']['x'] = 500
-        self.game['ball']['y'] = 500
+        self.game['ball']['x'] = 600
+        self.game['ball']['y'] = 450
         self.game['ball']['speedX'] = 10 * (1 if random.random() > 0.5 else -1)
         self.game['ball']['speedY'] = 10 * (1 if random.random() > 0.5 else -1)
 

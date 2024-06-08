@@ -81,18 +81,16 @@ const LobbyRooms = ({ roomList, sendLobbySocket }) => {
         </button>
       </div>
       <div class="lobby-rooms">
-        {roomList.map((room) => (
-          <LobbyRoom
-            roomInfo={room}
-            clickEvent={() => handleRoomClick(room, sendLobbySocket)}
-            sendLobbySocket={sendLobbySocket}
-          />
-        ))}
-        {/* <LobbyRoom roomName={roo} clickEvent={handleRoomClick} />
-        <LobbyRoom roomName="Game Room 2" clickEvent={handleRoomClick} />
-        <LobbyRoom roomName="Game Room 3" clickEvent={handleRoomClick} />
-        <LobbyRoom roomName="Game Room 4" clickEvent={handleRoomClick} />
-        <LobbyRoom roomName="Game Room 5" clickEvent={handleRoomClick} /> */}
+        {roomList.map((room) => {
+          if (room.mode === "matchmaking") return;
+          return (
+            <LobbyRoom
+              roomInfo={room}
+              clickEvent={() => handleRoomClick(room, sendLobbySocket)}
+              sendLobbySocket={sendLobbySocket}
+            />
+          );
+        })}
       </div>
     </div>
   );

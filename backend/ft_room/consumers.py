@@ -28,7 +28,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
         LobbyConsumer.rooms[self.host_username]['players'].append(self.scope['user'].username)
         
         # 방이 꽉 찼으면 연결 종료
-        if len(LobbyConsumer.rooms[self.host_username]['players']) > 2:
+        if len(LobbyConsumer.rooms[self.host_username]['players']) > LobbyConsumer.rooms[self.host_username]['mode']:
             await self.send(text_data=json.dumps({
                 'type': 'room_full',
             }))
@@ -58,7 +58,6 @@ class RoomConsumer(AsyncWebsocketConsumer):
             {
                 'type': 'connect_user',
                 'new_user': self.scope['user'].username,
-                # 'user_list': LobbyConsumer.rooms[self.host_username]['players'],
                 'room_name': LobbyConsumer.rooms[self.host_username]['room_name'],
                 'host': self.host_username,
                 'mode': LobbyConsumer.rooms[self.host_username]['mode'],
@@ -66,7 +65,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
             }
         )
         
-        if len(LobbyConsumer.rooms[self.host_username]['players']) == 2:
+        if len(LobbyConsumer.rooms[self.host_username]['players']) == LobbyConsumer.rooms[self.host_username]['mode']:
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -181,7 +180,6 @@ class RoomConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'connect_user',
             'new_user': new_user,
-            # 'user_list': user_list,
             'room_name': LobbyConsumer.rooms[self.host_username]['room_name'],
             'host': self.host_username,
             'mode': LobbyConsumer.rooms[self.host_username]['mode'],
@@ -195,7 +193,6 @@ class RoomConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'disconnect_user',
             'disconnected_user': disconnected_user,
-            # 'user_list': user_list,
             'room_name': LobbyConsumer.rooms[self.host_username]['room_name'],
             'host': self.host_username,
             'mode': LobbyConsumer.rooms[self.host_username]['mode'],
@@ -215,5 +212,6 @@ class RoomConsumer(AsyncWebsocketConsumer):
         host = event['host']
         await self.send(text_data=json.dumps({
             'type': 'goto_game',
+            'mode': LobbyConsumer.rooms[host]['mode'],
             'host': host,
         }))

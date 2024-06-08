@@ -46,7 +46,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                         'type': 'join_denied',
                         'message': 'This room is already playing a game.',
                     }))
-                elif len(LobbyConsumer.rooms[hostname]['players']) >= 2:
+                elif len(LobbyConsumer.rooms[hostname]['players']) >= LobbyConsumer.rooms[hostname]['mode']:
                     await self.send(text_data=json.dumps({
                         'type': 'join_denied',
                         'message': 'Room is full.',
