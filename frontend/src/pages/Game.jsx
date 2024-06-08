@@ -1,39 +1,15 @@
 import { useEffect, useState } from "@/lib/dom";
 import { isEmpty } from "@/lib/libft";
 import { history } from "@/lib/router";
-// game
-// :
-// ball
-// :
-// {x: 500, y: 500, radius: 10, speedX: 10, speedY: 10}
-// player_bar
-// :
-// {left: 400, right: 400}
-// players
-// :
-// (2) ['hyungjuk', 'surkim']
-// roles
-// :
-// {left: 'hyungjuk', right: 'surkim'}
-// scores
-// :
-// {left: 0, right: 0}
-// [[Prototype]]
-// :
-// Object
-// type
-// :
-// "game_start"
-// [[Prototype]]
-// :
-// Object
+
 let gameState;
 let canvas;
 let context;
+let ratio;
 
 const drawPaddle = (x, y) => {
   context.fillStyle = "#ffffff";
-  context.fillRect(x, (canvas.height * y) / 900, 20, canvas.height / 5);
+  context.fillRect(x * ratio, y * ratio, 20 * ratio, canvas.height / 5);
 };
 
 const drawBall = (x, y) => {
@@ -41,9 +17,9 @@ const drawBall = (x, y) => {
   // context.fillRect(x, y, 20, 20);
   context.beginPath();
   context.arc(
-    (gameState.ball.x * canvas.width) / 1200,
-    (gameState.ball.y * canvas.height) / 900,
-    gameState.ball.radius,
+    gameState.ball.x * ratio,
+    gameState.ball.y * ratio,
+    gameState.ball.radius * ratio,
     0,
     Math.PI * 2
   );
@@ -66,7 +42,7 @@ const draw = () => {
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.fillStyle = "#ffffff";
   drawPaddle(20, gameState.player_bar.left);
-  drawPaddle(canvas.width - 40, gameState.player_bar.right);
+  drawPaddle(1160, gameState.player_bar.right);
   drawBall(gameState.ball.x, gameState.ball.y);
   drawLine();
   // context.font = "20px Quantico";
@@ -83,7 +59,6 @@ const dirStat = {
   UP: 1,
   DOWN: 2,
 };
-
 const GamePage = () => {
   const [gameUsers, setGameUsers] = useState({});
   const [gameScore, setGameScore] = useState({});
@@ -109,13 +84,25 @@ const GamePage = () => {
 
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
+        // console.log(data);
         if (data.type === "game_start") {
           startFlag = true;
           gameState = data.game;
           setGameScore(data.game.scores);
           setGameUsers(data.game.roles);
-          setInterval(() => {}, 1000);
-          socket.send(JSON.stringify({ type: "start_game" }));
+          let timer = 3;
+          let interval = setInterval(() => {
+            console.log(timer);
+            timer--;
+            const counter = document.querySelector(".pong-game-info h1");
+            counter.innerText = timer;
+            if (timer <= 0) {
+              counter.style.display = "none";
+              clearInterval(interval);
+              socket.send(JSON.stringify({ type: "start_game" }));
+            }
+          }, 1000);
+          // socket.send(JSON.stringify({ type: "start_game" }));
           document.addEventListener("keydown", (e) => {
             if (
               // direction === dirStat.STOP &&
@@ -165,7 +152,8 @@ const GamePage = () => {
   }, []);
 
   useEffect(() => {
-    // if (isEmpty(gameUsers) || isEmpty(gameScore)) return;
+    if (isEmpty(gameUsers) || isEmpty(gameScore)) return;
+    document.getElementById("pong-game").style.display = "block";
     canvas = document.getElementById("pong-game");
     if (window.innerHeight / 3 > window.innerWidth / 4) {
       canvas.width = window.innerWidth - 10;
@@ -177,6 +165,8 @@ const GamePage = () => {
     context = canvas.getContext("2d");
     context.scale(1, 1);
 
+    ratio = canvas.width / 1200;
+    // } else
     update();
   }, [gameUsers, gameScore]);
   return (
@@ -189,6 +179,7 @@ const GamePage = () => {
             <p class="user2">{gameUsers.right}</p>
             <h6 class="user1">{gameScore.left}</h6>
             <h6 class="user2">{gameScore.right}</h6>
+            <h1>3</h1>
           </div>
         )}
       </div>

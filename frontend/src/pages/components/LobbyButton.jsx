@@ -109,8 +109,11 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
       </button>
       <button
         class="lobby-game-btn"
-        data-bs-toggle="modal"
-        data-bs-target="#QuickMatchModal"
+        // data-bs-toggle="modal"
+        // data-bs-target="#QuickMatchModal"
+        onclick={() => {
+          sendLobbySocket({ type: "matchmaking" });
+        }}
       >
         <img src="/icon/search.svg"></img>
         Quick Match
