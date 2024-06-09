@@ -88,6 +88,7 @@ const UserList = () => {
       };
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
+        console.log(data);
         if (data.type === "status") {
           setUserListData(data);
           console.log(data);
