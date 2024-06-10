@@ -1,4 +1,4 @@
-import updateElement from "./diff";
+import { updateElement } from "./diff";
 import { shallowEqual } from "./utils/object";
 import { createElement } from "./client";
 
@@ -41,17 +41,10 @@ const domRenderer = () => {
     if (!$root || !component) return;
 
     const newVDOM = component();
-    while ($root.firstChild) $root.removeChild($root.firstChild);
-    $root.appendChild(createElement(newVDOM));
-    // if (!currentVDOM) {
-    //   $root.replaceWith(createElement(newVDOM));
-    //   // first render
-    // } else {
-    //   console.log(currentVDOM, newVDOM);
-    //   const patch = updateElement(currentVDOM, newVDOM);
-    //   console.log(patch);
-    //   patch($root);
-    // }
+    // 통째로 다 바꾸는 방법
+    // while ($root.firstChild) $root.removeChild($root.firstChild);
+    // $root.appendChild(createElement(newVDOM));
+    updateElement($root, newVDOM, currentVDOM);
     renderInfo.currentVDOM = newVDOM;
     options.stateHook = 0;
     options.refHook = 0;

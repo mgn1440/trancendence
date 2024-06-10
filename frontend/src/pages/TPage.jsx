@@ -2,10 +2,17 @@ import { useEffect, useState, useRef } from "@/lib/dom";
 import { axiosUserMe } from "@/api/axios.custom";
 import { isEmpty } from "@/lib/libft";
 
+const Test = () => {
+  return <div class="h1 h2 h3" id="i1"></div>;
+};
+
 const TestPage = () => {
   const [getRef, setRef] = useRef(0);
   const [testState, setTestState] = useState(0);
-
+  for (const attr of Object.keys(Test().props ?? {})) {
+    console.log(attr);
+  }
+  console.log(Test().children[10]);
   return (
     <div>
       <button
