@@ -70,7 +70,7 @@ const LobbyProfile = ({ data }) => {
     // axios
     const getGameHistory = async () => {
       const gameRecordsApi = await axiosGameRecords({
-        user_id: data.user_info.uid,
+        username: data.user_info.username,
         isSingle: logStat ? "SINGLE" : "MULTI",
       });
       setGameRecords(gameRecordsApi.data.record_list);
