@@ -50,7 +50,6 @@ class GameConsumer(AsyncWebsocketConsumer):
             }
 
         LobbyConsumer.rooms[self.host_username]['game']['players'].append(self.scope['user'].username)
-
         if len(LobbyConsumer.rooms[self.host_username]['game']['players']) == 2:
             LobbyConsumer.rooms[self.host_username]['game']['roles'] = {
                 'left': LobbyConsumer.rooms[self.host_username]['in_game_players'][0],
@@ -98,6 +97,11 @@ class GameConsumer(AsyncWebsocketConsumer):
                 }
             )
             LobbyConsumer.rooms[self.host_username]['game']['players'].remove(self.scope['user'].username)
+            if len(LobbyConsumer.rooms[self.host_username]['game']['players']) == 1:
+                winner_name = LobbyConsumer.rooms[self.host_username]['game']['players'][0]
+                loser_name = self.scope['user'].username
+                game_data = await GameConsumer.get_game_data(winner_name, loser_name, 5, 0)
+                await GameConsumer.create_game_records(game_data)
             if len(LobbyConsumer.rooms[self.host_username]['game']['players']) == 0:
                 del LobbyConsumer.rooms[self.host_username]
             await self.update_room_list()
@@ -208,19 +212,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         winner_score = self.game['scores'][winner]
         loser_score = self.game['scores'][loser]
         try:
-            winner_user = await sync_to_async(CustomUser.objects.get)(username=winner_username)
-            loser_user = await sync_to_async(CustomUser.objects.get)(username=loser_username)
-            await GameConsumer.update_user_win_or_lose(winner_user, loser_user)
-            winner_profile_url = winner_user.profile_image.url if winner_user.profile_image else None
-            loser_profile_url = loser_user.profile_image.url if loser_user.profile_image else None
-            game_data = {
-                'winner': winner_user,
-                'loser': loser_user,
-                'winner_score': winner_score,
-                'loser_score': loser_score,
-                'winner_profile_url': winner_profile_url,
-                'loser_profile_url': loser_profile_url,
-            }
+            game_data = await GameConsumer.get_game_data(winner_username, loser_username, winner_score, loser_score)
             await GameConsumer.create_game_records(game_data)
             await self.channel_layer.group_send(
                 self.room_group_name,
@@ -299,6 +291,23 @@ class GameConsumer(AsyncWebsocketConsumer):
             opponent_profile=game_data['winner_profile_url'],
             opponent_score=game_data['winner_score'],
         )
+
+    async def get_game_data(winner_name, loser_name, winner_score, loser_score):
+        winner_user = await sync_to_async(CustomUser.objects.get)(username=winner_name)
+        loser_user = await sync_to_async(CustomUser.objects.get)(username=loser_name)
+        await GameConsumer.update_user_win_or_lose(winner_user, loser_user)
+        winner_profile_url = winner_user.profile_image.url if winner_user.profile_image else None
+        loser_profile_url = loser_user.profile_image.url if loser_user.profile_image else None
+        game_data = {
+            'winner': winner_user,
+            'loser': loser_user,
+            'winner_score': winner_score,
+            'loser_score': loser_score,
+            'winner_profile_url': winner_profile_url,
+            'loser_profile_url': loser_profile_url,
+        }
+        return game_data
+
     # 동기함수 호출을 비동기 함수로 변경
     @sync_to_async
     def update_user_win_or_lose(self, winner, loser):
