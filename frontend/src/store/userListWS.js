@@ -1,16 +1,42 @@
 import { createStore } from "../lib/observer/Store.js";
 
-export const WS_CONNECT = 'WS_CONNECT';
-export const WS_DISCONNECT = 'WS_DISCONNECT';
-export const WS_SEND = 'WS_SEND';
+const WS_CONNECT = 'WS_CONNECT';
 
-export const userListWS = createStore((state = initState, action = {}) => {
+const initState = {
+  socket: {}
+}
+
+const webSocketConnect = socket => ({
+  type: WS_CONNECT,
+  payload: socket,
+});
+
+const reducer_userlist = (state = initState, action = {}) => {
   switch (action.type) {
-    case "SET_USER_LIST":
-      return { ...state, userList: action.payload };
-    case "SET_USER_LIST_WS":
-      return { ...state, userListWS: action.payload };
+    case WS_CONNECT:
+      return { ...state, socket: action.payload };
     default:
       return state;
   }
-});
+};
+
+export const ws_userlist = createStore(reducer_userlist);
+
+
+export const startWebSocketConnection = (dispatch, setUserList) => {
+
+  const socket = new WebSocket("ws://" + "localhost:8000" + "/ws/online/");
+
+  socket.onopen = (e) => {
+    console.log("WebSocket Connected");
+    dispatch(webSocketConnect(socket));
+  };
+
+  socket.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    console.log(data);
+    if (data.type === "status") {
+        setUserList(data);
+    }
+  };
+}

@@ -1,16 +1,19 @@
 import { gotoPage } from "@/lib/libft";
 import { axiosUserFollow, axiosUserUnfollow } from "@/api/axios.custom";
 import { render, useEffect, useState } from "@/lib/dom";
+import { ws_userlist } from "@/store/userListWS";
 
 const ProfileImg = ({ user_name, stat }) => {
   const [status, setFollowStat] = useState(stat);
   const follow = async (user_name) => {
     await axiosUserFollow(user_name);
+    ws_userlist.getState().socket.send(JSON.stringify({ type: "update" }));
     setFollowStat(3);
   };
 
   const unfollow = async (user_name) => {
     await axiosUserUnfollow(user_name);
+    ws_userlist.getState().socket.send(JSON.stringify({ type: "update" }));
     setFollowStat(2);
   };
 

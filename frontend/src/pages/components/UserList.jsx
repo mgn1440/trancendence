@@ -1,6 +1,8 @@
 import { axiosUserList, axiosUserOther } from "@/api/axios.custom";
 import { useEffect, useState } from "@/lib/dom";
 import { isEmpty } from "@/lib/libft";
+import { ws_userlist, startWebSocketConnection } from "@/store/userListWS";
+import { observe } from "@/lib/observer/observer";
 
 const moveToProfile = (userName) => {
   if (window.location.pathname === `/profile/${userName}` || userName === undefined) {  
@@ -78,26 +80,10 @@ const UserSleep = ({ userName }) => {
 
 const UserList = () => {
   const [userListData, setUserListData] = useState({});
-  // const [userListSocket, setUserListSocket] = useState({});
   useEffect(() => {
     const socketAsync = async () => {
-      const socket = new WebSocket("ws://" + "localhost:8000" + "/ws/online/");
-
-      socket.onopen = (e) => {
-        console.log("WebSocket Connected");
-      };
-      socket.onmessage = (e) => {
-        const data = JSON.parse(e.data);
-        console.log(data);
-        if (data.type === "status") {
-          setUserListData(data);
-          console.log(data);
-        }
-      };
-      while (socket.readyState !== WebSocket.OPEN) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-      // setUserListSocket(socket);
+      startWebSocketConnection(ws_userlist.dispatch, setUserListData);
+      console.log(ws_userlist.getState());
     };
     socketAsync();
   }, []);
