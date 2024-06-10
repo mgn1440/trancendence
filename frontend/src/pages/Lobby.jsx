@@ -56,15 +56,6 @@ const LobbyPage = () => {
     socketAsync();
   }, []);
 
-  const testHandler = () => {
-    console.log(getLobbySocket()); // debug
-    if (getLobbySocket() && getLobbySocket().readyState === WebSocket.OPEN) {
-      console.log("socket is ready");
-    } else {
-      console.log("socket is not ready");
-    }
-  };
-
   const sendLobbySocket = (roomData) => {
     if (getLobbySocket() && getLobbySocket().readyState === WebSocket.OPEN) {
       getLobbySocket().send(JSON.stringify(roomData));
@@ -76,7 +67,6 @@ const LobbyPage = () => {
 
   return (
     <div>
-      <button onclick={testHandler}>click me</button>
       {isEmpty(myProfile) ? null : (
         <div>
           <div id="top">
