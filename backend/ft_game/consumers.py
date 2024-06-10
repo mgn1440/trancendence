@@ -102,7 +102,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 loser_name = self.scope['user'].username
                 game_data = await GameConsumer.get_game_data(winner_name, loser_name, 5, 0)
                 await GameConsumer.create_game_records(game_data)
-            if len(LobbyConsumer.rooms[self.host_username]['game']['players']) == 0:
+            elif len(LobbyConsumer.rooms[self.host_username]['game']['players']) == 0:
                 del LobbyConsumer.rooms[self.host_username]
             await self.update_room_list()
 
@@ -133,10 +133,10 @@ class GameConsumer(AsyncWebsocketConsumer):
         elif data['type'] == 'stop_bar':
             print('stop')
             self.game['bar_move'][data['role']] = 0
-        elif data['type'] == 'error':
-            await self.send_error_message(data['message'])
-            del LobbyConsumer.rooms[self.host_username]
-            await self.update_room_list()
+        # elif data['type'] == 'error':
+        #     await self.send_error_message(data['message'])
+        #     del LobbyConsumer.rooms[self.host_username]
+        #     await self.update_room_list()
 
     async def start_ball_movement(self):
         while self.status == 'playing' and self.host_username in LobbyConsumer.rooms and len(LobbyConsumer.rooms[self.host_username]['game']['players']) == 2:
@@ -211,24 +211,17 @@ class GameConsumer(AsyncWebsocketConsumer):
             del LobbyConsumer.rooms[self.host_username]
         winner_score = self.game['scores'][winner]
         loser_score = self.game['scores'][loser]
-        try:
-            game_data = await GameConsumer.get_game_data(winner_username, loser_username, winner_score, loser_score)
-            await GameConsumer.create_game_records(game_data)
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'game_over',
-                    'winner': winner_username,
-                    'loser': loser_username,
-                }
-            )
-            await self.update_room_list()
-        except Exception as e:
-            event = {
-                'type': 'error',
-                'message': str(e)
+        game_data = await GameConsumer.get_game_data(winner_username, loser_username, winner_score, loser_score)
+        await GameConsumer.create_game_records(game_data)
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'game_over',
+                'winner': winner_username,
+                'loser': loser_username,
             }
-            await self.error(event)
+        )
+        await self.update_room_list()
 
     async def update_room_list(self):
         channel_layer = get_channel_layer()
