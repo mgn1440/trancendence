@@ -1,15 +1,17 @@
-import { axiosUserList, axiosUserOther } from "@/api/axios.custom";
+import { axiosUserOther } from "@/api/axios.custom";
 import { useEffect, useState } from "@/lib/dom";
 import { isEmpty } from "@/lib/libft";
 import { ws_userlist, startWebSocketConnection } from "@/store/userListWS";
-import { observe } from "@/lib/observer/observer";
 
 const moveToProfile = (userName) => {
-  if (window.location.pathname === `/profile/${userName}` || userName === undefined) {  
-    return ;
+  if (
+    window.location.pathname === `/profile/${userName}` ||
+    userName === undefined
+  ) {
+    return;
   }
   window.location.href = `/profile/${userName}`;
-}
+};
 
 const User = ({ userName }) => {
   const [userData, setUserData] = useState({});
@@ -22,7 +24,7 @@ const User = ({ userName }) => {
       console.log(user_temp.data);
     };
     fetchUser();
-  }, []);
+  }, [userName]);
 
   return (
     <div class="user-item" onclick={() => moveToProfile(userData.username)}>
@@ -36,7 +38,10 @@ const User = ({ userName }) => {
             <h6>{userData.username}</h6>
             <p>
               win: {userData.win} lose: {userData.lose} rate:
-              {(userData.win + userData.lose) === 0 ? 0 : (userData.win / (userData.win + userData.lose)) * 100}%
+              {userData.win + userData.lose === 0
+                ? 0
+                : (userData.win / (userData.win + userData.lose)) * 100}
+              %
             </p>
           </div>
         )}
@@ -53,7 +58,7 @@ const UserSleep = ({ userName }) => {
       setUserData(userData.data.user_info);
     };
     fetchUser();
-  }, []);
+  }, [userName]);
 
   const randNum = Math.ceil(Math.random() * 5);
   const imgSrc = `/img/minji_${randNum}.jpg`;
@@ -64,12 +69,15 @@ const UserSleep = ({ userName }) => {
         <span class="isloggedin sleep">●</span>
       </div>
       <div class="user-info">
-      {isEmpty(userData) ? null : (
+        {isEmpty(userData) ? null : (
           <div>
             <h6>{userData.username}</h6>
             <p>
               win: {userData.win} lose: {userData.lose} rate:
-              {(userData.win + userData.lose) === 0 ? 0 : (userData.win / (userData.win + userData.lose)) * 100}%
+              {userData.win + userData.lose === 0
+                ? 0
+                : (userData.win / (userData.win + userData.lose)) * 100}
+              %
             </p>
           </div>
         )}
@@ -106,7 +114,9 @@ const UserList = () => {
               return <User userName={user} />;
             })}
           {userListData.offline &&
-            userListData.offline.map((user) => <UserSleep userName={user} />)}
+            userListData.offline.map((user) => {
+              return <UserSleep userName={user} />;
+            })}
         </div>
         <div class="user-search-bar">
           <input class="user-search-input"></input>
