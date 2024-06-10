@@ -1,4 +1,4 @@
-import { useEffect, useState } from "@/lib/dom";
+import { useEffect, useState, useRef } from "@/lib/dom";
 import { isEmpty } from "@/lib/libft";
 import { history } from "@/lib/router";
 
@@ -60,8 +60,8 @@ const dirStat = {
   DOWN: 2,
 };
 const GamePage = () => {
-  const [gameUsers, setGameUsers] = useState({});
-  const [gameScore, setGameScore] = useState({});
+  const [gameStat, setGameStat] = useState([]);
+  // const [gameScore, setGameScore] = useState({});
   let direction = dirStat.STOP;
   let startFlag = false;
   useEffect(() => {
@@ -88,8 +88,9 @@ const GamePage = () => {
         if (data.type === "game_start") {
           startFlag = true;
           gameState = data.game;
-          setGameScore(data.game.scores);
-          setGameUsers(data.game.roles);
+          // setGameScore(data.game.scores);
+          // setGameUsers(data.game.roles);
+          setGameStat([data.game.scores, data.game.roles]);
           let timer = 3;
           let interval = setInterval(() => {
             console.log(timer);
@@ -138,6 +139,7 @@ const GamePage = () => {
           gameState = data.game;
           // setGameScore(data.game.scores);
           // setGameUsers(data.game.roles);
+          setGameStat([data.game.scores, data.game.roles]);
         } else if (data.type === "game_over") {
           alert(data.winner + " win!");
           window.location.href = `/lobby/${data.host_username}`;
@@ -151,7 +153,7 @@ const GamePage = () => {
   }, []);
 
   useEffect(() => {
-    if (isEmpty(gameUsers) || isEmpty(gameScore)) return;
+    if (isEmpty(gameStat)) return;
     document.getElementById("pong-game").style.display = "block";
     canvas = document.getElementById("pong-game");
     if (window.innerHeight / 3 > window.innerWidth / 4) {
@@ -167,17 +169,17 @@ const GamePage = () => {
     ratio = canvas.width / 1200;
     // } else
     update();
-  }, [gameUsers, gameScore]);
+  }, [gameStat]);
   return (
     <div>
       <div class="pong-game-main">
         <canvas id="pong-game"></canvas>
-        {isEmpty(gameUsers) || isEmpty(gameScore) ? null : (
+        {isEmpty(gameStat) ? null : (
           <div class="pong-game-info">
-            <p class="user1">{gameUsers.left}</p>
-            <p class="user2">{gameUsers.right}</p>
-            <h6 class="user1">{gameScore.left}</h6>
-            <h6 class="user2">{gameScore.right}</h6>
+            <p class="user1">{gameStat[1].left}</p>
+            <p class="user2">{gameStat[1].right}</p>
+            <h6 class="user1">{gameStat[0].left}</h6>
+            <h6 class="user2">{gameStat[0].right}</h6>
             <h1>3</h1>
           </div>
         )}
