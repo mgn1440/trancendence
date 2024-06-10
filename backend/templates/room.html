@@ -95,7 +95,11 @@
         } else if (data.type === "room_not_exist") {
           window.location.href = "/api/lobby/";
         } else if (data.type === "goto_game") {
-          window.location.href = "/api/game/" + data.host + "/";
+          if (data.mode === 2) {
+            window.location.href = "/api/game/" + data.host + "/";
+          } else if (data.mode === 4) {
+            window.location.href = "/api/game/tournament/" + data.host + "/";
+          }
         }
       };
 

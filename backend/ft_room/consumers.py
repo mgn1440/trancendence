@@ -133,6 +133,9 @@ class RoomConsumer(AsyncWebsocketConsumer):
             LobbyConsumer.rooms[self.host_username]['status'] = 'game'
             LobbyConsumer.rooms[self.host_username]['in_game_players'].append(LobbyConsumer.rooms[self.host_username]['players'][0])
             LobbyConsumer.rooms[self.host_username]['in_game_players'].append(LobbyConsumer.rooms[self.host_username]['players'][1])
+            if LobbyConsumer.rooms[self.host_username]['mode'] == 4:
+                LobbyConsumer.rooms[self.host_username]['in_game_players'].append(LobbyConsumer.rooms[self.host_username]['players'][2])
+                LobbyConsumer.rooms[self.host_username]['in_game_players'].append(LobbyConsumer.rooms[self.host_username]['players'][3])
             
             print (LobbyConsumer.rooms[self.host_username]['in_game_players'])
             await self.channel_layer.group_send(
