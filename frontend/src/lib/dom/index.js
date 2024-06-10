@@ -14,6 +14,8 @@ const domRenderer = () => {
   const options = {
     states: [],
     stateHook: 0,
+    refs: [],
+    refHook: 0,
     dependencies: [],
     effectHook: 0,
     effectList: [],
@@ -27,6 +29,8 @@ const domRenderer = () => {
   const resetOptions = () => {
     options.states = [];
     options.stateHook = 0;
+    options.refs = [];
+    options.refHook = 0;
     options.dependencies = [];
     options.effectHook = 0;
     options.effectList = [];
@@ -48,9 +52,10 @@ const domRenderer = () => {
     //   console.log(patch);
     //   patch($root);
     // }
-    options.stateHook = 0;
-    options.effectHook = 0;
     renderInfo.currentVDOM = newVDOM;
+    options.stateHook = 0;
+    options.refHook = 0;
+    options.effectHook = 0;
 
     options.effectList.forEach((effect) => effect());
     options.effectList = [];
@@ -80,6 +85,20 @@ const domRenderer = () => {
     return [state, setState];
   };
 
+  const useRef = (initialState) => {
+    const { refHook: index, refs } = options;
+    if (refs.length === index) refs.push(initialState);
+    const getRef = () => refs[index];
+    const setRef = (newState) => {
+      // if (shallowEqual(state, newState)) return;
+      refs[index] = newState;
+    };
+    options.refHook += 1;
+    console.log(refs);
+    return [getRef, setRef];
+    // return { current: refs[index] };
+  };
+
   const useEffect = (callback, dependencies) => {
     const index = options.effectHook;
     options.effectList[index] = () => {
@@ -97,6 +116,6 @@ const domRenderer = () => {
     options.effectHook += 1;
   };
 
-  return { useState, useEffect, render };
+  return { useState, useEffect, useRef, render };
 };
-export const { useState, useEffect, render } = domRenderer();
+export const { useState, useEffect, useRef, render } = domRenderer();

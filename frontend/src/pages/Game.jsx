@@ -102,7 +102,6 @@ const GamePage = () => {
               socket.send(JSON.stringify({ type: "start_game" }));
             }
           }, 1000);
-          // socket.send(JSON.stringify({ type: "start_game" }));
           document.addEventListener("keydown", (e) => {
             if (
               // direction === dirStat.STOP &&
