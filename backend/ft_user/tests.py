@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord
+from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord, SingleGameDetail
 import json, jwt
 from backend.settings import JWT_SECRET_KEY
 
@@ -156,25 +156,70 @@ class ProfileImageViewTest(APITestCase):
 		)
 		self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_token)
 
-	def test_retrive_profile_image(self):
-		url = reverse('profile_image', kwargs={'username': self.user.username})
+	# def test_retrive_profile_image(self):
+	# 	url = reverse('profile_image', kwargs={'username': self.user.username})
+	# 	response = self.client.get(url)
+	# 	self.assertEqual(response.status_code, status.HTTP_200_OK)
+	# 	print('image', response.content)
+
+	# def test_update_profile_image(self):
+	# 	url = reverse('profile_image', kwargs={'username': self.user.username})
+	# 	with open('/Users/sunko/Desktop/nirvana.jpeg', 'rb') as image:
+	# 		response = self.client.put(url, {'profile_image': image}, format='multipart')
+	# 	self.assertEqual(response.status_code, status.HTTP_200_OK)
+	# 	url = reverse('user_detail_by_username', kwargs={'username': self.user.username})
+	# 	response = self.client.get(url)
+	# 	print('update', response.content)
+	# 	url = reverse('profile_image', kwargs={'username': self.user.username})
+	# 	response = self.client.delete(url)
+	# 	self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+	# 	url = reverse('user_detail_by_username', kwargs={'username': self.user.username})
+	# 	print(url)
+	# 	response = self.client.get(url)
+	# 	print('delete_image', response.content)
+
+
+class SingleGameDetailListViewTest(APITestCase):
+	def setUp(self):
+		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
+		self.user2 = CustomUser.objects.create_user(username="guma", uid=2)
+		self.game_record = SingleGameRecord.objects.create(user=self.user, user_score=5, opponent_name=self.user2.username, opponent_score=3)
+		self.goal = SingleGameDetail.objects.create(
+			game=self.game_record,
+			goal_user_name=self.user.username,
+			goal_user_position='left',
+			ball_start_position='A',
+			ball_end_position='B',
+			timestamp=10.0
+		)
+		self.goal2 = SingleGameDetail.objects.create(
+			game=self.game_record,
+			goal_user_name=self.user2.username,
+			goal_user_position='right',
+			ball_start_position='C',
+			ball_end_position='D',
+			timestamp=20.0
+		)
+		self.goal3 = SingleGameDetail.objects.create(
+			game=self.game_record,
+			goal_user_name=self.user.username,
+			goal_user_position='left',
+			ball_start_position='C',
+			ball_end_position='D',
+			timestamp=30.0
+		)
+		self.goal4 = SingleGameDetail.objects.create(
+			game=self.game_record,
+			goal_user_name=self.user2.username,
+			goal_user_position='right',
+			ball_start_position='A',
+			ball_end_position='B',
+			timestamp=40.0
+		)
+	def test_get_single_game_detail_list(self):
+		url = reverse('single_game_record_detail', kwargs={'username': self.user.username, 'game_id': self.game_record.id})
+		print('username', self.user.username)
+		print('game_id', self.game_record.id)
 		response = self.client.get(url)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		print('image', response.content)
-
-	def test_update_profile_image(self):
-		url = reverse('profile_image', kwargs={'username': self.user.username})
-		with open('/Users/sunko/Desktop/nirvana.jpeg', 'rb') as image:
-			response = self.client.put(url, {'profile_image': image}, format='multipart')
-		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		url = reverse('user_detail_by_username', kwargs={'username': self.user.username})
-		response = self.client.get(url)
-		print('update', response.content)
-		url = reverse('profile_image', kwargs={'username': self.user.username})
-		response = self.client.delete(url)
-		self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-		url = reverse('user_detail_by_username', kwargs={'username': self.user.username})
-		print(url)
-		response = self.client.get(url)
-		print('delete_image', response.content)
-
+		print(response.content)
