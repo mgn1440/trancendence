@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ping Pong</title>
+    <title>Tournament Game</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,12 +14,21 @@
             margin: 0;
             padding: 20px;
             color: white;
+            height: 100vh;
         }
         h1 {
             margin-bottom: 20px;
             color: white;
         }
+        #gameContainer {
+            position: relative;
+            width: 80%;
+            max-width: 1200px;
+            aspect-ratio: 4/3;
+        }
         #gameCanvas {
+            width: 100%;
+            height: 100%;
             border: 2px solid #fff;
             background-color: #000;
             display: none;
@@ -53,27 +62,61 @@
             text-align: center;
             margin-bottom: 20px;
         }
+        #observers {
+            font-size: 18px;
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .match-section {
+            display: none;
+        }
+        .winner-section {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <h1>Ping Pong</h1>
-    <div id="waitingMessage">상대 유저 기다리는 중...</div> <!-- 게임 대기 메시지 -->
+    <h1 id="gameTitle">Tournament Game</h1>
+    <div id="waitingMessage">Waiting for other players...</div> <!-- 게임 대기 메시지 -->
     <div id="errorMessage"></div> <!-- 에러 메시지 -->
     <div id="players" style="display: none;"></div> <!-- 플레이어 정보 -->
+    <div id="observers" style="display: none;"></div> <!-- 옵저버 정보 -->
     <div id="scores">Scores: 0 - 0</div> <!-- 스코어 보드 -->
-    <canvas id="gameCanvas" width="1200" height="900"></canvas> <!-- 게임 캔버스 -->
-    <div id="countdown">3</div> <!-- 카운트다운 -->
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1200" height="900"></canvas> <!-- 게임 캔버스 -->
+        <div id="countdown">3</div> <!-- 카운트다운 -->
+    </div>
+    <div class="match-section" id="match1">
+        <h2>Match 1: Player 1 vs Player 2</h2>
+    </div>
+    <div class="match-section" id="match2">
+        <h2>Match 2: Player 3 vs Player 4</h2>
+    </div>
+    <div class="match-section" id="final">
+        <h2>Final Match</h2>
+    </div>
+    <div class="winner-section" id="winner">
+        <h2>Winner: <span id="winnerName"></span></h2>
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const countdownElement = document.getElementById('countdown');
         const errorMessageElement = document.getElementById('errorMessage');
+        const match1Section = document.getElementById('match1');
+        const match2Section = document.getElementById('match2');
+        const finalSection = document.getElementById('final');
+        const winnerSection = document.getElementById('winner');
+        const winnerNameElement = document.getElementById('winnerName');
+        const gameTitle = document.getElementById('gameTitle');
 
         let game = {};
-        let playerRole = '';  // 'left' 또는 'right'
+        let playerRole = '';  // 'left', 'right', 'observer'
+        let currentMatch = 1;
+        let matchWinners = [];
 
-        // 웹소켓 연결
-        const socket = new WebSocket('ws://' + window.location.host + '/ws/game/' + '{{ host_username }}' + '/');
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/tournament/' + '{{ host_username }}' + '/');
 
         socket.onopen = function(e) {
             console.log("웹소켓 서버에 연결되었습니다.");
@@ -84,16 +127,21 @@
             console.log("서버로부터 메시지를 받았습니다:", data);
             if (data.type === 'game_start') {
                 displayPlayers(data.game); // 플레이어 정보 표시
+                displayObservers(data.game); // 옵저버 정보 표시
                 startCountdown(data.game); // 게임 시작 카운트다운
-                setPlayerRole(data.game); // 플레이어 역할 설정
+                setPlayerRole(data.you); // 플레이어 역할 설정
+                updateGameTitle(data.game.current_game); // 게임 제목 업데이트
             } else if (data.type === 'error') {
                 showErrorAndRedirect(data.message); // 에러 메시지 표시 후 리디렉션
             } else if (data.type === 'update_game') {
                 game = data.game;
                 updateGameCanvas(); // 게임 캔버스 업데이트
             } else if (data.type === 'game_over') {
-                alert('게임이 종료되었습니다.');
-                window.location.href = '/api/room/' + '{{ host_username }}' + '/';
+                handleFinalGameOver(data); // 마지막 게임 종료 처리
+            } else if (data.type === 'game_over_1') {
+                handleGameOver1(data); // 첫 번째 게임 종료 처리
+            } else if (data.type === 'game_over_2') {
+                handleGameOver2(data); // 두 번째 게임 종료 처리
             }
         };
 
@@ -105,12 +153,8 @@
             console.error("웹소켓 에러 발생:", e);
         };
 
-        function setPlayerRole(gameData) {
-            if (gameData.roles.left === '{{ user }}') {
-                playerRole = 'left';
-            } else if (gameData.roles.right === '{{ user }}') {
-                playerRole = 'right';
-            }
+        function setPlayerRole(role) {
+            playerRole = role;
         }
 
         function showErrorAndRedirect(message) {
@@ -122,8 +166,25 @@
 
         function displayPlayers(gameData) {
             const playersElement = document.getElementById('players');
-            playersElement.textContent = `${gameData.roles.left} VS ${gameData.roles.right}`;
+            playersElement.textContent = `${gameData.roles.left} vs ${gameData.roles.right}`;
             playersElement.style.display = 'block';
+        }
+
+        function displayObservers(gameData) {
+            const observersElement = document.getElementById('observers');
+            const observers = gameData.players.filter(player => player !== gameData.roles.left && player !== gameData.roles.right);
+            observersElement.textContent = `Observers: ${observers.join(', ')}`;
+            observersElement.style.display = 'block';
+        }
+
+        function updateGameTitle(currentGame) {
+            if (currentGame === 1) {
+                gameTitle.textContent = 'Tournament Game - Match 1';
+            } else if (currentGame === 2) {
+                gameTitle.textContent = 'Tournament Game - Match 2';
+            } else if (currentGame === 3) {
+                gameTitle.textContent = 'Tournament Game - Final';
+            }
         }
 
         function startCountdown(gameData) {
@@ -156,32 +217,68 @@
         }
 
         function updateGameCanvas() {
+            const scale = canvas.width / 1200;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // 공 그리기
             ctx.beginPath();
-            ctx.arc(game.ball.x, game.ball.y, game.ball.radius, 0, Math.PI * 2);
+            ctx.arc(game.ball.x * scale, game.ball.y * scale, game.ball.radius * scale, 0, Math.PI * 2);
             ctx.fillStyle = "#FFF";
             ctx.fill();
             ctx.closePath();
 
             // 패들 그리기
             ctx.fillStyle = "#FFF";
-            ctx.fillRect(10, game.player_bar.left, 10, 180); // 왼쪽 패들 (높이 180)
-            ctx.fillRect(canvas.width - 20, game.player_bar.right, 10, 180); // 오른쪽 패들 (높이 180)
+            ctx.fillRect(10 * scale, game.player_bar.left * scale, 10 * scale, 180 * scale); // 왼쪽 패들
+            ctx.fillRect((canvas.width - 20 * scale), game.player_bar.right * scale, 10 * scale, 180 * scale); // 오른쪽 패들
 
             // 플레이어 이름 그리기
-            ctx.font = "20px Arial";
+            ctx.font = `${20 * scale}px Arial`;
             ctx.fillStyle = "white";
             ctx.textAlign = "center";
-            ctx.fillText(game.roles.left, 100, 30);
-            ctx.fillText(game.roles.right, canvas.width - 100, 30);
+            ctx.fillText(game.roles.left, 100 * scale, 30 * scale);
+            ctx.fillText(game.roles.right, (canvas.width - 100 * scale), 30 * scale);
 
             // VS 텍스트 그리기
-            ctx.fillText("VS", canvas.width / 2, 30);
+            ctx.fillText("VS", canvas.width / 2, 30 * scale);
 
             // 스코어 업데이트
             document.getElementById('scores').textContent = `Scores: ${game.scores.left} - ${game.scores.right}`;
+        }
+
+        function handleGameOver1(data) {
+            matchWinners.push(data.winner);
+            setPlayerRole(data.you); // 플레이어 역할 설정
+            displayPlayers(data.game); // 플레이어 정보 업데이트
+            displayObservers(data.game); // 옵저버 정보 업데이트
+            match1Section.style.display = 'none';
+            match2Section.style.display = 'block';
+            setTimeout(() => {
+                startCountdown(data.game);
+            }, 3000);
+        }
+
+        function handleGameOver2(data) {
+            matchWinners.push(data.winner);
+            setPlayerRole(data.you); // 플레이어 역할 설정
+            displayPlayers(data.game); // 플레이어 정보 업데이트
+            displayObservers(data.game); // 옵저버 정보 업데이트
+            match2Section.style.display = 'none';
+            finalSection.style.display = 'block';
+            setTimeout(() => {
+                startCountdown(data.game);
+            }, 3000);
+        }
+
+        function handleFinalGameOver(data) {
+            finalSection.style.display = 'none';
+            winnerSection.style.display = 'block';
+            winnerNameElement.textContent = data.winner;
+			// 3초 뒤 방으로 리디렉션
+			setTimeout(() => {
+				window.location.href = '/api/room/' + '{{ host_username }}' + '/';
+			}, 3000);
         }
 
         document.addEventListener('keydown', (e) => {
@@ -213,6 +310,18 @@
             };
             socket.send(JSON.stringify(stopData));
         }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            const canvas = document.getElementById('gameCanvas');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            updateGameCanvas();
+        }
+
+        resizeCanvas();
     </script>
 </body>
 </html>
