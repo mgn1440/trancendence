@@ -3,19 +3,24 @@ import LobbyProfile from "./components/LobbyProfile";
 import LobbyRooms from "./components/LobbyRooms";
 import TopNavBar from "./components/TopNavBar";
 import { axiosUserMe } from "@/api/axios.custom";
-import { useState, useEffect } from "@/lib/dom";
+import { useState, useEffect, useRef } from "@/lib/dom";
 import { isEmpty, gotoPage } from "@/lib/libft";
 import { MainProfileState } from "./GameRoom";
 
 const LobbyPage = () => {
   const [myProfile, setMyProfile] = useState({});
   const [roomList, setRoomList] = useState([]);
-  const [lobbySocket, setLobbySocket] = useState({});
+  const [getLobbySocket, setLobbySocket] = useRef({});
   useEffect(() => {
     const fetchProfile = async () => {
       const userMe = await axiosUserMe();
+      console.log(userMe.data); // debug
       setMyProfile(userMe.data);
     };
+    fetchProfile();
+  }, []);
+
+  useEffect(() => {
     const socketAsync = async () => {
       const socket = new WebSocket("ws://" + "localhost:8000" + "/ws/lobby/");
 
@@ -48,14 +53,15 @@ const LobbyPage = () => {
       }
       setLobbySocket(socket);
     };
-    fetchProfile();
     socketAsync();
   }, []);
 
   const sendLobbySocket = (roomData) => {
-    if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN) {
-      lobbySocket.send(JSON.stringify(roomData));
+    if (getLobbySocket() && getLobbySocket().readyState === WebSocket.OPEN) {
+      getLobbySocket().send(JSON.stringify(roomData));
       console.log(roomData);
+    } else {
+      console.log("socket is not ready");
     }
   };
 

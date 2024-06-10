@@ -30,6 +30,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
   useEffect(() => {
     const modalElement = document.getElementById("CreateRoomModal");
     const handleModalHidden = () => {
+      console.log("modal hidden");
       const inputs = modalElement.querySelectorAll("input[type=text]");
       inputs.forEach((input) => (input.value = ""));
 
@@ -46,8 +47,17 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
       else inputs[1].disable = false;
     });
 
+    const loaderElement = document.getElementById("QuickMatchModal");
+    const handleLoaderHidden = () => {
+      sendLobbySocket({ type: "cancel_matchmaking" });
+      console.log("modal hidden"); // debug
+    };
+
+    loaderElement.addEventListener("hidden.bs.modal", handleLoaderHidden);
+
     return () => {
       modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
+      loaderElement.removeEventListener("hidden.bs.modal", handleLoaderHidden);
     };
   }, []);
 
@@ -89,12 +99,21 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
           })
         }
       />
-      <Modal
+      <div
+        class="modal fade"
         id="QuickMatchModal"
-        title={() =>
-          TitleSection({ IconPath: "/icon/search.svg", Title: "Find User" })
-        }
-      />
+        tabindex="-1"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="loader">
+              <span></span>
+            </div>
+          </div>
+        </div>
+      </div>
       <button class="lobby-game-btn">
         <img src="/icon/user.svg"></img>
         Offline Game
@@ -113,6 +132,10 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
         // data-bs-target="#QuickMatchModal"
         onclick={() => {
           sendLobbySocket({ type: "matchmaking" });
+          const quickMatchModal = new bootstrap.Modal(
+            document.getElementById("QuickMatchModal")
+          );
+          quickMatchModal.show();
         }}
       >
         <img src="/icon/search.svg"></img>
