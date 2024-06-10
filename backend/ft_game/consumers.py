@@ -205,48 +205,37 @@ class GameConsumer(AsyncWebsocketConsumer):
         del LobbyConsumer.rooms[self.host_username]['game']
         if LobbyConsumer.rooms[self.host_username]['mode'] == 'matchmaking':
             del LobbyConsumer.rooms[self.host_username]
-
+        winner_score = self.game['scores'][winner]
+        loser_score = self.game['scores'][loser]
         try:
-            winner = await sync_to_async(CustomUser.objects.get)(username=winner_username)
-            loser = await sync_to_async(CustomUser.objects.get)(username=loser_username)
-
-            #TODO: left, right로 구분하는 방법보다 더 좋은 것 요망
-            if self.game['scores']['left'] > self.game['scores']['right']:
-                winner_score = self.game['scores']['left']
-                loser_score = self.game['scores']['right']
-            else:
-                winner_score = self.game['scores']['right']
-                loser_score = self.game['scores']['left']
-
-            winner_profile_url = winner.profile_image.url if winner.profile_image else None
-            loser_profile_url = loser.profile_image.url if loser.profile_image else None
-            await sync_to_async(SingleGameRecord.objects.create)(
-                user=winner,
-                user_score=winner_score,
-                opponent_name=loser.username,
-                opponent_profile=loser_profile_url,
-                opponent_score=loser_score,
-            )
-            await sync_to_async(SingleGameRecord.objects.create)(
-                user=loser,
-                user_score=loser_score,
-                opponent_name=winner.username,
-                opponent_profile=winner_profile_url,
-                opponent_score=winner_score,
-            )
-        except Exception as e:
-            # TODO: 에러 처리
-            print(e)
-            pass
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'game_over',
-                'winner': winner_username,
-                'loser': loser_username,
+            winner_user = await sync_to_async(CustomUser.objects.get)(username=winner_username)
+            loser_user = await sync_to_async(CustomUser.objects.get)(username=loser_username)
+            winner_profile_url = winner_user.profile_image.url if winner_user.profile_image else None
+            loser_profile_url = loser_user.profile_image.url if loser_user.profile_image else None
+            game_data = {
+                'winner': winner_user,
+                'loser': loser_user,
+                'winner_score': winner_score,
+                'loser_score': loser_score,
+                'winner_profile_url': winner_profile_url,
+                'loser_profile_url': loser_profile_url,
             }
-        )
-        await self.update_room_list()
+            await GameConsumer.create_game_records(game_data)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'game_over',
+                    'winner': winner_username,
+                    'loser': loser_username,
+                }
+            )
+            await self.update_room_list()
+        except Exception as e:
+            event = {
+                'type': 'error',
+                'message': str(e)
+            }
+            await self.error(event)
 
     async def update_room_list(self):
         channel_layer = get_channel_layer()
@@ -293,3 +282,19 @@ class GameConsumer(AsyncWebsocketConsumer):
             'type': 'error',
             'message': event['message']
         }))
+
+    async def create_game_records(game_data):
+        await sync_to_async(SingleGameRecord.objects.create)(
+            user=game_data['winner'],
+            user_score=game_data['winner_score'],
+            opponent_name=game_data['loser'].username,
+            opponent_profile=game_data['loser_profile_url'],
+            opponent_score=game_data['loser_score'],
+        )
+        await sync_to_async(SingleGameRecord.objects.create)(
+            user=game_data['loser'],
+            user_score=game_data['loser_score'],
+            opponent_name=game_data['winner'].username,
+            opponent_profile=game_data['winner_profile_url'],
+            opponent_score=game_data['winner_score'],
+        )
