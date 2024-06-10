@@ -3,18 +3,25 @@ import { TitleSection, BottomSection } from "./ModalSection";
 import { InputBox, RadioCheck } from "./Inputs";
 import { useEffect } from "@/lib/dom";
 
-const getModalInput = () => {
+const getModalInput = (data) => {
   const modalElement = document.getElementById("CreateRoomModal");
   const inputs = modalElement.querySelectorAll("input[type=text]");
   inputs[0];
   const radios = modalElement.querySelectorAll("input[type=radio]");
 
+  if (radios[1].checked && inputs[1].value == "") {
+    alert("Please enter the password");
+    return false;
+  }
   const retRoomData = {
     type: "create_room",
-    room_name: inputs[0].value,
+    room_name:
+      inputs[0].value === ""
+        ? `${data.user_info.username}'s Room`
+        : inputs[0].value,
     mode: radios[2].checked ? 2 : 4,
-    is_secret: radios[0].checked ? false : true,
-    password: radios[0].checked ? "" : inputs[1].value,
+    is_secret: radios[1].checked ? true : false,
+    password: radios[1].checked ? inputs[1].value : "",
   };
   return retRoomData;
 };
@@ -23,7 +30,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
   useEffect(() => {
     const modalElement = document.getElementById("CreateRoomModal");
     const handleModalHidden = () => {
-      console.log("Modal hidden");
+      console.log("modal hidden");
       const inputs = modalElement.querySelectorAll("input[type=text]");
       inputs.forEach((input) => (input.value = ""));
 
@@ -33,8 +40,24 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
 
     modalElement.addEventListener("hidden.bs.modal", handleModalHidden);
 
+    document.addEventListener("DOMContentLoaded", () => {
+      const radios = modalElement.querySelectorAll("input[type=radio]");
+      const inputs = modalElement.querySelectorAll("input[type=text]");
+      if (radios[0].checked == true) inputs[1].disable = true;
+      else inputs[1].disable = false;
+    });
+
+    const loaderElement = document.getElementById("QuickMatchModal");
+    const handleLoaderHidden = () => {
+      sendLobbySocket({ type: "cancel_matchmaking" });
+      console.log("modal hidden"); // debug
+    };
+
+    loaderElement.addEventListener("hidden.bs.modal", handleLoaderHidden);
+
     return () => {
       modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
+      loaderElement.removeEventListener("hidden.bs.modal", handleLoaderHidden);
     };
   }, []);
 
@@ -48,12 +71,15 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
         body={() => {
           return (
             <div>
-              <InputBox text="Group Name" />
+              <InputBox
+                text="Group Name"
+                defaultValue={`${data.user_info.username}'s Room`}
+              />
               <div class="radio-check body-element">
                 <RadioCheck text="Open Room" name="lock" id="open" />
                 <RadioCheck text="Private" name="lock" id="private" />
               </div>
-              <InputBox text="Password" />
+              <InputBox text="Password" defaultValue="" />
               <div class="radio-check body-element robby-game-btn">
                 <RadioCheck text="1 vs 1" name="battle" id="1vs1" />
                 <RadioCheck text="Tournament" name="battle" id="tornament" />
@@ -65,20 +91,29 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
           BottomSection({
             ButtonName: "Create",
             ClickEvent: () => {
-              const roomData = getModalInput();
+              const roomData = getModalInput(data);
+              if (!roomData) return;
               sendLobbySocket(roomData);
-              console.log(data.user_info.username);
               window.location.href = `/lobby/${data.user_info.username}`;
             },
           })
         }
       />
-      <Modal
+      <div
+        class="modal fade"
         id="QuickMatchModal"
-        title={() =>
-          TitleSection({ IconPath: "/icon/search.svg", Title: "Find User" })
-        }
-      />
+        tabindex="-1"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="loader">
+              <span></span>
+            </div>
+          </div>
+        </div>
+      </div>
       <button class="lobby-game-btn">
         <img src="/icon/user.svg"></img>
         Offline Game
@@ -93,8 +128,15 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
       </button>
       <button
         class="lobby-game-btn"
-        data-bs-toggle="modal"
-        data-bs-target="#QuickMatchModal"
+        // data-bs-toggle="modal"
+        // data-bs-target="#QuickMatchModal"
+        onclick={() => {
+          sendLobbySocket({ type: "matchmaking" });
+          const quickMatchModal = new bootstrap.Modal(
+            document.getElementById("QuickMatchModal")
+          );
+          quickMatchModal.show();
+        }}
       >
         <img src="/icon/search.svg"></img>
         Quick Match

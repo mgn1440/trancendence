@@ -4,13 +4,13 @@ from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord
 class CustomUserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = CustomUser
-		fields = ['uid', 'username', 'win', 'lose', 'otp_enabled', 'multi_nickname']
+		fields = ['uid', 'username', 'win', 'lose', 'otp_enabled', 'multi_nickname', 'profile_image']
 
 class OtherUserSerializer(serializers.ModelSerializer):
 	is_following = serializers.SerializerMethodField()
 	class Meta:
 		model = CustomUser
-		fields = ['uid', 'username', 'win', 'lose', 'multi_nickname', 'is_following']
+		fields = ['uid', 'username', 'win', 'lose', 'multi_nickname', 'is_following', 'profile_image']
 	def get_is_following(self, obj):
 		request = self.context.get('request', None)
 		if request is None:
@@ -18,6 +18,10 @@ class OtherUserSerializer(serializers.ModelSerializer):
 		request_user = request.user
 		return FollowList.objects.filter(user=request_user, following_username=obj.username).exists()
 
+class ProfileImageSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = CustomUser
+		fields = ['profile_image']
 
 class FollowListSerializer(serializers.ModelSerializer):
 	class Meta:

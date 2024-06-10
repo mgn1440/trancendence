@@ -3,28 +3,33 @@ import LobbyProfile from "./components/LobbyProfile";
 import LobbyRooms from "./components/LobbyRooms";
 import TopNavBar from "./components/TopNavBar";
 import { axiosUserMe } from "@/api/axios.custom";
-import { useState, useEffect } from "@/lib/dom";
+import { useState, useEffect, useRef } from "@/lib/dom";
 import { isEmpty, gotoPage } from "@/lib/libft";
+import { MainProfileState } from "./GameRoom";
 
 const LobbyPage = () => {
   const [myProfile, setMyProfile] = useState({});
   const [roomList, setRoomList] = useState([]);
-  const [lobbySocket, setLobbySocket] = useState({});
+  const [getLobbySocket, setLobbySocket] = useRef({});
   useEffect(() => {
     const fetchProfile = async () => {
       const userMe = await axiosUserMe();
+      console.log(userMe.data); // debug
       setMyProfile(userMe.data);
     };
+    fetchProfile();
+  }, []);
+
+  useEffect(() => {
     const socketAsync = async () => {
       const socket = new WebSocket("ws://" + "localhost:8000" + "/ws/lobby/");
 
-      socket.onopen = (e) => {
-        // console.log("WebSocket Connected");
-      };
+      socket.onopen = (e) => {};
 
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        // console.log(data);
+
+        console.log(data); // debug
         if (data.type === "room_list") {
           setRoomList(data.rooms);
         } else if (data.type === "join_approved") {
@@ -36,6 +41,10 @@ const LobbyPage = () => {
             document.getElementById("PswdRoomModal")
           );
           enterModal.show();
+        } else if (data.type === "matchmaking_waiting") {
+          console.log("matchmaking_waiting"); //debug
+        } else if (data.type === "goto_matchmaking_game") {
+          gotoPage(`/game/${data.host}`);
         }
       };
 
@@ -44,14 +53,15 @@ const LobbyPage = () => {
       }
       setLobbySocket(socket);
     };
-    fetchProfile();
     socketAsync();
   }, []);
 
   const sendLobbySocket = (roomData) => {
-    if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN) {
-      lobbySocket.send(JSON.stringify(roomData));
+    if (getLobbySocket() && getLobbySocket().readyState === WebSocket.OPEN) {
+      getLobbySocket().send(JSON.stringify(roomData));
       console.log(roomData);
+    } else {
+      console.log("socket is not ready");
     }
   };
 
@@ -67,6 +77,7 @@ const LobbyPage = () => {
               <LobbyProfile
                 data={myProfile}
                 sendLobbySocket={sendLobbySocket}
+                stat={MainProfileState.LOBBY}
               />
               <LobbyRooms
                 roomList={roomList}

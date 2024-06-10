@@ -40,16 +40,18 @@ export const axiosUserMe = async () => {
   }
 };
 
-export const axiosGameRecords = async ({ user_id, isSingle }) => {
+export const axiosGameRecords = async ({ username, isSingle }) => {
   try {
+    console.log(username);
     if (isSingle === "SINGLE") {
       const response = await instance.get(
-        `${axiosUserURL}/${user_id}/record/single`
+        `${axiosUserURL}/${username}/record/single`
       );
+      console.log(response);
       return response;
     } else if (isSingle === "MULTI") {
       const response = await instance.get(
-        `${axiosUserURL}/${user_id}/record/multi`
+        `${axiosUserURL}/${username}/record/multi`
       );
       return response;
     }
