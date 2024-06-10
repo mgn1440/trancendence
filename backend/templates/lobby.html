@@ -119,8 +119,8 @@
 
         <label for="roomMode">모드 선택:</label>
         <select id="roomMode" name="roomMode">
-            <option value="1v1">1vs1</option>
-            <option value="tournament">Tournament</option>
+            <option value=2>1vs1</option>
+            <option value=4>Tournament</option>
         </select><br>
 
         <label for="isSecret">비밀방 여부:</label>
@@ -216,7 +216,7 @@
             const roomData = {
                 'type': 'create_room',
                 'room_name': roomName,
-                'mode': roomMode,
+                'mode': parseInt(roomMode),  // mode 값을 정수형으로 변환
                 'is_secret': isSecret,
                 'password': password
             };
@@ -239,11 +239,12 @@
                     };
                     socket.send(JSON.stringify(joinData));
                 };
-                const playerCount = room.mode === '1v1' ? `${room.players.length}/2` : `${room.players.length}/4`;
+                const playerCount = room.mode == 2 ? `${room.players.length}/2` : `${room.players.length}/4`; // mode에 따른 플레이어 수
+                const modeText = room.mode == 2 ? '1vs1' : 'Tournament'; // 모드 텍스트 변경
                 const roomInfo = `
                     <h3>${room.room_name}${room.is_secret ? ' (secret)' : ''}</h3>
                     <p>Host: ${room.host}</p>
-                    <p>Mode: ${room.mode}</p>
+                    <p>Mode: ${modeText}</p>
                     <p>Players: ${playerCount}</p>
                 `;
                 roomDiv.innerHTML = roomInfo;

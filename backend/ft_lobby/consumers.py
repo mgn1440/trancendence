@@ -36,7 +36,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({
                 'type': 'room_created',
                 'host': host,
-			}))
+            }))
             await self.update_room_list()
         elif data['type'] == 'join_room':
             hostname = data['host']
@@ -46,7 +46,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                         'type': 'join_denied',
                         'message': 'This room is already playing a game.',
                     }))
-                elif len(LobbyConsumer.rooms[hostname]['players']) >= 2:
+                elif len(LobbyConsumer.rooms[hostname]['players']) >= LobbyConsumer.rooms[hostname]['mode']:
                     await self.send(text_data=json.dumps({
                         'type': 'join_denied',
                         'message': 'Room is full.',
@@ -81,13 +81,25 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                     }))
         elif data['type'] == 'matchmaking':
             await self.matchmaking()
+        elif data['type'] == 'cancel_matchmaking':
+            username = self.scope['user'].username
+            if username in LobbyConsumer.matchmaking_queue:
+                LobbyConsumer.matchmaking_queue.remove(username)
+                await self.send(text_data=json.dumps({
+                    'type': 'matchmaking_cancelled',
+                }))
             
     async def matchmaking(self):
         username = self.scope['user'].username
+        if username in LobbyConsumer.matchmaking_queue:
+            await self.send(text_data=json.dumps({
+                'type': 'matchmaking_waiting',
+            }))
+            return
         LobbyConsumer.matchmaking_queue.append(username)
         await self.send(text_data=json.dumps({
             'type': 'matchmaking_waiting',
-		}))
+        }))
         await self.check_matchmaking()
 
     async def check_matchmaking(self):
