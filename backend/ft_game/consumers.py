@@ -210,6 +210,8 @@ class GameConsumer(AsyncWebsocketConsumer):
         try:
             winner_user = await sync_to_async(CustomUser.objects.get)(username=winner_username)
             loser_user = await sync_to_async(CustomUser.objects.get)(username=loser_username)
+            await GameConsumer.update_user_win_or_lose(winner_user, 'win')
+            await GameConsumer.update_user_win_or_lose(loser_user, 'lose')
             winner_profile_url = winner_user.profile_image.url if winner_user.profile_image else None
             loser_profile_url = loser_user.profile_image.url if loser_user.profile_image else None
             game_data = {
@@ -298,3 +300,12 @@ class GameConsumer(AsyncWebsocketConsumer):
             opponent_profile=game_data['winner_profile_url'],
             opponent_score=game_data['winner_score'],
         )
+    # 동기함수 호출을 비동기 함수로 변경
+    @sync_to_async
+    def update_user_win_or_lose(self, user, result):
+        if result == 'win':
+            user.win += 1
+        elif result == 'lose':
+            user.lose += 1
+        user.save()
+
