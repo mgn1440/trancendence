@@ -1,46 +1,101 @@
-const User = () => {
+import { axiosUserOther } from "@/api/axios.custom";
+import { useEffect, useState } from "@/lib/dom";
+import { isEmpty } from "@/lib/libft";
+import { ws_userlist, startWebSocketConnection } from "@/store/userListWS";
+
+const moveToProfile = (userName) => {
+  if (
+    window.location.pathname === `/profile/${userName}` ||
+    userName === undefined
+  ) {
+    return;
+  }
+  window.location.href = `/profile/${userName}`;
+};
+
+const User = ({ userName }) => {
+  const [userData, setUserData] = useState({});
   const randNum = Math.ceil(Math.random() * 5);
   const imgSrc = `/img/minji_${randNum}.jpg`;
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user_temp = await axiosUserOther(userName);
+      setUserData(user_temp.data.user_info);
+      console.log(user_temp.data);
+    };
+    fetchUser();
+  }, [userName]);
+
   return (
-    <div class="user-item">
+    <div class="user-item" onclick={() => moveToProfile(userData.username)}>
       <div class="profile">
         <img src={imgSrc} />
         <span class="isloggedin active">●</span>
       </div>
       <div class="user-info">
-        <h6>User{randNum}</h6>
-        <p>
-          win: {10 - randNum} lose: {randNum} rate:{" "}
-          {((10 - randNum) / 10) * 100}%
-        </p>
+        {isEmpty(userData) ? null : (
+          <div>
+            <h6>{userData.username}</h6>
+            <p>
+              win: {userData.win} lose: {userData.lose} rate:
+              {userData.win + userData.lose === 0
+                ? 0
+                : (userData.win / (userData.win + userData.lose)) * 100}
+              %
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-const UserSleep = () => {
+const UserSleep = ({ userName }) => {
+  const [userData, setUserData] = useState({});
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userData = await axiosUserOther(userName);
+      setUserData(userData.data.user_info);
+    };
+    fetchUser();
+  }, [userName]);
+
   const randNum = Math.ceil(Math.random() * 5);
   const imgSrc = `/img/minji_${randNum}.jpg`;
   return (
-    <div class="user-item">
+    <div class="user-item" onclick={() => moveToProfile(userData.username)}>
       <div class="profile sleep">
         <img src={imgSrc} />
         <span class="isloggedin sleep">●</span>
       </div>
       <div class="user-info">
-        <h6>User{randNum}</h6>
-        <p>
-          win: {10 - randNum} lose: {randNum} rate:{" "}
-          {((10 - randNum) / 10) * 100}%
-        </p>
+        {isEmpty(userData) ? null : (
+          <div>
+            <h6>{userData.username}</h6>
+            <p>
+              win: {userData.win} lose: {userData.lose} rate:
+              {userData.win + userData.lose === 0
+                ? 0
+                : (userData.win / (userData.win + userData.lose)) * 100}
+              %
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 const UserList = () => {
-  const userNum = 5;
-  const userSleepNum = 8;
+  const [userListData, setUserListData] = useState({});
+  useEffect(() => {
+    const socketAsync = async () => {
+      startWebSocketConnection(ws_userlist.dispatch, setUserListData);
+      console.log(ws_userlist.getState());
+    };
+    socketAsync();
+  }, []);
+
   const userListToggle = () => {
     document.querySelector("#user-list-toggle").classList.toggle("active");
     document.querySelector(".overlay").classList.toggle("active");
@@ -54,12 +109,14 @@ const UserList = () => {
       <button class="user-list-btn" onclick={userListToggle}>{`<`}</button>
       <div id="user-list-toggle">
         <div class="user-list">
-          {[...Array(parseInt(userNum))].map((n) => (
-            <User />
-          ))}
-          {[...Array(parseInt(userSleepNum))].map((n) => (
-            <UserSleep />
-          ))}
+          {userListData.online &&
+            userListData.online.map((user) => {
+              return <User userName={user} />;
+            })}
+          {userListData.offline &&
+            userListData.offline.map((user) => {
+              return <UserSleep userName={user} />;
+            })}
         </div>
         <div class="user-search-bar">
           <input class="user-search-input"></input>

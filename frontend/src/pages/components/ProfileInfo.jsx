@@ -113,7 +113,7 @@ const LobbyProfile = ({ data }) => {
           </button>
         </div>
         <div class="log-container">
-          {gameRecords ? (
+          {/* {gameRecords ? (
             logStat ? (
               <div>
                 {gameRecords.map((record) => (
@@ -127,7 +127,7 @@ const LobbyProfile = ({ data }) => {
                 ))}
               </div>
             )
-          ) : null}
+          ) : null} */}
         </div>
       </div>
     </div>

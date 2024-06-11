@@ -23,7 +23,6 @@ export const axiosVerfiyOTP = async (otp) => {
 
 export const axiosUserOther = async (username) => {
   try {
-    console.log(`${axiosUserURL}/${username}`);
     const response = await instance.get(`${axiosUserURL}/${username}`);
     return response;
   } catch (error) {
@@ -62,20 +61,29 @@ export const axiosGameRecords = async ({ username, isSingle }) => {
   }
 };
 
-export const axiosUserFollow = async (user_id) => {
+export const axiosUserFollow = async (user_name) => {
   try {
     const apiURL = axiosUserFollowURL + "/";
-    const response = await instance.post(apiURL, { "following_uid" : user_id });
+    const response = await instance.post(apiURL, { "following_username" : user_name });
     return response;
   } catch (error) {
     return error;
   }
 }
 
-export const axiosUserUnfollow = async (user_id) => {
+export const axiosUserUnfollow = async (user_name) => {
   try {
-    const apiURL = axiosUserFollowURL + "/" + user_id;
+    const apiURL = axiosUserFollowURL + "/" + user_name;
     const response = await instance.delete(apiURL);
+    return response;
+  } catch (error) {
+    return error;
+  }
+}
+
+export const axiosUserList = async () => {
+  try {
+    const response = await instance.get(axiosUserFollowURL);
     return response;
   } catch (error) {
     return error;
