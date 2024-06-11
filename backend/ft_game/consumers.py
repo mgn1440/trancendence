@@ -314,10 +314,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         winner.save()
         loser.lose += 1
         loser.save()    
-        
 
-  
- 
   
         
 class TournamentGameConsumer(AsyncWebsocketConsumer):
@@ -639,3 +636,108 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             'message': event['message']
         }))
 
+
+
+class LocalGameConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.host_username = self.scope['url_route']['kwargs']['host_username']
+        self.room_group_name = f"local_game_{self.host_username}"
+        self.game = {
+            'ball': {'x': 600, 'y': 450, 'radius': 10, 'speedX': 10, 'speedY': 10},
+            'player_bar': {'left': 360, 'right': 360},
+            'scores': {'left': 0, 'right': 0},
+            'bar_move': {'left': 0, 'right': 0},
+        }
+
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'game_start',
+                'game': self.game
+            }
+        )
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        print(data)
+        if data['type'] == 'start_game':
+            asyncio.create_task(self.start_ball_movement())
+        elif data['type'] == 'move_bar':
+            self.update_bar_position(data['direction'], data['role'])
+        elif data['type'] == 'stop_bar':
+            self.game['bar_move'][data['role']] = 0
+
+    async def start_ball_movement(self):
+        while True:
+            self.update_ball_position()
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'update_game',
+                    'game': self.game
+                }
+            )
+            await asyncio.sleep(0.03)
+
+    def update_ball_position(self):
+        self.game['player_bar']['left'] = min(720, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
+        self.game['player_bar']['right'] = min(720, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
+        self.game['player_bar']['left'] = max(0, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
+        self.game['player_bar']['right'] = max(0, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
+        self.game['ball']['x'] += self.game['ball']['speedX']
+        self.game['ball']['y'] += self.game['ball']['speedY']
+
+        # Bounce off top and bottom walls
+        if self.game['ball']['y'] + self.game['ball']['radius'] > 900 or self.game['ball']['y'] - self.game['ball']['radius'] < 0:
+            self.game['ball']['speedY'] = -self.game['ball']['speedY']
+
+        # Bounce off paddles
+        if self.game['ball']['x'] - self.game['ball']['radius'] < 40:
+            if self.game['ball']['y'] > self.game['player_bar']['left'] and self.game['ball']['y'] < self.game['player_bar']['left'] + 180:
+                self.game['ball']['speedX'] = -self.game['ball']['speedX']
+        if self.game['ball']['x'] + self.game['ball']['radius'] > 1160:
+            if self.game['ball']['y'] > self.game['player_bar']['right'] and self.game['ball']['y'] < self.game['player_bar']['right'] + 180:
+                self.game['ball']['speedX'] = -self.game['ball']['speedX']
+
+        # Score points
+        if self.game['ball']['x'] - self.game['ball']['radius'] < 0 or self.game['ball']['x'] + self.game['ball']['radius'] > 1200:
+            if self.game['ball']['x'] - self.game['ball']['radius'] < 0:
+                self.game['scores']['right'] += 1
+            else:
+                self.game['scores']['left'] += 1
+            self.reset_ball()
+
+    def reset_ball(self):
+        self.game['ball']['x'] = 600
+        self.game['ball']['y'] = 450
+        self.game['ball']['speedX'] = 10 * (1 if random.random() > 0.5 else -1)
+        self.game['ball']['speedY'] = 10 * (1 if random.random() > 0.5 else -1)
+
+    def update_bar_position(self, direction, role):
+        if direction == 'up':
+            self.game['bar_move'][role] = -10
+        elif direction == 'down':
+            self.game['bar_move'][role] = 10
+
+    async def game_start(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'game_start',
+            'game': event['game']
+        }))
+
+    async def update_game(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'update_game',
+            'game': event['game']
+        }))
