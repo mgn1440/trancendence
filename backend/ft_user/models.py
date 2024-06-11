@@ -23,7 +23,7 @@ class CustomUser(AbstractUser):
 		self.save()
 
 class FollowList(models.Model):
-	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, db_column="user")
 	following_username = models.CharField(max_length=128, null=True, blank=True)
 
 	def __str__(self):
@@ -37,7 +37,8 @@ class FollowList(models.Model):
 		super().save(*args, **kwargs)
 
 class SingleGameRecord(models.Model):
-	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE) # 유저는 여러개의 전적을 가질 수 있다.
+	id = models.BigAutoField(primary_key=True)
+	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, db_column="user") # 유저는 여러개의 전적을 가질 수 있다.
 	user_score = models.IntegerField()
 	opponent_name = models.CharField(max_length=128, null=True, blank=True)
 	opponent_profile = models.CharField(max_length=1024, null=True, blank=True)
@@ -48,7 +49,8 @@ class SingleGameRecord(models.Model):
 		return f"{self.user.username}'s single-game-record at {self.created_at}"
 
 class MultiGameRecord(models.Model):
-	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE) # 유저는 여러개의 전적을 가질 수 있다.
+	id = models.BigAutoField(primary_key=True)
+	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, db_column="user") # 유저는 여러개의 전적을 가질 수 있다.
 	user_win = models.BooleanField(default=False)
 	opponent1_name = models.CharField(max_length=128, null=True, blank=True)
 	opponent1_profile = models.CharField(max_length=1024, null=True, blank=True)
@@ -61,3 +63,10 @@ class MultiGameRecord(models.Model):
 	def __str__(self):
 		return f"{self.user.username}'s multi-game-record at {self.created_at}"
 
+class SingleGameDetail(models.Model):
+	game = models.ForeignKey(SingleGameRecord, on_delete=models.CASCADE, db_column="GameRecord")
+	goal_user_name = models.CharField(max_length=128)
+	goal_user_position = models.CharField(max_length=128) # left or right
+	ball_start_position = models.CharField(max_length=255) # end 되기 1초 전
+	ball_end_position = models.CharField(max_length=255)
+	timestamp = models.FloatField()

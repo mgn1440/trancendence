@@ -1,11 +1,11 @@
 from django.shortcuts import get_object_or_404
 from django.views import View
-from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord
+from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord, SingleGameDetail
 from django.http import JsonResponse
 from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
-from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer
+from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer, SingleGameDetailSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.exceptions import AuthenticationFailed
@@ -51,26 +51,6 @@ class UserMeView(RetrieveAPIView):
 		user = get_jwt_user(self.request)
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
-
-class UserWinUpdateView(View):
-	def post(self, request):
-		try:
-			user = get_jwt_user(request)
-			user.win += 1
-			user.save()
-			return JsonResponse({'status_code': '200', 'win': user.win}, status=200)
-		except CustomUser.DoesNotExist:
-			return JsonResponse({'status_code': '404', 'message': 'User not found'}, status=404)
-
-class UserLoseUpdateView(View):
-	def post(self, request):
-		try:
-			user = get_jwt_user(request)
-			user.lose += 1
-			user.save()
-			return JsonResponse({'status_code': '200', 'lose': user.lose}, status=200)
-		except CustomUser.DoesNotExist:
-			return JsonResponse({'status_code': '404', 'message': 'User not found'}, status=404)
 
 class ProfileImageView(RetrieveUpdateDestroyAPIView):
 	queryset = CustomUser.objects.all()
@@ -140,6 +120,18 @@ class FollowDetailView(DestroyAPIView):
 			raise NotFound("follow user does not exist")
 	def perform_destroy(self, instance):
 		instance.delete()
+
+class SingleGameDetailListView(APIView):
+	def get(self, request, username, game_id):
+		try:
+			user = CustomUser.objects.get(username=username)
+			game = SingleGameRecord.objects.get(id=game_id, user=user)
+			goal_list = SingleGameDetail.objects.filter(game=game)
+			serializer = SingleGameDetailSerializer(goal_list, many=True)
+			return JsonResponse({'statusCode': '200', 'goal_list': serializer.data}, status=200)
+		except SingleGameRecord.DoesNotExist:
+			return JsonResponse({'statusCode': '404', 'message': 'Game record dose not exist'}, status=404)
+
 
 def logout(request):
 	response = JsonResponse({'status': 'success'}, status=200)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord
+from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord, SingleGameDetail
 
 class CustomUserSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -42,10 +42,14 @@ class FollowListSerializer(serializers.ModelSerializer):
 class SingleGameRecordSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = SingleGameRecord
-		fields = ['user_score', 'opponent_name', 'opponent_profile', 'opponent_score', 'created_at']
-
+		fields = ['id', 'user_score', 'opponent_name', 'opponent_profile', 'opponent_score', 'created_at']
 
 class MultiGameRecordSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MultiGameRecord
-		fields = ['user_win', 'opponent1_name', 'opponent1_profile', 'opponent2_name', 'opponent2_profile', 'opponent3_name', 'opponent3_profile', 'created_at']
+		fields = ['id', 'user_win', 'opponent1_name', 'opponent1_profile', 'opponent2_name', 'opponent2_profile', 'opponent3_name', 'opponent3_profile', 'created_at']
+
+class SingleGameDetailSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = SingleGameDetail
+		fields = ['goal_user_name' ,'goal_user_position', 'ball_start_position', 'ball_end_position', 'timestamp']
