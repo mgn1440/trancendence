@@ -9,3 +9,6 @@ def game(request, host_username):
 
 def tournament_game(request, host_username):
 	return render(request, 'tournament_game.html', {"host_username": host_username})
+
+def local_game(request, host_username):
+	return render(request, 'local_game.html', {"host_username": host_username})
