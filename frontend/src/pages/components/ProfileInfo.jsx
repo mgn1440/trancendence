@@ -1,30 +1,55 @@
 import { useState, useEffect } from "@/lib/dom";
 import { axiosGameRecords } from "@/api/axios.custom";
 
+function convertOrdinalNumber(n) {
+  n = parseInt(n, 10);
+  const suffix = ["th", "st", "nd", "rd"];
+  const mod100 = n % 100;
+
+  return n + (suffix[(mod100 - 20) % 10] || suffix[mod100] || suffix[0]);
+}
+
+function convertDate(date)
+{
+  var monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const date_type = new Date(date);
+  const date_text = `${convertOrdinalNumber(date_type.getDate())} ${monthNames[date_type.getMonth()]}`;
+
+  return (date_text);
+}
+
 const LogSingleItem = ({ record }) => {
-  const name = "Minji";
-  const date = "9th May";
   return (
     <div class="log-single-item">
       <div>
         <img src="/img/minji_2.jpg"></img>
-        <h4>{name}</h4>
+        <h4>{record.opponent_name}</h4>
       </div>
       <h6>
         {record.user_score}:{record.opponent_score}
       </h6>
       <div class="log-result flex-column">
         <h3>{record.user_score > record.opponent_score ? "WIN!" : "LOSE"}</h3>
-        <p>{date}</p>
+        <p>{convertDate(record.created_at)}</p>
       </div>
     </div>
   );
 };
 
-const LogMultiItem = ({ record }) => {
-  const name = "Hyungjuk";
-  const opponent = "Minji";
-  const date = "9th May";
+const LogMultiItem = ({ name, record }) => {
   return (
     <div class="log-multi-item">
       <div class="log-multi-info">
@@ -32,26 +57,29 @@ const LogMultiItem = ({ record }) => {
           <div class="flex-column">
             <img class="my-profile" src="/img/minji_2.jpg"></img>
             <img src="/img/minji_2.jpg"></img>
+            {/* <img src={record.record_list.opponent1_profile}></img> */}
           </div>
           <div class="flex-column">
             <img src="/img/minji_2.jpg"></img>
             <img src="/img/minji_2.jpg"></img>
+            {/* <img src={record.record_list.opponent2_profile}></img>
+            <img src={record.record_list.opponent3_profile}></img> */}
           </div>
         </div>
         <div class="flex-row">
           <div class="flex-column">
             <h6 class="my-profile">{name}</h6>
-            <h6>{opponent}</h6>
+            {/* <h6>{record.record_list.opponent1_name}</h6> */}
           </div>
           <div class="flex-column">
-            <h6>{opponent}</h6>
-            <h6>{opponent}</h6>
+            {/* <h6>{record.record_list.opponent2_name}</h6> */}
+            {/* <h6>{record.record_list.opponent3_name}</h6> */}
           </div>
         </div>
       </div>
       <div class="log-result flex-column">
         <h3>{record.user_score > record.opponent_score ? "WIN!" : "LOSE"}</h3>
-        <p>{date}</p>
+        <p>{convertDate(record.created_at)}</p>
       </div>
     </div>
   );
@@ -81,8 +109,6 @@ const LobbyProfile = ({ data }) => {
   const profile = data.user_info;
   const matchNum = profile.win + profile.lose;
   const multiName = "Hyungjuk_multi";
-  const logSingleNum = 7;
-  const logMultiNum = 8;
   const handleLogStat = (stat) => {
     if (stat !== logStat) setLogStat(stat);
   };
@@ -98,7 +124,7 @@ const LobbyProfile = ({ data }) => {
         <p>Rate: {matchNum ? (profile.win / matchNum) * 100 : 0}%</p>
       </div>
       <div class="profile-log">
-        <div>
+        <div class="select-bar">
           <button
             onclick={() => handleLogStat(PlayStat.SINGLE)}
             class={logStat ? "selected" : ""}
@@ -112,23 +138,23 @@ const LobbyProfile = ({ data }) => {
             <span class="vertical-text">Multi</span>
           </button>
         </div>
-        <div class="log-container">
-          {/* {gameRecords ? (
-            logStat ? (
-              <div>
-                {gameRecords.map((record) => (
-                  <LogSingleItem record={record} />
-                ))}
-              </div>
-            ) : (
-              <div>
-                {gameRecords.map((record) => (
-                  <LogMultiItem record={record} />
-                ))}
-              </div>
-            )
-          ) : null} */}
-        </div>
+        {gameRecords ? (
+          logStat ? (
+            <div class="log-container">
+              {
+              gameRecords.map((record) => (
+                <LogSingleItem record={record} />
+              ))}
+            </div>
+          ) : (
+            <div class="log-container">
+              {gameRecords.map((record) => (
+                console.log(record),
+                <LogMultiItem name={profile.username} record={record} />
+              ))}
+            </div>
+          )
+        ) : null}
       </div>
     </div>
   );
