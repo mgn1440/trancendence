@@ -66,11 +66,12 @@
     <button id="startButton" onclick="startGame()">Start Game</button>
     <div id="messages"></div>
     <script>
+      const roomId = "{{ room_id }}"; // Django template에서 room_id를 가져옴
       const socket = new WebSocket(
         "ws://" +
           window.location.host +
           "/ws/room/" +
-          "{{ host_username }}" +
+          roomId +
           "/"
       );
 
@@ -94,11 +95,14 @@
           handleRoomFull(data);
         } else if (data.type === "room_not_exist") {
           window.location.href = "/api/lobby/";
+        } else if (data.type === "room_full") {
+          alert("Room is full!");
+          window.location.href = "/api/lobby/";
         } else if (data.type === "goto_game") {
           if (data.mode === 2) {
-            window.location.href = "/api/game/" + data.host + "/";
+            window.location.href = "/api/game/" + data.room_id + "/";
           } else if (data.mode === 4) {
-            window.location.href = "/api/game/tournament/" + data.host + "/";
+            window.location.href = "/api/game/tournament/" + data.room_id + "/";
           }
         }
       };
@@ -117,19 +121,22 @@
 
         user1Div.textContent = userList[0] || "Waiting...";
         user2Div.textContent = userList[1] || "Waiting...";
+
+        // Update host information
+        document.getElementById("host").textContent = `Host: ${userList[0] || "Waiting..."}`;
       }
 
       function updateRoomInfo(data) {
         document.getElementById(
           "roomName"
         ).textContent = `Room: ${data.room_name}`;
-        document.getElementById("host").textContent = `Host: ${data.host}`;
+        document.getElementById("host").textContent = `Host: ${data.user_list[0]}`; // 수정된 부분
         document.getElementById("mode").textContent = `Mode: ${data.mode}`;
       }
 
       function handleRoomFull(data) {
-        const { you, host } = data;
-        if (you === host) {
+        
+        if (data.you === data.host) {
           document.getElementById("startButton").style.display = "block";
         }
       }

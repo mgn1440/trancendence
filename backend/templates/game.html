@@ -73,7 +73,7 @@
         let playerRole = '';  // 'left' 또는 'right'
 
         // 웹소켓 연결
-        const socket = new WebSocket('ws://' + window.location.host + '/ws/game/' + '{{ host_username }}' + '/');
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/game/' + '{{ room_id }}' + '/');
 
         socket.onopen = function(e) {
             console.log("웹소켓 서버에 연결되었습니다.");
@@ -93,7 +93,7 @@
                 updateGameCanvas(); // 게임 캔버스 업데이트
             } else if (data.type === 'game_over') {
                 alert('게임이 종료되었습니다.');
-                window.location.href = '/api/room/' + '{{ host_username }}' + '/';
+                window.location.href = '/api/room/' + '{{ room_id }}' + '/';
             }
         };
 
