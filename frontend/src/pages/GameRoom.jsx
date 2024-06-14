@@ -41,7 +41,7 @@ const RoomPage = () => {
           setGameData(data);
         } else if (data.type === "disconnect_user") {
           setGameData(data);
-          if (data.mode === data.user_list.length){
+          if (data.mode !== data.user_list.length){
             setStartBtn(false);
           }
         } else if (
@@ -55,7 +55,7 @@ const RoomPage = () => {
             setStartBtn(true);
           }
         } else if (data.type === "goto_game") {
-          window.location.href = `/game/${data.host}`;
+          window.location.href = `/game/${data.room_id}`;
         }
       };
 
