@@ -30,12 +30,12 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
   useEffect(() => {
     const modalElement = document.getElementById("CreateRoomModal");
     const handleModalHidden = () => {
-      console.log("modal hidden");
       const inputs = modalElement.querySelectorAll("input[type=text]");
       inputs.forEach((input) => (input.value = ""));
 
       const radios = modalElement.querySelectorAll("input[type=radio]");
-      radios.forEach((radio) => (radio.checked = false));
+      radios[0].checked = true;
+      radios[2].checked = true;
     };
 
     modalElement.addEventListener("hidden.bs.modal", handleModalHidden);
@@ -50,7 +50,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     const loaderElement = document.getElementById("QuickMatchModal");
     const handleLoaderHidden = () => {
       sendLobbySocket({ type: "cancel_matchmaking" });
-      console.log("modal hidden"); // debug
+      // console.log("modal hidden"); // debug
     };
 
     loaderElement.addEventListener("hidden.bs.modal", handleLoaderHidden);
@@ -76,12 +76,12 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
                 defaultValue={`${data.user_info.username}'s Room`}
               />
               <div class="radio-check body-element">
-                <RadioCheck text="Open Room" name="lock" id="open" />
+                <RadioCheck text="Open Room" name="lock" id="open"/>
                 <RadioCheck text="Private" name="lock" id="private" />
               </div>
               <InputBox text="Password" defaultValue="" />
               <div class="radio-check body-element robby-game-btn">
-                <RadioCheck text="1 vs 1" name="battle" id="1vs1" />
+                <RadioCheck text="1 vs 1" name="battle" id="1vs1"/>
                 <RadioCheck text="Tournament" name="battle" id="tornament" />
               </div>
             </div>
