@@ -40,44 +40,85 @@ class FollowListSerializer(serializers.ModelSerializer):
 		return data
 
 class SingleGameRecordSerializer(serializers.ModelSerializer):
-	player1 = serializers.SerializerMethodField()
-	player2 = serializers.SerializerMethodField()
-
 	class Meta:
 		model = SingleGameRecord
 		fields = ['id', 'player1', 'player1_score', 'player2', 'player2_score', 'created_at']
-
-	def get_player1(self, obj):
-		return obj.player1.username
-
-	def get_player2(self, obj):
-		return obj.player2.username
 
 	def to_representation(self, instance):
 		data = super().to_representation(instance)
 		username = self.context.get('username')
 		if instance.player1.username == username:
-			data = parse_single_game_record_data(data, 'player1', 'player2', instance.player2)
+			data = self._parse_single_game_record_data(data, 'player1', 'player2', instance.player2)
 		elif instance.player2.username == username:
-			data = parse_single_game_record_data(data, 'player2', 'player1', instance.player1)
+			data = self._parse_single_game_record_data(data, 'player2', 'player1', instance.player1)
 		return data
 
-def parse_single_game_record_data(data, user, opponent, opponent_instance):
-	data.pop(user)
-	data.pop(opponent)
-	data['user_score'] = data.pop(user + '_score')
-	data['opponent_name'] = opponent_instance.username
-	data['opponent_profile'] = opponent_instance.profile_image.url if opponent_instance.profile_image else None
-	data['opponent_score'] = data.pop(opponent + '_score')
-	data['created_at'] = data.pop('created_at')
-	return data
+	def _parse_single_game_record_data(self, data, user, opponent, opponent_instance):
+		data.pop(user)
+		data.pop(opponent)
+		data['user_score'] = data.pop(user + '_score')
+		data['opponent_name'] = opponent_instance.username
+		data['opponent_profile'] = opponent_instance.profile_image.url if opponent_instance.profile_image else None
+		data['opponent_score'] = data.pop(opponent + '_score')
+		data['created_at'] = data.pop('created_at')
+		return data
 
 
 
 class MultiGameRecordSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MultiGameRecord
-		fields = ['id', 'user_win', 'opponent1_name', 'opponent1_profile', 'opponent2_name', 'opponent2_profile', 'opponent3_name', 'opponent3_profile', 'created_at']
+		fields = ['game1', 'game2', 'game3', 'player1', 'player2', 'player3', 'player4']
+
+	def to_representation(self, instance):
+		username = self.context.get('username')
+		user = self._get_user_player(instance, username)
+		opponents = self._get_opponents(instance, username)
+		return {
+			"id": instance.id,
+			"game1_id": instance.game1.id,
+			"game2_id": instance.game2.id,
+			"game3_id": instance.game3.id,
+			"user_name": user.username,
+			"user_win": self._calculate_user_win(instance, user),
+			"opponent1_name": opponents[0].username,
+			"opponent1_profile": opponents[0].profile_image.url if opponents[0].profile_image else None,
+			"opponent2_name": opponents[1].username,
+			"opponent2_profile": opponents[1].profile_image.url if opponents[1].profile_image else None,
+			"opponent3_name": opponents[2].username,
+			"opponent3_profile": opponents[2].profile_image.url if opponents[2].profile_image else None,
+		}
+
+	def _get_user_player(self, instance, username):
+		if instance.player1.username == username:
+			return instance.player1
+		elif instance.player2.username == username:
+			return instance.player2
+		elif instance.player3.username == username:
+			return instance.player3
+		elif instance.player4.username == username:
+			return instance.player4
+		return None
+
+	def _get_opponents(self, instance, username):
+		opponents = []
+		if instance.player1 and instance.player1.username != username:
+			opponents.append(instance.player1)
+		if instance.player2 and instance.player2.username != username:
+			opponents.append(instance.player2)
+		if instance.player3 and instance.player3.username != username:
+			opponents.append(instance.player3)
+		if instance.player4 and instance.player4.username != username:
+			opponents.append(instance.player4)
+		return opponents
+
+	def _calculate_user_win(self, instance, user_player):
+		def is_winner(game, user_player):
+			if game.player1 == user_player:
+				return game.player1_score > game.player2_score
+			else:
+				return game.player2_score > game.player1_score
+		return is_winner(instance.game3, user_player) if instance.game3 else False
 
 class SingleGameDetailSerializer(serializers.ModelSerializer):
 	class Meta:

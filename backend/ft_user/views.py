@@ -74,7 +74,7 @@ class SingleGameRecordListView(APIView):
 	def get(self, request, username):
 		try:
 			user = CustomUser.objects.get(username=username)
-			record_list = SingleGameRecord.objects.filter(Q(player1=user) | Q(player2=user))
+			record_list = SingleGameRecord.objects.filter(Q(player1=user) | Q(player2=user), is_tournament=False)
 			serializer = SingleGameRecordSerializer(record_list, many=True, context={'username': username})
 			return JsonResponse({'statusCode': '200', 'record_list': serializer.data}, status=200)
 		except CustomUser.DoesNotExist:
@@ -84,8 +84,8 @@ class MultiGameRecordListView(APIView):
 	def get(self, request, username):
 		try:
 			user = CustomUser.objects.get(username=username)
-			record_list = MultiGameRecord.objects.filter(user=user)
-			serializer = MultiGameRecordSerializer(record_list, many=True)
+			record_list = MultiGameRecord.objects.filter(Q(player1=user) | Q(player2=user) | Q(player3=user) | Q(player4=user))
+			serializer = MultiGameRecordSerializer(record_list, many=True, context={'username': username})
 			return JsonResponse({'statusCode': '200', 'record_list': serializer.data}, status=200)
 		except CustomUser.DoesNotExist:
 			return JsonResponse({'statusCode': '404', 'message': 'User does not exist'}, status=404)
