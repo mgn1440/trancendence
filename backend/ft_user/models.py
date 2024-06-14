@@ -38,15 +38,14 @@ class FollowList(models.Model):
 
 class SingleGameRecord(models.Model):
 	id = models.BigAutoField(primary_key=True)
-	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, db_column="user") # 유저는 여러개의 전적을 가질 수 있다.
-	user_score = models.IntegerField()
-	opponent_name = models.CharField(max_length=128, null=True, blank=True)
-	opponent_profile = models.CharField(max_length=1024, null=True, blank=True)
-	opponent_score = models.IntegerField()
+	player1 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="player1", db_column="player1", null=True, blank=True)
+	player1_score = models.IntegerField()
+	player2 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="player2", db_column="player2", null=True, blank=True)
+	player2_score = models.IntegerField()
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):
-		return f"{self.user.username}'s single-game-record at {self.created_at}"
+		return f"single-game-record at {self.created_at}"
 
 class MultiGameRecord(models.Model):
 	id = models.BigAutoField(primary_key=True)
@@ -64,6 +63,7 @@ class MultiGameRecord(models.Model):
 		return f"{self.user.username}'s multi-game-record at {self.created_at}"
 
 class SingleGameDetail(models.Model):
+	id = models.BigAutoField(primary_key=True)
 	game = models.ForeignKey(SingleGameRecord, on_delete=models.CASCADE, db_column="GameRecord")
 	goal_user_name = models.CharField(max_length=128)
 	goal_user_position = models.CharField(max_length=128) # left or right

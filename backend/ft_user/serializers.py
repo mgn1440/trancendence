@@ -40,9 +40,39 @@ class FollowListSerializer(serializers.ModelSerializer):
 		return data
 
 class SingleGameRecordSerializer(serializers.ModelSerializer):
+	player1 = serializers.SerializerMethodField()
+	player2 = serializers.SerializerMethodField()
+
 	class Meta:
 		model = SingleGameRecord
-		fields = ['id', 'user_score', 'opponent_name', 'opponent_profile', 'opponent_score', 'created_at']
+		fields = ['id', 'player1', 'player1_score', 'player2', 'player2_score', 'created_at']
+
+	def get_player1(self, obj):
+		return obj.player1.username
+
+	def get_player2(self, obj):
+		return obj.player2.username
+
+	def to_representation(self, instance):
+		data = super().to_representation(instance)
+		username = self.context.get('username')
+		if instance.player1.username == username:
+			data = parse_single_game_record_data(data, 'player1', 'player2', instance.player2)
+		elif instance.player2.username == username:
+			data = parse_single_game_record_data(data, 'player2', 'player1', instance.player1)
+		return data
+
+def parse_single_game_record_data(data, user, opponent, opponent_instance):
+	data.pop(user)
+	data.pop(opponent)
+	data['user_score'] = data.pop(user + '_score')
+	data['opponent_name'] = opponent_instance.username
+	data['opponent_profile'] = opponent_instance.profile_image.url if opponent_instance.profile_image else None
+	data['opponent_score'] = data.pop(opponent + '_score')
+	data['created_at'] = data.pop('created_at')
+	return data
+
+
 
 class MultiGameRecordSerializer(serializers.ModelSerializer):
 	class Meta:
