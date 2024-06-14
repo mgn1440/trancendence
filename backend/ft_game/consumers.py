@@ -38,7 +38,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.send_error_message('You are not in game')
             await self.close()
             return
-        
+
         if LobbyConsumer.rooms[self.room_id]['mode'] != 'matchmaking' and \
             LobbyConsumer.rooms[self.room_id]['mode'] != 2:
             await self.send_error_message('Room is not in matchmaking mode')
@@ -103,14 +103,13 @@ class GameConsumer(AsyncWebsocketConsumer):
                 }
             )
             LobbyConsumer.rooms[self.room_id]['game']['players'].remove(self.scope['user'].username)
-
+            # 부전승 나는 경우 => 한 명이 일방적으로 나감
             if len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 1:
                 winner_name = LobbyConsumer.rooms[self.room_id]['game']['players'][0]
                 loser_name = self.scope['user'].username
                 game_data = await GameConsumer.get_game_data(winner_name, loser_name, 5, 0)
                 await GameConsumer.create_game_records(game_data)
             elif len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 0:
-
                 del LobbyConsumer.rooms[self.room_id]
             await self.update_room_list()
 
@@ -269,36 +268,27 @@ class GameConsumer(AsyncWebsocketConsumer):
             'type': 'error',
             'message': event['message']
         }))
-        
+
     async def create_game_records(game_data):
         await sync_to_async(SingleGameRecord.objects.create)(
-            user=game_data['winner'],
-            user_score=game_data['winner_score'],
-            opponent_name=game_data['loser'].username,
-            opponent_profile=game_data['loser_profile_url'],
-            opponent_score=game_data['loser_score'],
-        )
-        await sync_to_async(SingleGameRecord.objects.create)(
-            user=game_data['loser'],
-            user_score=game_data['loser_score'],
-            opponent_name=game_data['winner'].username,
-            opponent_profile=game_data['winner_profile_url'],
-            opponent_score=game_data['winner_score'],
+            player1=game_data['player1'],
+            player1_score=game_data['player1_score'],
+            player2=game_data['player2'],
+            player2_score=game_data['player2_score'],
         )
 
-    async def get_game_data(winner_name, loser_name, winner_score, loser_score):
-        winner_user = await sync_to_async(CustomUser.objects.get)(username=winner_name)
-        loser_user = await sync_to_async(CustomUser.objects.get)(username=loser_name)
-        await GameConsumer.update_user_win_or_lose(winner_user, loser_user)
-        winner_profile_url = winner_user.profile_image.url if winner_user.profile_image else None
-        loser_profile_url = loser_user.profile_image.url if loser_user.profile_image else None
+    async def get_game_data(player1_name, player2_name, player1_score, player2_score):
+        player1 = await sync_to_async(CustomUser.objects.get)(username=player1_name)
+        player2 = await sync_to_async(CustomUser.objects.get)(username=player2_name)
+        if (player1_score > player2_score):
+            await GameConsumer.update_user_win_or_lose(player1, player2)
+        elif (player1_score < player2_score):
+            await GameConsumer.update_user_win_or_lose(player2, player1)
         game_data = {
-            'winner': winner_user,
-            'loser': loser_user,
-            'winner_score': winner_score,
-            'loser_score': loser_score,
-            'winner_profile_url': winner_profile_url,
-            'loser_profile_url': loser_profile_url,
+            'player1': player1,
+            'player2': player2,
+            'player1_score': player1_score,
+            'player2_score': player2_score,
         }
         return game_data
 
@@ -308,10 +298,10 @@ class GameConsumer(AsyncWebsocketConsumer):
         winner.win += 1
         winner.save()
         loser.lose += 1
-        loser.save()    
+        loser.save()
 
-  
-        
+
+
 class TournamentGameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.host_username = self.scope['url_route']['kwargs']['host_username']
@@ -338,7 +328,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             await self.send_error_message('You are not in game')
             await self.close()
             return
-        
+
         if LobbyConsumer.rooms[self.host_username]['mode'] != 4:
             await self.send_error_message('Room is not in tournament mode')
             await self.close()
@@ -448,7 +438,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             await asyncio.sleep(0.03)
 
     def update_ball_position(self):
-        
+
         self.game['player_bar']['left'] = min(720, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
         self.game['player_bar']['right'] = min(720, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
         self.game['player_bar']['left'] = max(0, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
@@ -574,7 +564,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         you = 'left' if self.scope['user'].username == event['game']['roles']['left'] else \
             'right' if self.scope['user'].username == event['game']['roles']['right'] else \
             'observer'
-   
+
         await self.send(text_data=json.dumps({
             'type': 'game_start',
             'game': event['game'],
@@ -603,7 +593,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             'host_username': self.host_username,
             'you': you
         }))
-        
+
     async def game_over_2(self, event):
         you = 'left' if self.scope['user'].username == event['game']['roles']['left'] else \
             'right' if self.scope['user'].username == event['game']['roles']['right'] else \
@@ -616,7 +606,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             'host_username': self.host_username,
             'you': you
         }))
-        
+
     async def game_over(self, event):
         self.status = 'game_over'
         await self.send(text_data=json.dumps({
@@ -624,7 +614,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             'winner': event['winner'],
             'host_username': self.host_username
         }))
-        
+
     async def error(self, event):
         await self.send(text_data=json.dumps({
             'type': 'error',
