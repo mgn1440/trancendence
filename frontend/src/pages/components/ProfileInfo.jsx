@@ -91,11 +91,13 @@ const LobbyProfile = ({ data }) => {
       <div class="profile-info">
         <div>
           <h3>{profile.username}</h3>
-          <p>{multiName}</p>
+          <p>{profile.multi_nickname}</p>
         </div>
         <p>Win: {profile.win}</p>
         <p>Lose: {profile.lose}</p>
-        <p>Rate: {matchNum ? (profile.win / matchNum) * 100 : 0}%</p>
+        <p>
+          Rate: {matchNum ? ((profile.win / matchNum) * 100).toFixed(2) : 0}%
+        </p>
       </div>
       <div class="profile-log">
         <div>
