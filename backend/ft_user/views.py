@@ -13,6 +13,7 @@ from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveU
 from rest_framework.exceptions import NotFound, ValidationError
 import json
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.db.models import Q
 
 class OtpUpdateView(View):
 	def post(self, request):
@@ -73,8 +74,8 @@ class SingleGameRecordListView(APIView):
 	def get(self, request, username):
 		try:
 			user = CustomUser.objects.get(username=username)
-			record_list = SingleGameRecord.objects.filter(user=user)
-			serializer = SingleGameRecordSerializer(record_list, many=True)
+			record_list = SingleGameRecord.objects.filter(Q(player1=user) | Q(player2=user))
+			serializer = SingleGameRecordSerializer(record_list, many=True, context={'username': username})
 			return JsonResponse({'statusCode': '200', 'record_list': serializer.data}, status=200)
 		except CustomUser.DoesNotExist:
 			return JsonResponse({'statusCode': '404', 'message': 'User does not exist'}, status=404)
@@ -122,10 +123,9 @@ class FollowDetailView(DestroyAPIView):
 		instance.delete()
 
 class SingleGameDetailListView(APIView):
-	def get(self, request, username, game_id):
+	def get(self, request, game_id):
 		try:
-			user = CustomUser.objects.get(username=username)
-			game = SingleGameRecord.objects.get(id=game_id, user=user)
+			game = SingleGameRecord.objects.get(id=game_id)
 			goal_list = SingleGameDetail.objects.filter(game=game)
 			serializer = SingleGameDetailSerializer(goal_list, many=True)
 			return JsonResponse({'statusCode': '200', 'goal_list': serializer.data}, status=200)
