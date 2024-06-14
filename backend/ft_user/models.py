@@ -64,7 +64,7 @@ class MultiGameRecord(models.Model):
 
 class SingleGameDetail(models.Model):
 	id = models.BigAutoField(primary_key=True)
-	game = models.ForeignKey(SingleGameRecord, on_delete=models.CASCADE, db_column="GameRecord")
+	game = models.OneToOneField(SingleGameRecord, on_delete=models.CASCADE, db_column="GameRecord")
 	goal_user_name = models.CharField(max_length=128)
 	goal_user_position = models.CharField(max_length=128) # left or right
 	ball_start_position = models.CharField(max_length=255) # end 되기 1초 전
