@@ -3,7 +3,7 @@ import { useEffect, useState } from "@/lib/dom";
 import { isEmpty } from "@/lib/libft";
 import { ws_userlist, startWebSocketConnection } from "@/store/userListWS";
 
-const moveToProfile = (userName) => {
+export const moveToProfile = (userName) => {
   if (
     window.location.pathname === `/profile/${userName}` ||
     userName === undefined
@@ -13,7 +13,7 @@ const moveToProfile = (userName) => {
   window.location.href = `/profile/${userName}`;
 };
 
-const User = ({ userName }) => {
+export const User = ({ userName }) => {
   const [userData, setUserData] = useState({});
   const randNum = Math.ceil(Math.random() * 5);
   const imgSrc = `/img/minji_${randNum}.jpg`;
@@ -50,7 +50,7 @@ const User = ({ userName }) => {
   );
 };
 
-const UserSleep = ({ userName }) => {
+export const UserSleep = ({ userName }) => {
   const [userData, setUserData] = useState({});
   useEffect(() => {
     const fetchUser = async () => {
@@ -91,7 +91,7 @@ const UserList = () => {
   useEffect(() => {
     const socketAsync = async () => {
       startWebSocketConnection(ws_userlist.dispatch, setUserListData);
-      console.log(ws_userlist.getState());
+      console.log(ws_userlist.getState()); //debug
     };
     socketAsync();
   }, []);
