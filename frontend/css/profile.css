@@ -83,7 +83,7 @@
   flex-flow: row nowrap;
 }
 
-.profile-log > div {
+.profile-log > .select-bar {
   height: 100%;
   display: flex;
   flex-flow: column nowrap;
@@ -113,11 +113,12 @@
 .log-container {
   flex: 1;
   margin-right: 1rem;
-  /* background-color: var(--black); */
+  /* background-color: var(--gray50); */
   border-radius: 0 0 0 1rem;
   border-left: 2px solid var(--white);
   display: flex;
-  flex-flow: column nowrap;
+  justify-content: flex-end;
+  flex-flow: column-reverse nowrap;
   overflow-y: auto;
 }
 

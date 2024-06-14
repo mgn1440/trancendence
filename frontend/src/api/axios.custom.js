@@ -53,6 +53,7 @@ export const axiosGameRecords = async ({ username, isSingle }) => {
       const response = await instance.get(
         `${axiosUserURL}/${username}/record/multi`
       );
+      console.log(response);
       return response;
     }
   } catch (error) {
