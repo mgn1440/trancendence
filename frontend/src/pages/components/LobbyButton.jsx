@@ -94,7 +94,6 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
               const roomData = getModalInput(data);
               if (!roomData) return;
               sendLobbySocket(roomData);
-              window.location.href = `/lobby/${data.user_info.username}`;
             },
           })
         }
