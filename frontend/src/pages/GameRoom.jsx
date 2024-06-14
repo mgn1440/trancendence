@@ -66,7 +66,7 @@ const RoomPage = () => {
     };
     fetchProfile();
     socketAsync();
-  }, []);
+  }, []); 
 
   const sendRoomSocket = (roomData) => {
     if (roomSocket && roomSocket.readyState === WebSocket.OPEN) {
