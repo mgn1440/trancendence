@@ -84,7 +84,7 @@ const GamePage = () => {
 
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        // console.log(data);
+        console.log(data);
         if (data.type === "game_start") {
           startFlag = true;
           gameState = data.game;
@@ -142,7 +142,7 @@ const GamePage = () => {
           setGameStat([data.game.scores, data.game.roles]);
         } else if (data.type === "game_over") {
           alert(data.winner + " win!");
-          window.location.href = `/lobby/${data.host_username}`;
+          window.location.href = `/lobby/${data.room_id}`;
         } else if (data.type === "error") {
           alert(data.message);
           window.location.href = "/lobby";

@@ -1,84 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Friend List</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .friend-list {
-            list-style: none;
-            padding: 0;
-        }
-        .friend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 10px;
-            background-color: red;
-        }
-    </style>
-</head>
-<body>
-    <h1>Friend List</h1>
-    <ul id="friend-list" class="friend-list"></ul>
 
-    <script>
-		document.addEventListener("DOMContentLoaded", function() {
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Friend List</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+		}
+
+		.friend-list {
+			list-style: none;
+			padding: 0;
+		}
+
+		.friend-item {
+			display: flex;
+			align-items: center;
+			margin-bottom: 10px;
+		}
+
+		.status-dot {
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			margin-right: 10px;
+		}
+
+		.online {
+			background-color: green;
+		}
+
+		.offline {
+			background-color: red;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Friend List</h1>
+	<ul id="friend-list" class="friend-list"></ul>
+	<input type="text" id="friend-nickname" placeholder="Enter friend's nickname">
+	<button id="add-friend">Add Friend</button>
+
+	<script>
+		document.addEventListener("DOMContentLoaded", function () {
 			const friendListElement = document.getElementById("friend-list");
 			const socket = new WebSocket("ws://localhost:8000/ws/online/");
 
-			// 친구 목록 가져오기
-			fetch("http://localhost:8000/api/user/friend")
-				.then(response => response.json())
-				.then(friends => {
-					friends.foreach(friend_list => {
-						const friendItem = document.createElement("li");
-						friendItem.className = "friend-item";
-						friendItem.innerHTML = `<span class="status-dot"></span>${friend_list.nickname}`;
-						friendListElement.appendChild(friendItem);
-					});
-					console.log("Friends fetched:", friends);
-				})
-				.catch(error => console.error("Error fetching friends:", error));
-
 			// 웹소켓 연결 및 메시지 처리
-			socket.addEventListener("message", function(event) {
+			socket.addEventListener("message", function (event) {
 				const data = JSON.parse(event.data);
 				if (data.type === "status") {
 					const onlineFriends = data.online;
 					const offlineFriends = data.offline;
 
-					document.querySelectorAll(".friend-item").forEach(item => {
-						const nickname = item.textContent;
-						const statusDot = item.querySelector(".status-dot");
+					friendListElement.innerHTML = ''; // 기존 목록 초기화
 
-						if (onlineFriends.includes(nickname)) {
-							statusDot.style.backgroundColor = "green";
-						} else if (offlineFriends.includes(nickname)) {
-							statusDot.style.backgroundColor = "red";
-						}
+					onlineFriends.forEach(friend => {
+						const friendItem = document.createElement("li");
+						friendItem.className = "friend-item";
+						const statusDot = document.createElement("span");
+						statusDot.className = "status-dot online";
+						friendItem.appendChild(statusDot);
+						friendItem.appendChild(document.createTextNode(friend));
+						friendListElement.appendChild(friendItem);
+					});
+
+					offlineFriends.forEach(friend => {
+						const friendItem = document.createElement("li");
+						friendItem.className = "friend-item";
+						const statusDot = document.createElement("span");
+						statusDot.className = "status-dot offline";
+						friendItem.appendChild(statusDot);
+						friendItem.appendChild(document.createTextNode(friend));
+						friendListElement.appendChild(friendItem);
 					});
 				}
 			});
 
+
+			function getCookie(name) {
+				const value = `; ${document.cookie}`;
+				const parts = value.split(`; ${name}=`);
+				if (parts.length === 2) return parts.pop().split(';').shift();
+			}
+
 			// 웹소켓 연결 오류 처리
-			socket.addEventListener("error", function(error) {
+			socket.addEventListener("error", function (error) {
 				console.error("WebSocket Error:", error);
 			});
 
 			// 웹소켓 연결 닫힘 처리
-			socket.addEventListener("close", function() {
+			socket.addEventListener("close", function () {
 				console.log("WebSocket connection closed");
+			});
+
+			// 친구 추가 버튼 클릭 처리
+			document.getElementById("add-friend").addEventListener("click", function () {
+				const nickname = document.getElementById("friend-nickname").value;
+				if (nickname) {
+					const accessToken = getCookie('access_token');
+					if (accessToken) {
+						fetch("http://localhost:8000/api/user/follow/", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								"Authorization": `Bearer ${accessToken}`
+							},
+							body: JSON.stringify({ following_username: nickname })
+						})
+							.then(response => response.json())
+							.then(data => {
+								console.log("Friend added:", data);
+								// 웹소켓을 통해 업데이트 요청 보내기
+								socket.send(JSON.stringify({ type: "update" }));
+							})
+							.catch(error => console.error("Error adding friend:", error));
+					} else {
+						console.error("No access token found in cookies");
+					}
+				}
 			});
 		});
 	</script>
 </body>
+
 </html>

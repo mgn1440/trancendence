@@ -13,7 +13,10 @@ const LobbyProfile = ({ data, sendLobbySocket, stat }) => {
           <h3>{myProfile.username}</h3>
           <p>Win: {myProfile.win}</p>
           <p>Lose: {myProfile.lose}</p>
-          <p>Rate: {matchNum ? (myProfile.win / matchNum) * 100 : 0}%</p>
+          <p>
+            Rate: {matchNum ? ((myProfile.win / matchNum) * 100).toFixed(2) : 0}
+            %
+          </p>
         </div>
         {stat === MainProfileState.LOBBY ? (
           <LobbyButton data={data} sendLobbySocket={sendLobbySocket} />

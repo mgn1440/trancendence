@@ -1,3 +1,5 @@
+import { useEffect } from "@/lib/dom";
+
 export const InputBox = (props) => {
   return (
     <div class="input body-element">
@@ -8,7 +10,14 @@ export const InputBox = (props) => {
 };
 
 export const RadioCheck = (props) => {
-  const toggleInputFields = (e) => {
+  useEffect (() => {
+    const modalElement = document.getElementById("CreateRoomModal");
+    const radios = modalElement.querySelectorAll("input[type=radio]");
+    radios[0].checked = true;
+    radios[2].checked = true;
+  }, []);
+
+  const toggleInputFields = () => {
     const radios = document.querySelectorAll("input[type=radio]");
     const inputs = document.querySelectorAll("input[type=text]");
     if (radios[0].checked) {

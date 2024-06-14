@@ -33,7 +33,7 @@ const LobbyPage = () => {
         if (data.type === "room_list") {
           setRoomList(data.rooms);
         } else if (data.type === "join_approved") {
-          window.location.href = `/lobby/${data.host}`;
+          window.location.href = `/lobby/${data.room_id}`;
         } else if (data.type === "join_denied") {
           alert(data.message);
         } else if (data.type === "password_required") {
@@ -45,6 +45,8 @@ const LobbyPage = () => {
           console.log("matchmaking_waiting"); //debug
         } else if (data.type === "goto_matchmaking_game") {
           gotoPage(`/game/${data.host}`);
+        } else if (data.type === "room_created") {
+          gotoPage(`/lobby/${data.room_id}`);
         }
       };
 
