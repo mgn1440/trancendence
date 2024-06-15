@@ -46,7 +46,15 @@ const LobbyPage = () => {
         } else if (data.type === "matchmaking_waiting") {
           console.log("matchmaking_waiting"); //debug
         } else if (data.type === "goto_matchmaking_game") {
-          gotoPage(`/game/${data.host}`);
+          const quickMatchModal = new bootstrap.Modal(
+            document.getElementById("QuickMatchModal")
+          );
+          setTimeout(() => {
+            quickMatchModal.hide();
+            document.querySelector(".modal-backdrop").remove();
+          }, 10);
+          console.log(quickMatchModal); //debug
+          gotoPage(`/game/${data.room_id}`);
         } else if (data.type === "room_created") {
           gotoPage(`/lobby/${data.room_id}`);
         }
@@ -58,6 +66,9 @@ const LobbyPage = () => {
       setLobbySocket(socket);
     };
     socketAsync();
+    // return () => {
+    //   if ()
+    // };
   }, []);
 
   const sendLobbySocket = (roomData) => {
@@ -71,27 +82,24 @@ const LobbyPage = () => {
 
   return (
     <div>
-      {isEmpty(myProfile) ? null : (
-        <div>
-          <div id="top">
-            <TopNavBar />
+      <div id="top">
+        <TopNavBar />
+      </div>
+      <div id="middle">
+        {isEmpty(myProfile) ? (
+          <div class="main-section flex-column"></div>
+        ) : (
+          <div class="main-section flex-column">
+            <LobbyProfile
+              data={myProfile}
+              sendLobbySocket={sendLobbySocket}
+              stat={MainProfileState.LOBBY}
+            />
+            <LobbyRooms roomList={roomList} sendLobbySocket={sendLobbySocket} />
           </div>
-          <div id="middle">
-            <div class="main-section flex-column">
-              <LobbyProfile
-                data={myProfile}
-                sendLobbySocket={sendLobbySocket}
-                stat={MainProfileState.LOBBY}
-              />
-              <LobbyRooms
-                roomList={roomList}
-                sendLobbySocket={sendLobbySocket}
-              />
-            </div>
-            <UserList />
-          </div>
-        </div>
-      )}
+        )}
+        <UserList />
+      </div>
     </div>
   );
 };

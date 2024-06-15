@@ -4,6 +4,7 @@ import {
   STATUS_401_UNAUTHORIZED,
   STATUS_403_FORBIDDEN,
 } from "@/constants/statusCode";
+import { gotoPage } from "@/lib/libft";
 
 axios.defaults.withCredentials = true;
 
@@ -30,8 +31,8 @@ instance.interceptors.response.use(
       error.response?.status === STATUS_401_UNAUTHORIZED ||
       error.response?.status === STATUS_403_FORBIDDEN
     ) {
-      // window.location.href = "/";
-      // alert(error.response.data.message);
+      alert(error.response.data.message);
+      gotoPage("/");
     }
     return Promise.reject(error);
   }
