@@ -4,7 +4,7 @@ import LobbyRooms from "./components/LobbyRooms";
 import TopNavBar from "./components/TopNavBar";
 import { useEffect, useState } from "@/lib/dom";
 import { axiosUserMe } from "@/api/axios.custom";
-import { isEmpty } from "@/lib/libft";
+import { isEmpty, gotoPage } from "@/lib/libft";
 import GameRoom from "./components/GameRoom";
 import { history } from "@/lib/router";
 

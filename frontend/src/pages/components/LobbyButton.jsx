@@ -97,15 +97,16 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
       const isalpha = /^[a-zA-Z0-9]*$/i.test(e.key);
       const isnumpad = /^[0-9]*$/i.test(e.key);
       if (e.key === "Enter") {
-        const findName = findModalElement.querySelector(".user-item .user-info h6");
+        const findName = findModalElement.querySelector(
+          ".user-item .user-info h6"
+        );
         if (findName !== null) {
-          moveToProfile(findName.innerText); 
+          moveToProfile(findName.innerText);
         }
-      }
-      else if (!isalpha && !isnumpad) {
+      } else if (!isalpha && !isnumpad) {
         e.preventDefault();
       }
-    }
+    };
     findModalElement.addEventListener("hidden.bs.modal", handleFindModalHidden);
     findModalElement.addEventListener("shown.bs.modal", handleFindModalShown);
     findModalElement.addEventListener("input", HandleFindInput);
@@ -115,7 +116,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     document.addEventListener("keydown", (e) => {
       let isModalOpen = false;
       document.querySelectorAll(".modal").forEach((modal) => {
-        if (modal.classList.contains("show")){
+        if (modal.classList.contains("show")) {
           isModalOpen = true;
         }
       });
@@ -124,7 +125,9 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
       const findModal = new bootstrap.Modal(findModalElement);
       const quickMatchModal = new bootstrap.Modal(loaderElement);
       const createModal = new bootstrap.Modal(modalElement);
-      const logoutModal = new bootstrap.Modal(document.getElementById("LogoutModal"));
+      const logoutModal = new bootstrap.Modal(
+        document.getElementById("LogoutModal")
+      );
       if (e.key === "f") {
         if (!findModalElement.classList.contains("show")) {
           findModal.show();
@@ -138,7 +141,9 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
           createModal.show();
         }
       } else if (e.key === "l") {
-        if (!document.getElementById("LogoutModal").classList.contains("show")) {
+        if (
+          !document.getElementById("LogoutModal").classList.contains("show")
+        ) {
           logoutModal.show();
         }
       }
@@ -244,13 +249,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
           );
         }}
       />
-      <div
-        class="modal fade"
-        id="QuickMatchModal"
-        tabindex="-1"
-        aria-labelledby="exampleModalLabel"
-        aria-hidden="true"
-      >
+      <div class="modal" id="QuickMatchModal" tabindex="-1">
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="loader">
@@ -282,11 +281,11 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
       <button
         class="lobby-game-btn"
         onclick={() => {
-          sendLobbySocket({ type: "matchmaking" });
           const quickMatchModal = new bootstrap.Modal(
             document.getElementById("QuickMatchModal")
           );
           quickMatchModal.show();
+          sendLobbySocket({ type: "matchmaking" });
         }}
       >
         <img src="/icon/quick.svg"></img>
