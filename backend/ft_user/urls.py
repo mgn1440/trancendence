@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import render
 from .views import OtpUpdateView, FollowView, ProfileImageView, logout, SingleGameRecordListView, FollowDetailView, \
-	MultiGameRecordListView, UserMeView, UserNameDetailView, SingleGameDetailListView, DayStatAPIView
+	MultiGameRecordListView, UserMeView, UserNameDetailView, SingleGameDetailListView, DayStatAPIView, RecentOpponentsAPIView
 
 urlpatterns = [
 	path('otp/', OtpUpdateView.as_view(), name='otp_update'),
@@ -15,5 +15,6 @@ urlpatterns = [
 	path('<str:username>/record/single/', SingleGameRecordListView.as_view(), name='single_game_record'),
 	path('<str:username>/record/multi/', MultiGameRecordListView.as_view(), name='multi_game_record'),
 	path('<str:username>/user-day-stat/', DayStatAPIView.as_view(), name='user_stat'),
+	path('<str:username>/user-recent-opponent/', RecentOpponentsAPIView.as_view(), name='user_recent_opponent'),
 	path('<str:username>/', UserNameDetailView.as_view(), name='user_detail_by_username'),
 ]
