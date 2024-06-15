@@ -156,6 +156,34 @@ class DayStatAPIView(APIView):
 		serializer = DayStatSerializer(day_count_stats, many=True)
 		return JsonResponse({'status_code': '200', 'day_count_stats': serializer.data}, status=200)
 
+class RecentOpponentsAPIView(APIView):
+	def get(self, request, username):
+		if not CustomUser.objects.filter(username=username).exists():
+			return JsonResponse({'status_code': '404', 'message': 'User not found'}, status=404)
+		user = CustomUser.objects.get(username=username)
+		recent_games = SingleGameRecord.objects.filter(
+			Q(player1=user) | Q(player2=user)
+		).order_by('-created_at')[:20] # 최근 20개의 게임을 조회
+		opponent_records = {}
+		for game in recent_games:
+			opponent = game.player2 if game.player1 == user else game.player1
+			if opponent.username not in opponent_records:
+				opponent_records[opponent.username] = {
+					'profile_image': opponent.profile_image.url if opponent.profile_image else None,
+					'total': 0,
+					'wins': 0,
+					'loses': 0,
+				}
+			if game.winner == user.username:
+				opponent_records[opponent.username]['wins'] += 1
+			else:
+				opponent_records[opponent.username]['loses'] += 1
+			opponent_records[opponent.username]['total'] += 1
+
+		print(opponent_records)
+		return JsonResponse({'status_code': '200', 'opponent_records': opponent_records}, status=200)
+
+
 def logout(request):
 	response = JsonResponse({'status': 'success'}, status=200)
 	response.delete_cookie('access_token')
