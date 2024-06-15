@@ -2,6 +2,7 @@ import { axiosUserOther } from "@/api/axios.custom";
 import { useEffect, useState } from "@/lib/dom";
 import { isEmpty } from "@/lib/libft";
 import { ws_userlist, startWebSocketConnection } from "@/store/userListWS";
+import { clinetUserStore } from "@/store/clientUserStore";
 
 export const moveToProfile = (userName) => {
   if (
@@ -10,7 +11,12 @@ export const moveToProfile = (userName) => {
   ) {
     return;
   }
-  window.location.href = `/profile/${userName}`;
+  if (userName === clinetUserStore.getState().client.username) {
+    window.location.href = `/profile/me`;
+  }
+  else{
+    window.location.href = `/profile/${userName}`;
+  }
 };
 
 export const User = ({ userName }) => {

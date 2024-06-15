@@ -112,6 +112,38 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     const findModalInput = findModalElement.querySelector("input");
     findModalInput.addEventListener("keydown", handleFindInput);
 
+    document.addEventListener("keydown", (e) => {
+      let isModalOpen = false;
+      document.querySelectorAll(".modal").forEach((modal) => {
+        if (modal.classList.contains("show")){
+          isModalOpen = true;
+        }
+      });
+      if (isModalOpen) return;
+
+      const findModal = new bootstrap.Modal(findModalElement);
+      const quickMatchModal = new bootstrap.Modal(loaderElement);
+      const createModal = new bootstrap.Modal(modalElement);
+      const logoutModal = new bootstrap.Modal(document.getElementById("LogoutModal"));
+      if (e.key === "f") {
+        if (!findModalElement.classList.contains("show")) {
+          findModal.show();
+        }
+      } else if (e.key === "q") {
+        if (!loaderElement.classList.contains("show")) {
+          quickMatchModal.show();
+        }
+      } else if (e.key === "c") {
+        if (!modalElement.classList.contains("show")) {
+          createModal.show();
+        }
+      } else if (e.key === "l") {
+        if (!document.getElementById("LogoutModal").classList.contains("show")) {
+          logoutModal.show();
+        }
+      }
+    });
+
     return () => {
       modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
       loaderElement.removeEventListener("hidden.bs.modal", handleLoaderHidden);
