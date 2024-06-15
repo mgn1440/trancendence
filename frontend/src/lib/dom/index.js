@@ -84,7 +84,8 @@ const domRenderer = () => {
     if (refs.length === index) refs.push(initialState);
     const getRef = () => refs[index];
     const setRef = (newRef) => {
-      if (shallowEqual(getRef(), newRef)) return;
+      // TODO: Create Room 안되는 문제
+      // if (shallowEqual(getRef(), newRef)) return;
       refs[index] = newRef;
     };
     options.refHook += 1;
