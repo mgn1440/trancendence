@@ -25,8 +25,8 @@ const ProfilePage = () => {
         user = await axiosUserMe();
       } else {
         user = await axiosUserOther(name);
-        console.log(user);
         let follow = user.data.user_info.is_following;
+        console.log(follow);
         if (!follow) setStat(2);
         else setStat(3);
       }
@@ -37,20 +37,20 @@ const ProfilePage = () => {
 
   return (
     <div>
-      {isEmpty(profile) ? null : (
-        <div>
-          <div id="top">
-            <TopNavBar />
+      <div id="top">
+        <TopNavBar />
+      </div>
+      <div id="middle">
+        {isEmpty(profile) ? (
+          <div class="main-section flex-row"></div>
+        ) : (
+          <div class="main-section flex-row">
+            <ProfileImg stat={stat} setStat={setStat} user_name={userName} />
+            <ProfileInfo data={profile} />
           </div>
-          <div id="middle">
-            <div class="main-section flex-row">
-              <ProfileImg stat={stat} user_name={userName} />
-              <ProfileInfo data={profile} />
-            </div>
-            <UserList />
-          </div>
-        </div>
-      )}
+        )}
+        <UserList />
+      </div>
     </div>
   );
 };

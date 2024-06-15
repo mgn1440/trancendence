@@ -58,6 +58,9 @@ const LobbyPage = () => {
       setLobbySocket(socket);
     };
     socketAsync();
+    // return () => {
+    //   if ()
+    // };
   }, []);
 
   const sendLobbySocket = (roomData) => {
@@ -71,27 +74,24 @@ const LobbyPage = () => {
 
   return (
     <div>
-      {isEmpty(myProfile) ? null : (
-        <div>
-          <div id="top">
-            <TopNavBar />
+      <div id="top">
+        <TopNavBar />
+      </div>
+      <div id="middle">
+        {isEmpty(myProfile) ? (
+          <div class="main-section flex-column"></div>
+        ) : (
+          <div class="main-section flex-column">
+            <LobbyProfile
+              data={myProfile}
+              sendLobbySocket={sendLobbySocket}
+              stat={MainProfileState.LOBBY}
+            />
+            <LobbyRooms roomList={roomList} sendLobbySocket={sendLobbySocket} />
           </div>
-          <div id="middle">
-            <div class="main-section flex-column">
-              <LobbyProfile
-                data={myProfile}
-                sendLobbySocket={sendLobbySocket}
-                stat={MainProfileState.LOBBY}
-              />
-              <LobbyRooms
-                roomList={roomList}
-                sendLobbySocket={sendLobbySocket}
-              />
-            </div>
-            <UserList />
-          </div>
-        </div>
-      )}
+        )}
+        <UserList />
+      </div>
     </div>
   );
 };

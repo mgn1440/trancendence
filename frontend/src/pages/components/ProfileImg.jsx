@@ -3,24 +3,24 @@ import { axiosUserFollow, axiosUserUnfollow } from "@/api/axios.custom";
 import { render, useEffect, useState } from "@/lib/dom";
 import { ws_userlist } from "@/store/userListWS";
 
-const ProfileImg = ({ user_name, stat }) => {
-  const [status, setFollowStat] = useState(stat);
+const ProfileImg = ({ user_name, stat, setStat }) => {
+  console.log(stat);
   const follow = async (user_name) => {
     await axiosUserFollow(user_name);
     ws_userlist.getState().socket.send(JSON.stringify({ type: "update" }));
-    setFollowStat(3);
+    setStat(3);
   };
 
   const unfollow = async (user_name) => {
     await axiosUserUnfollow(user_name);
     ws_userlist.getState().socket.send(JSON.stringify({ type: "update" }));
-    setFollowStat(2);
+    setStat(2);
   };
 
   return (
     <div class="profile-img">
       <img src="/img/minji_1.jpg"></img>
-      {status === 0 ? (
+      {stat === 0 ? (
         <div>
           <button
             onclick={() => gotoPage("/profile/me/config")}
@@ -30,7 +30,7 @@ const ProfileImg = ({ user_name, stat }) => {
             Change Profile
           </button>
         </div>
-      ) : status === 1 ? (
+      ) : stat === 1 ? (
         <div>
           <button class="profile-change-btn">
             <img src="/icon/change.svg"></img>
@@ -41,20 +41,26 @@ const ProfileImg = ({ user_name, stat }) => {
             Delete Profile Photo
           </button>
         </div>
-      ) : status === 2 ? (
-        <div>
-          <button class="follow-btn" onclick={() => follow(user_name)}>
-            <img src="/icon/user.svg"></img>
-            Follow
-          </button>
-        </div>
+      ) : stat === 2 ? (
+        (console.log("two"),
+        (
+          <div>
+            <button class="follow-btn" onclick={() => follow(user_name)}>
+              <img src="/icon/user.svg"></img>
+              Follow
+            </button>
+          </div>
+        ))
       ) : (
-        <div>
-          <button class="follow-btn" onclick={() => unfollow(user_name)}>
-            <img src="/icon/close.svg"></img>
-            Unfollow
-          </button>
-        </div>
+        (console.log(stat),
+        (
+          <div>
+            <button class="follow-btn" onclick={() => unfollow(user_name)}>
+              <img src="/icon/close.svg"></img>
+              Unfollow
+            </button>
+          </div>
+        ))
       )}
     </div>
   );

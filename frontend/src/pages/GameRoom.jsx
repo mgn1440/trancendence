@@ -41,7 +41,7 @@ const RoomPage = () => {
           setGameData(data);
         } else if (data.type === "disconnect_user") {
           setGameData(data);
-          if (data.mode !== data.user_list.length){
+          if (data.mode !== data.user_list.length) {
             setStartBtn(false);
           }
         } else if (
@@ -56,7 +56,6 @@ const RoomPage = () => {
           }
         } else if (data.type === "goto_game") {
           gotoPage(`/game/${data.room_id}`);
-
         }
       };
 
@@ -67,7 +66,7 @@ const RoomPage = () => {
     };
     fetchProfile();
     socketAsync();
-  }, []); 
+  }, []);
 
   const sendRoomSocket = (roomData) => {
     if (roomSocket && roomSocket.readyState === WebSocket.OPEN) {
@@ -77,25 +76,25 @@ const RoomPage = () => {
   };
   return (
     <div>
-      {isEmpty(myProfile) ? null : (
-        <div>
-          <div id="top">
-            <TopNavBar />
-          </div>
-          <div id="middle">
-            <div class="main-section flex-column">
-              <Profile data={myProfile} stat={MainProfileState.ROOM} />
+      <div id="top">
+        <TopNavBar />
+      </div>
+      <div id="middle">
+        {isEmpty(myProfile) ? (
+          <div class="main-section flex-column"></div>
+        ) : (
+          <div class="main-section flex-column">
+            <Profile data={myProfile} stat={MainProfileState.ROOM} />
 
-              <GameRoom
-                gameData={gameData}
-                isStart={startBtn}
-                sendRoomSocket={sendRoomSocket}
-              />
-            </div>
-            <UserList />
+            <GameRoom
+              gameData={gameData}
+              isStart={startBtn}
+              sendRoomSocket={sendRoomSocket}
+            />
           </div>
-        </div>
-      )}
+        )}
+        <UserList />
+      </div>
     </div>
   );
 };
