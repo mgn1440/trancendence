@@ -1,10 +1,13 @@
 import json
+import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 class LobbyConsumer(AsyncWebsocketConsumer):
     rooms = {}
     matchmaking_queue = []
-    match_user_host = {}
+    match_user_roomid = {}
+    room_id = 0
+    lock = asyncio.Lock()
 
     async def connect(self):
         await self.channel_layer.group_add("lobby", self.channel_name)
@@ -21,10 +24,10 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         print(data)
         if data['type'] == 'create_room':
-            host = self.scope['user'].username
+            room_id = await self.get_room_id()
             room_info = {
                 'room_name': data['room_name'],
-                'host': host,
+                'room_id': room_id,
                 'mode': data['mode'],
                 'is_secret': data['is_secret'],
                 'password': data.get('password', ''),
@@ -32,34 +35,34 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                 'in_game_players': [],
                 'status': 'room',
             }
-            LobbyConsumer.rooms[host] = room_info
+            LobbyConsumer.rooms[room_id] = room_info
             await self.send(text_data=json.dumps({
                 'type': 'room_created',
-                'host': host,
+                'room_id': room_id,
             }))
             await self.update_room_list()
         elif data['type'] == 'join_room':
-            hostname = data['host']
-            if hostname in LobbyConsumer.rooms:
-                if LobbyConsumer.rooms[hostname]['status'] != 'room':
+            room_id = data['room_id']
+            if room_id in LobbyConsumer.rooms:
+                if LobbyConsumer.rooms[room_id]['status'] != 'room':
                     await self.send(text_data=json.dumps({
                         'type': 'join_denied',
                         'message': 'This room is already playing a game.',
                     }))
-                elif len(LobbyConsumer.rooms[hostname]['players']) >= LobbyConsumer.rooms[hostname]['mode']:
+                elif len(LobbyConsumer.rooms[room_id]['players']) >= LobbyConsumer.rooms[room_id]['mode']:
                     await self.send(text_data=json.dumps({
                         'type': 'join_denied',
                         'message': 'Room is full.',
                     }))
-                elif LobbyConsumer.rooms[hostname]['is_secret']:
+                elif LobbyConsumer.rooms[room_id]['is_secret']:
                     await self.send(text_data=json.dumps({
                         'type': 'password_required',
-                        'host': hostname,
+                        'room_id': room_id,
                     }))
                 else:
                     await self.send(text_data=json.dumps({
                         'type': 'join_approved',
-                        'host': hostname,
+                        'room_id': room_id,
                     }))
             else:
                 await self.send(text_data=json.dumps({
@@ -67,12 +70,12 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                     'message': 'Room does not exist.',
                 }))
         elif data['type'] == 'join_secret_room':
-            hostname = data['host']
-            if hostname in LobbyConsumer.rooms:
-                if data['password'] == LobbyConsumer.rooms[hostname]['password']:
+            room_id = data['room_id']
+            if room_id in LobbyConsumer.rooms:
+                if data['password'] == LobbyConsumer.rooms[room_id]['password']:
                     await self.send(text_data=json.dumps({
                         'type': 'join_approved',
-                        'host': hostname,
+                        'room_id': room_id,
                     }))
                 else:
                     await self.send(text_data=json.dumps({
@@ -106,22 +109,24 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         while len(LobbyConsumer.matchmaking_queue) >= 2:
             player1 = LobbyConsumer.matchmaking_queue.pop(0)
             player2 = LobbyConsumer.matchmaking_queue.pop(0)
+            room_id = await self.get_room_id()
             room_info = {
                 'room_name': 'Matchmaking Room',
-                'host': player1,
+                'room_id': room_id,
                 'mode': 'matchmaking',
                 'is_secret': False,
                 'players': [],
                 'in_game_players': [player1, player2],
                 'status': 'game',
             }
-            LobbyConsumer.match_user_host[player1] = player1
-            LobbyConsumer.match_user_host[player2] = player1
-            LobbyConsumer.rooms[player1] = room_info
+            LobbyConsumer.match_user_roomid[player1] = room_id
+            LobbyConsumer.match_user_roomid[player2] = room_id
+            LobbyConsumer.rooms[room_id] = room_info
             await self.channel_layer.group_send(
                 "lobby",
                 {
                     'type': 'goto_matchmaking_game',
+                    'room_id': room_id,
                 }
             )
    
@@ -143,9 +148,15 @@ class LobbyConsumer(AsyncWebsocketConsumer):
 
     async def goto_matchmaking_game(self, event):
         current_user = self.scope['user'].username
-        if current_user in LobbyConsumer.match_user_host:
+        if current_user in LobbyConsumer.match_user_roomid:
             await self.send(text_data=json.dumps({
                 'type': 'goto_matchmaking_game',
-                'host': LobbyConsumer.match_user_host[current_user],
+                'room_id': event['room_id'],
             }))
-            del LobbyConsumer.match_user_host[current_user]
+            del LobbyConsumer.match_user_roomid[current_user]
+    
+    @classmethod        
+    async def get_room_id(cls):
+        async with cls.lock:
+            cls.room_id += 1
+            return cls.room_id

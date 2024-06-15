@@ -36,11 +36,14 @@ const RoomPage = () => {
 
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
+        console.log(data);
         if (data.type === "room_info" || data.type === "connect_user") {
           setGameData(data);
         } else if (data.type === "disconnect_user") {
           setGameData(data);
-          setStartBtn(false);
+          if (data.mode !== data.user_list.length){
+            setStartBtn(false);
+          }
         } else if (
           data.type === "room_destroyed" ||
           data.type === "room_full" ||
@@ -52,7 +55,8 @@ const RoomPage = () => {
             setStartBtn(true);
           }
         } else if (data.type === "goto_game") {
-          gotoPage(`/game/${data.host}`);
+          gotoPage(`/game/${data.room_id}`);
+
         }
       };
 
@@ -63,7 +67,7 @@ const RoomPage = () => {
     };
     fetchProfile();
     socketAsync();
-  }, []);
+  }, []); 
 
   const sendRoomSocket = (roomData) => {
     if (roomSocket && roomSocket.readyState === WebSocket.OPEN) {

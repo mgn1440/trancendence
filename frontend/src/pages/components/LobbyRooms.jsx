@@ -4,7 +4,7 @@ import TitleSection from "./ModalSection";
 import { InputBox, RadioCheck } from "./Inputs";
 import { BottomSection } from "./ModalSection";
 
-let roomHostName = "";
+let roomID = 0;
 
 const LobbyRoom = ({ roomInfo, clickEvent }) => {
   console.log(roomInfo);
@@ -45,10 +45,10 @@ const LobbyRooms = ({ roomList, sendLobbySocket }) => {
       "PswdRoomModal"
     ).childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[1].innerText =
       roomInfo.room_name;
-    roomHostName = roomInfo.host;
+    roomID = roomInfo.room_id;
     sendLobbySocket({
       type: "join_room",
-      host: roomInfo.host,
+      room_id: roomInfo.room_id,
     });
   };
 
@@ -68,7 +68,7 @@ const LobbyRooms = ({ roomList, sendLobbySocket }) => {
             ClickEvent: () => {
               sendLobbySocket({
                 type: "join_secret_room",
-                host: roomHostName,
+                room_id: roomID,
                 password: document.querySelector("#PswdRoomModal input").value,
               });
             },

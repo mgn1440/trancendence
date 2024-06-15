@@ -14,17 +14,19 @@ import { history } from "@/lib/router";
 const ProfilePage = () => {
   const [profile, setProfile] = useState({});
   const [stat, setStat] = useState(0); // [0: me, 1: config, 2: follow, 3: unfollow]
-  const [user_id, setUserID] = useState(0); // [0: me, 1: config, 2: follow, 3: unfollow]
+  const [userName, setUserName] = useState("");
+
   useEffect(() => {
     const fetchProfile = async () => {
       let user = null;
-      let userName = window.location.pathname.split("/").pop();
-      if (userName === "me") {
+      let name = window.location.pathname.split("/").pop();
+      setUserName(name);
+      if (name === "me") {
         user = await axiosUserMe();
       } else {
-        user = await axiosUserOther(userName);
+        user = await axiosUserOther(name);
+        console.log(user);
         let follow = user.data.user_info.is_following;
-        setUserID(user.data.user_info.uid);
         if (!follow) setStat(2);
         else setStat(3);
       }
@@ -42,7 +44,7 @@ const ProfilePage = () => {
           </div>
           <div id="middle">
             <div class="main-section flex-row">
-              <ProfileImg stat={stat} user_id={user_id} />
+              <ProfileImg stat={stat} user_name={userName} />
               <ProfileInfo data={profile} />
             </div>
             <UserList />

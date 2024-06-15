@@ -45,7 +45,6 @@ class Callback(View): # TODO: POST otp check function
 		if user_info.status_code != 200:
 			return JsonResponse({'error': '42 API /v2/me Error'}, status=400)
 		user_data = user_info.json()
-		print(user_data)
 		id = user_data['id']
 		username = user_data['login']
 		email = user_data['email']
