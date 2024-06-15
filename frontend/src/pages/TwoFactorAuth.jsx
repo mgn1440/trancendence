@@ -14,7 +14,7 @@ const isFull = (inputs) => {
 
 const OTP = ({ len }) => {
   const MoveToLobby = () => {
-    window.location.href = "/lobby";
+    gotoPage("/lobby");
   };
   useEffect(() => {
     const inputs = document.querySelectorAll(".otp .input");
@@ -37,14 +37,14 @@ const OTP = ({ len }) => {
               Array.from(inputs)
                 .map((input) => input.value)
                 .join("")
-            )
-              if (ret.status === 200) {
-                MoveToLobby();
-              } else {
-                setTimeout(() => {
-                  window.location.href = "/2fa";
-                }, 1500);
-              }
+            );
+            if (ret.status === 200) {
+              MoveToLobby();
+            } else {
+              setTimeout(() => {
+                gotoPage("/2fa");
+              }, 1500);
+            }
           }
         }
       });

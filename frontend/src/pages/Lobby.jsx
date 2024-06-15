@@ -33,7 +33,7 @@ const LobbyPage = () => {
         if (data.type === "room_list") {
           setRoomList(data.rooms);
         } else if (data.type === "join_approved") {
-          window.location.href = `/lobby/${data.room_id}`;
+          gotoPage(`/lobby/${data.room_id}`);
         } else if (data.type === "join_denied") {
           alert(data.message);
         } else if (data.type === "password_required") {

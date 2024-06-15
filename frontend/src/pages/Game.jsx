@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "@/lib/dom";
-import { isEmpty } from "@/lib/libft";
+import { gotoPage, isEmpty } from "@/lib/libft";
 import { history } from "@/lib/router";
 
 let gameState;
@@ -142,10 +142,10 @@ const GamePage = () => {
           setGameStat([data.game.scores, data.game.roles]);
         } else if (data.type === "game_over") {
           alert(data.winner + " win!");
-          window.location.href = `/lobby/${data.room_id}`;
+          gotoPage(`/lobby/${data.room_id}`);
         } else if (data.type === "error") {
           alert(data.message);
-          window.location.href = "/lobby";
+          gotoPage("/lobby");
         }
       };
     };
