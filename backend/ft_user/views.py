@@ -179,8 +179,6 @@ class RecentOpponentsAPIView(APIView):
 			else:
 				opponent_records[opponent.username]['loses'] += 1
 			opponent_records[opponent.username]['total'] += 1
-
-		print(opponent_records)
 		return JsonResponse({'status_code': '200', 'opponent_records': opponent_records}, status=200)
 
 
