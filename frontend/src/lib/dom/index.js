@@ -88,7 +88,7 @@ const domRenderer = () => {
       refs[index] = newRef;
     };
     options.refHook += 1;
-    console.log(refs);
+    // console.log(refs);
     return [getRef, setRef];
     // return { current: refs[index] };
   };

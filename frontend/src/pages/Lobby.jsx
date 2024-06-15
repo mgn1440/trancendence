@@ -6,6 +6,7 @@ import { axiosUserMe } from "@/api/axios.custom";
 import { useState, useEffect, useRef } from "@/lib/dom";
 import { isEmpty, gotoPage } from "@/lib/libft";
 import { MainProfileState } from "./GameRoom";
+import { clinetUserStore, setUserData } from "@/store/clientUserStore";
 
 const LobbyPage = () => {
   const [myProfile, setMyProfile] = useState({});
@@ -14,7 +15,8 @@ const LobbyPage = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       const userMe = await axiosUserMe();
-      console.log(userMe.data); // debug
+      setUserData(clinetUserStore.dispatch, userMe.data.user_info);
+      console.log(clinetUserStore.getState()); // debug
       setMyProfile(userMe.data);
     };
     fetchProfile();

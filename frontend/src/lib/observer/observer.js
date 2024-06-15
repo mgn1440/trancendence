@@ -19,9 +19,7 @@ export const observable = obj => {
     },
     set (target, name, value) {
       if (target[name] === value) return true;
-      console.log(name, target[name], value);
-      console.log(JSON.stringify(target[name]), JSON.stringify(value));
-      if (!isEmpty(target[name]) || target[name].url === value.url) return true;
+      // if (!isEmpty(target[name]) || target[name].url === value.url) return true;
       target[name] = value;
       observerMap[name].forEach(fn => fn());
       return true;

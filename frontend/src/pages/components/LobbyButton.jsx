@@ -1,7 +1,36 @@
 import Modal from "./Modal";
 import { TitleSection, BottomSection } from "./ModalSection";
 import { InputBox, RadioCheck } from "./Inputs";
-import { useEffect } from "@/lib/dom";
+import { useEffect, useRef, useState } from "@/lib/dom";
+import { moveToProfile } from "./UserList";
+import { axiosUserOther } from "@/api/axios.custom";
+import { isEmpty } from "@/lib/libft";
+
+export const UserFind = ({ userData }) => {
+  const randNum = Math.ceil(Math.random() * 5);
+  const imgSrc = `/img/minji_${randNum}.jpg`;
+  return (
+    <div class="user-item" onclick={() => moveToProfile(userData.username)}>
+      <div class="profile">
+        <img src={imgSrc} />
+      </div>
+      <div class="user-info">
+        {isEmpty(userData) ? null : (
+          <div>
+            <h6>{userData.username}</h6>
+            <p>
+              win: {userData.win} lose: {userData.lose} rate:
+              {userData.win + userData.lose === 0
+                ? 0
+                : (userData.win / (userData.win + userData.lose)) * 100}
+              %
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const getModalInput = (data) => {
   const modalElement = document.getElementById("CreateRoomModal");
@@ -54,15 +83,107 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     };
 
     loaderElement.addEventListener("hidden.bs.modal", handleLoaderHidden);
+    const findModalElement = document.getElementById("FindUserModal");
+    const handleFindModalHidden = () => {
+      const input = findModalElement.querySelector("input");
+      input.value = "";
+      setFindResult("");
+    };
+    const handleFindModalShown = () => {
+      const input = findModalElement.querySelector("input");
+      input.focus();
+    };
+    const handleFindInput = async (e) => {
+      const isalpha = /^[a-zA-Z0-9]*$/i.test(e.key);
+      const isnumpad = /^[0-9]*$/i.test(e.key);
+      if (e.key === "Enter") {
+        const findName = findModalElement.querySelector(".user-item .user-info h6");
+        if (findName !== null) {
+          moveToProfile(findName.innerText); 
+        }
+      }
+      else if (!isalpha && !isnumpad) {
+        e.preventDefault();
+      }
+    }
+    findModalElement.addEventListener("hidden.bs.modal", handleFindModalHidden);
+    findModalElement.addEventListener("shown.bs.modal", handleFindModalShown);
+    findModalElement.addEventListener("input", HandleFindInput);
+    const findModalInput = findModalElement.querySelector("input");
+    findModalInput.addEventListener("keydown", handleFindInput);
+
+    document.addEventListener("keydown", (e) => {
+      let isModalOpen = false;
+      document.querySelectorAll(".modal").forEach((modal) => {
+        if (modal.classList.contains("show")){
+          isModalOpen = true;
+        }
+      });
+      if (isModalOpen) return;
+
+      const findModal = new bootstrap.Modal(findModalElement);
+      const quickMatchModal = new bootstrap.Modal(loaderElement);
+      const createModal = new bootstrap.Modal(modalElement);
+      const logoutModal = new bootstrap.Modal(document.getElementById("LogoutModal"));
+      if (e.key === "f") {
+        if (!findModalElement.classList.contains("show")) {
+          findModal.show();
+        }
+      } else if (e.key === "q") {
+        if (!loaderElement.classList.contains("show")) {
+          quickMatchModal.show();
+        }
+      } else if (e.key === "c") {
+        if (!modalElement.classList.contains("show")) {
+          createModal.show();
+        }
+      } else if (e.key === "l") {
+        if (!document.getElementById("LogoutModal").classList.contains("show")) {
+          logoutModal.show();
+        }
+      }
+    });
 
     return () => {
       modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
       loaderElement.removeEventListener("hidden.bs.modal", handleLoaderHidden);
+      findModalElement.removeEventListener(
+        "hidden.bs.modal",
+        handleFindModalHidden
+      );
+      findModalElement.removeEventListener(
+        "shown.bs.modal",
+        handleFindModalShown
+      );
+      findModalInput.removeEventListener("keydown", handleFindInput);
     };
   }, []);
 
+  const findModalInput = useRef("");
+  const [findResult, setFindResult] = useState("");
+  const [findStatus, setFindStatus] = useState(0);
+  const HandleFindInput = async (e) => {
+    const findModalElement = document.getElementById("FindUserModal");
+    findModalInput.current = findModalElement.querySelector("input");
+    const findName = findModalInput.current.value;
+    let ret = null;
+    if (findName === undefined) {
+      return;
+    } else if (findName === "") {
+      setFindStatus(0);
+    } else {
+      setFindStatus(1);
+      ret = await axiosUserOther(findName);
+      if (ret.status == 200) {
+        setFindResult(ret.data.user_info);
+      } else {
+        setFindResult(null);
+      }
+    }
+  };
+
   return (
-    <div>
+    <div class="lobby-buttons">
       <Modal
         id="CreateRoomModal"
         title={() =>
@@ -76,12 +197,12 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
                 defaultValue={`${data.user_info.username}'s Room`}
               />
               <div class="radio-check body-element">
-                <RadioCheck text="Open Room" name="lock" id="open"/>
+                <RadioCheck text="Open Room" name="lock" id="open" />
                 <RadioCheck text="Private" name="lock" id="private" />
               </div>
               <InputBox text="Password" defaultValue="" />
               <div class="radio-check body-element robby-game-btn">
-                <RadioCheck text="1 vs 1" name="battle" id="1vs1"/>
+                <RadioCheck text="1 vs 1" name="battle" id="1vs1" />
                 <RadioCheck text="Tournament" name="battle" id="tornament" />
               </div>
             </div>
@@ -97,6 +218,31 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
             },
           })
         }
+      />
+      <Modal
+        id="FindUserModal"
+        title={() =>
+          TitleSection({ IconPath: "/icon/Search.svg", Title: "Find User" })
+        }
+        body={() => {
+          return (
+            <div>
+              <div class="user-search-bar">
+                <input class="user-search-input"></input>
+                <img src="/icon/search.svg"></img>
+              </div>
+              {findStatus == 0 ? null : (
+                <div class="find-result">
+                  {findResult ? (
+                    <UserFind userData={findResult} />
+                  ) : (
+                    <div class="not-found-msg">no user found</div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        }}
       />
       <div
         class="modal fade"
@@ -127,8 +273,14 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
       </button>
       <button
         class="lobby-game-btn"
-        // data-bs-toggle="modal"
-        // data-bs-target="#QuickMatchModal"
+        data-bs-toggle="modal"
+        data-bs-target="#FindUserModal"
+      >
+        <img src="/icon/search.svg"></img>
+        Find user
+      </button>
+      <button
+        class="lobby-game-btn"
         onclick={() => {
           sendLobbySocket({ type: "matchmaking" });
           const quickMatchModal = new bootstrap.Modal(
@@ -137,7 +289,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
           quickMatchModal.show();
         }}
       >
-        <img src="/icon/search.svg"></img>
+        <img src="/icon/quick.svg"></img>
         Quick Match
       </button>
     </div>
