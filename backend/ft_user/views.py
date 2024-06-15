@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
-from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer, SingleGameDetailSerializer, DayCountSerializer
+from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer, SingleGameDetailSerializer, DayStatSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.exceptions import AuthenticationFailed
@@ -133,7 +133,7 @@ class SingleGameDetailListView(APIView):
 		except SingleGameRecord.DoesNotExist:
 			return JsonResponse({'statusCode': '404', 'message': 'Game record dose not exist'}, status=404)
 
-class DayCountAPIView(APIView):
+class DayStatAPIView(APIView):
 	def get(self, request, username):
 		if not CustomUser.objects.filter(username=username).exists():
 			return JsonResponse({'status_code': '404', 'message': 'User not found'}, status=404)
@@ -144,7 +144,6 @@ class DayCountAPIView(APIView):
 			count=Count('id'),
 			wins=Count(Case(When(winner=username, then=1), output_field=IntegerField()))
 		)
-
 		day_count_stats = []
 		for record in stats:
 			day_str = record['day']
@@ -154,8 +153,7 @@ class DayCountAPIView(APIView):
 				'count': record['count'],
 				'wins': record['wins'],
 			})
-		print(day_count_stats)
-		serializer = DayCountSerializer(day_count_stats, many=True)
+		serializer = DayStatSerializer(day_count_stats, many=True)
 		return JsonResponse({'status_code': '200', 'day_count_stats': serializer.data}, status=200)
 
 def logout(request):

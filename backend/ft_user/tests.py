@@ -234,7 +234,7 @@ class SingleGameDetailListViewTest(APITestCase):
 		#print(response.content)
 
 
-class DayCountAPIView(APITestCase):
+class DayStatAPIView(APITestCase):
 	def setUp(self):
 		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
 		self.user2 = CustomUser.objects.create_user(username="sunghyun", uid=2)
