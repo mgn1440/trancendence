@@ -124,3 +124,8 @@ class SingleGameDetailSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = SingleGameDetail
 		fields = ['goal_user_name' ,'goal_user_position', 'ball_start_position', 'ball_end_position', 'timestamp']
+
+class DayStatSerializer(serializers.Serializer):
+	day = serializers.CharField()
+	count = serializers.IntegerField()
+	wins = serializers.IntegerField()

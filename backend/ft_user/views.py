@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
-from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer, SingleGameDetailSerializer
+from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer, SingleGameDetailSerializer, DayStatSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.exceptions import AuthenticationFailed
@@ -13,7 +13,8 @@ from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveU
 from rest_framework.exceptions import NotFound, ValidationError
 import json
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.db.models import Q
+from django.db.models import Q, Count, Case, When, IntegerField
+from datetime import datetime
 
 class OtpUpdateView(View):
 	def post(self, request):
@@ -132,6 +133,28 @@ class SingleGameDetailListView(APIView):
 		except SingleGameRecord.DoesNotExist:
 			return JsonResponse({'statusCode': '404', 'message': 'Game record dose not exist'}, status=404)
 
+class DayStatAPIView(APIView):
+	def get(self, request, username):
+		if not CustomUser.objects.filter(username=username).exists():
+			return JsonResponse({'status_code': '404', 'message': 'User not found'}, status=404)
+		records = SingleGameRecord.objects.filter(
+			Q(player1__username=username) | Q(player2__username=username)
+		)
+		stats = records.extra(select={'day': 'DATE(created_at)'}).values('day').annotate(
+			count=Count('id'),
+			wins=Count(Case(When(winner=username, then=1), output_field=IntegerField()))
+		)
+		day_count_stats = []
+		for record in stats:
+			day_str = record['day']
+			day_date = datetime.strptime(day_str, '%Y-%m-%d')
+			day_count_stats.append({
+				'day': day_date.strftime('%A'),
+				'count': record['count'],
+				'wins': record['wins'],
+			})
+		serializer = DayStatSerializer(day_count_stats, many=True)
+		return JsonResponse({'status_code': '200', 'day_count_stats': serializer.data}, status=200)
 
 def logout(request):
 	response = JsonResponse({'status': 'success'}, status=200)
