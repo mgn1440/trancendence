@@ -232,3 +232,19 @@ class SingleGameDetailListViewTest(APITestCase):
 		response = self.client.get(url)
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		#print(response.content)
+
+
+class DayCountAPIView(APITestCase):
+	def setUp(self):
+		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
+		self.user2 = CustomUser.objects.create_user(username="sunghyun", uid=2)
+		self.user3 = CustomUser.objects.create_user(username="eunseo", uid=3)
+		self.user4 = CustomUser.objects.create_user(username="guma", uid=4)
+		self.game_record1 = SingleGameRecord.objects.create(id=1, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
+		self.game_record2 = SingleGameRecord.objects.create(id=2, player1=self.user3, player1_score=2, player2=self.user4, player2_score=5, is_tournament=False)
+		self.game_record3 = SingleGameRecord.objects.create(id=3, player1=self.user, player1_score=5, player2=self.user3, player2_score=3, is_tournament=False)
+		self.game_record4 = SingleGameRecord.objects.create(id=4, player1=self.user, player1_score=1, player2=self.user3, player2_score=3, is_tournament=False)
+	def test_get_day_stat(self):
+		url = reverse('user_stat', kwargs={'username': self.user.username})
+		response = self.client.get(url)
+		print(response.content)

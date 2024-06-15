@@ -14,6 +14,6 @@ urlpatterns = [
 	path('<str:username>/profile-image/', ProfileImageView.as_view(), name='profile_image'),
 	path('<str:username>/record/single/', SingleGameRecordListView.as_view(), name='single_game_record'),
 	path('<str:username>/record/multi/', MultiGameRecordListView.as_view(), name='multi_game_record'),
-	path('<str:username>/user-day-count/', DayCountAPIView.as_view(), name='user_stat'),
+	path('<str:username>/user-day-stat/', DayCountAPIView.as_view(), name='user_stat'),
 	path('<str:username>/', UserNameDetailView.as_view(), name='user_detail_by_username'),
 ]

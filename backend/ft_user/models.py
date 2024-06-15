@@ -44,6 +44,17 @@ class SingleGameRecord(models.Model):
 	player2_score = models.IntegerField()
 	is_tournament = models.BooleanField(default=False)
 	created_at = models.DateTimeField(auto_now_add=True)
+	winner = models.CharField(max_length=128, null=True, blank=True)
+
+	def save(self, *args, **kwargs):
+		if self.player1_score > self.player2_score:
+			self.winner = self.player1.username
+		elif self.player1_score < self.player2_score:
+			self.winner = self.player2.username
+		else:
+			self.winner = None
+		super(SingleGameRecord, self).save(*args, **kwargs)
+
 	def __str__(self):
 		return f"single-game-record at {self.created_at}"
 

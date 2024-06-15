@@ -13,7 +13,7 @@ from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveU
 from rest_framework.exceptions import NotFound, ValidationError
 import json
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Case, When, IntegerField
 from datetime import datetime
 
 class OtpUpdateView(View):
@@ -140,8 +140,21 @@ class DayCountAPIView(APIView):
 		records = SingleGameRecord.objects.filter(
 			Q(player1__username=username) | Q(player2__username=username)
 		)
-		stats = records.extra(select={'day': 'DATE(created_at)'}).values('day').annotate(count=Count('id'))
-		day_count_stats = [{'day': record['day'].strftime('%A'), 'count': record['count']} for record in stats]
+		stats = records.extra(select={'day': 'DATE(created_at)'}).values('day').annotate(
+			count=Count('id'),
+			wins=Count(Case(When(winner=username, then=1), output_field=IntegerField()))
+		)
+
+		day_count_stats = []
+		for record in stats:
+			day_str = record['day']
+			day_date = datetime.strptime(day_str, '%Y-%m-%d')
+			day_count_stats.append({
+				'day': day_date.strftime('%A'),
+				'count': record['count'],
+				'wins': record['wins'],
+			})
+		print(day_count_stats)
 		serializer = DayCountSerializer(day_count_stats, many=True)
 		return JsonResponse({'status_code': '200', 'day_count_stats': serializer.data}, status=200)
 

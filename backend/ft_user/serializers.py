@@ -128,3 +128,4 @@ class SingleGameDetailSerializer(serializers.ModelSerializer):
 class DayCountSerializer(serializers.Serializer):
 	day = serializers.CharField()
 	count = serializers.IntegerField()
+	wins = serializers.IntegerField()
