@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "parcel": "parcel parcel.html",
     "build": "vite build",
     "preview": "vite preview"
   },
