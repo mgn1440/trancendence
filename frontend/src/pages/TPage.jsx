@@ -105,7 +105,7 @@ const TestPage = () => {
 //         if (data.type === "room_list") {
 //           setRoomList(data.rooms);
 //         } else if (data.type === "join_approved") {
-//           window.location.href = `/lobby/${data.host}`;
+//           gotoPage(`/lobby/${data.host}`);
 //         } else if (data.type === "join_denied") {
 //           alert(data.message);
 //         } else if (data.type === "password_required") {

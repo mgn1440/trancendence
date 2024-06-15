@@ -69,7 +69,8 @@ const domRenderer = () => {
     const setState = (newState) => {
       // console.log(options.states); // debug
       // TODO: diff알고리즘과 shallowEqual 함수 객체일 때 제대로 확인이 안되는 문제 발생 => 재정비 필요
-      // if (shallowEqual(state, newState)) return;
+      // 문제 발생 시 shallowEqual 함수를 주석처리하시오
+      if (shallowEqual(state, newState)) return;
       states[index] = newState;
       // queueMicrotask(_render);
       _render();
@@ -82,9 +83,9 @@ const domRenderer = () => {
     const { refHook: index, refs } = options;
     if (refs.length === index) refs.push(initialState);
     const getRef = () => refs[index];
-    const setRef = (newState) => {
-      // if (shallowEqual(state, newState)) return;
-      refs[index] = newState;
+    const setRef = (newRef) => {
+      if (shallowEqual(getRef(), newRef)) return;
+      refs[index] = newRef;
     };
     options.refHook += 1;
     console.log(refs);

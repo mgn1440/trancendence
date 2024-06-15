@@ -46,13 +46,13 @@ const RoomPage = () => {
           data.type === "room_full" ||
           data.type === "room_not_exist"
         ) {
-          window.location.href = "/lobby";
+          gotoPage("/lobby");
         } else if (data.type === "room_ready") {
           if (data.you === data.host) {
             setStartBtn(true);
           }
         } else if (data.type === "goto_game") {
-          window.location.href = `/game/${data.host}`;
+          gotoPage(`/game/${data.host}`);
         }
       };
 
