@@ -14,8 +14,8 @@ const domRenderer = () => {
   const options = {
     states: {},
     stateHook: {},
-    refs: [],
-    refHook: 0,
+    refs: {},
+    refHook: {},
     dependencies: [],
     effectHook: 0,
     effectList: [],
@@ -29,8 +29,8 @@ const domRenderer = () => {
   const resetOptions = () => {
     options.states = {};
     options.stateHook = {};
-    options.refs = [];
-    options.refHook = 0;
+    options.refs = {};
+    options.refHook = {};
     options.dependencies = [];
     options.effectHook = 0;
     options.effectList = [];
@@ -49,7 +49,7 @@ const domRenderer = () => {
     updateElement($root, newVDOM, currentVDOM);
     renderInfo.currentVDOM = newVDOM;
     options.stateHook = {};
-    options.refHook = 0;
+    options.refHook = {};
     options.effectHook = 0;
 
     options.effectList.forEach((effect) => effect());
@@ -70,7 +70,8 @@ const domRenderer = () => {
     if (!stateHook[component]) {
       stateHook[component] = 0;
     }
-    if (!states[component]) {
+    console.log("states", states[component]); // debug
+    if (states[component] === undefined) {
       states[component] = [];
     }
     const index = stateHook[component];
@@ -79,19 +80,19 @@ const domRenderer = () => {
     const state = states[component][index];
     console.log("useState", component, initialState, states[component], state); // debug
     const setState = (newState) => {
-      console.log(options.states); // debug
+      // console.log(options.states); // debug
       // TODO: diff알고리즘과 shallowEqual 함수 객체일 때 제대로 확인이 안되는 문제 발생 => 재정비 필요
       // 문제 발생 시 shallowEqual 함수를 주석처리하시오
       if (shallowEqual(state, newState)) return;
       // console.log("shallowEqual Passed"); // debug
       states[component][index] = newState;
       // queueMicrotask(_render);
-      console.log(
-        "setState",
-        component,
-        states[component],
-        states[component][index]
-      );
+      // console.log(
+      //   "setState",
+      //   component,
+      //   states[component],
+      //   states[component][index]
+      // );
       _render();
     };
     options.stateHook[component] += 1;
@@ -99,17 +100,25 @@ const domRenderer = () => {
   };
 
   const useRef = (initialState) => {
-    const { refHook: index, refs } = options;
-    if (refs.length === index) refs.push(initialState);
-    const getRef = () => refs[index];
+    const { refHook, refs } = options;
+    const component = currentComponent;
+    if (!refHook[component]) {
+      refHook[component] = 0;
+    }
+    if (!refs[component]) {
+      refs[component] = [];
+    }
+    const index = refHook[component];
+    if (refs.length === index) refs[component].push(initialState);
+    const getRef = () => refs[component][index];
     const setRef = (newRef) => {
       // TODO: Create Room 안되는 문제
       // console.log("before shallowEqual", getRef(), newRef); // debug
       if (shallowEqual(getRef(), newRef)) return;
       // console.log("shallowEqual Passed"); // debug
-      refs[index] = newRef;
+      refs[component][index] = newRef;
     };
-    options.refHook += 1;
+    options.refHook[component] += 1;
     // console.log(refs);
     return [getRef, setRef];
     // return { current: refs[index] };

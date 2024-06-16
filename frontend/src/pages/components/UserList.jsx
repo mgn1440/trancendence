@@ -92,7 +92,9 @@ export const UserSleep = ({ userName }) => {
 };
 
 const UserList = () => {
-  const [userListData, setUserListData] = useState({});
+  const [userListData, setUserListData] = useState(
+    ws_userlist.getState().userList
+  );
   useEffect(() => {
     const socketAsync = async () => {
       startWebSocketConnection(ws_userlist.dispatch, setUserListData);
