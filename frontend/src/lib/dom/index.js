@@ -1,6 +1,7 @@
 import { updateElement } from "./diff";
 import { shallowEqual } from "./utils/object";
 import { createElement } from "./client";
+import { currentComponent, setCurrentComponent } from "@/lib/jsx/jsx-runtime";
 
 const frameRunner = (callback) => {
   let requestId;
@@ -9,13 +10,12 @@ const frameRunner = (callback) => {
     requestId = requestAnimationFrame(callback);
   };
 };
-
 const domRenderer = () => {
   const options = {
-    states: [],
-    stateHook: 0,
-    refs: [],
-    refHook: 0,
+    states: {},
+    stateHook: {},
+    refs: {},
+    refHook: {},
     dependencies: [],
     effectHook: 0,
     effectList: [],
@@ -27,27 +27,29 @@ const domRenderer = () => {
   };
 
   const resetOptions = () => {
-    options.states = [];
-    options.stateHook = 0;
-    options.refs = [];
-    options.refHook = 0;
+    options.states = {};
+    options.stateHook = {};
+    options.refs = {};
+    options.refHook = {};
     options.dependencies = [];
     options.effectHook = 0;
     options.effectList = [];
   };
 
   const _render = frameRunner(() => {
+    console.log("_render");
     const { $root, component, currentVDOM } = renderInfo;
     if (!$root || !component) return;
 
+    setCurrentComponent(component.name);
     const newVDOM = component();
     // 통째로 다 바꾸는 방법
     // while ($root.firstChild) $root.removeChild($root.firstChild);
     // $root.appendChild(createElement(newVDOM));
     updateElement($root, newVDOM, currentVDOM);
     renderInfo.currentVDOM = newVDOM;
-    options.stateHook = 0;
-    options.refHook = 0;
+    options.stateHook = {};
+    options.refHook = {};
     options.effectHook = 0;
 
     options.effectList.forEach((effect) => effect());
@@ -63,32 +65,60 @@ const domRenderer = () => {
   };
 
   const useState = (initialState) => {
-    const { stateHook: index, states } = options;
-    if (states.length === index) states.push(initialState);
-    const state = states[index];
+    const { stateHook, states } = options;
+    const component = currentComponent;
+    if (!stateHook[component]) {
+      stateHook[component] = 0;
+    }
+    console.log("states", states[component]); // debug
+    if (states[component] === undefined) {
+      states[component] = [];
+    }
+    const index = stateHook[component];
+    if (states[component].length === index)
+      states[component].push(initialState);
+    const state = states[component][index];
+    console.log("useState", component, initialState, states[component], state); // debug
     const setState = (newState) => {
       // console.log(options.states); // debug
       // TODO: diff알고리즘과 shallowEqual 함수 객체일 때 제대로 확인이 안되는 문제 발생 => 재정비 필요
       // 문제 발생 시 shallowEqual 함수를 주석처리하시오
-      // if (shallowEqual(state, newState)) return;
-      states[index] = newState;
+      if (shallowEqual(state, newState)) return;
+      // console.log("shallowEqual Passed"); // debug
+      states[component][index] = newState;
       // queueMicrotask(_render);
+      // console.log(
+      //   "setState",
+      //   component,
+      //   states[component],
+      //   states[component][index]
+      // );
       _render();
     };
-    options.stateHook += 1;
+    options.stateHook[component] += 1;
     return [state, setState];
   };
 
   const useRef = (initialState) => {
-    const { refHook: index, refs } = options;
-    if (refs.length === index) refs.push(initialState);
-    const getRef = () => refs[index];
+    const { refHook, refs } = options;
+    const component = currentComponent;
+    if (!refHook[component]) {
+      refHook[component] = 0;
+    }
+    if (!refs[component]) {
+      refs[component] = [];
+    }
+    const index = refHook[component];
+    if (refs.length === index) refs[component].push(initialState);
+    const getRef = () => refs[component][index];
     const setRef = (newRef) => {
       // TODO: Create Room 안되는 문제
-      // if (shallowEqual(getRef(), newRef)) return;
-      refs[index] = newRef;
+      // console.log("before shallowEqual", getRef(), newRef); // debug
+      if (shallowEqual(getRef(), newRef)) return;
+      // console.log("shallowEqual Passed"); // debug
+      refs[component][index] = newRef;
     };
-    options.refHook += 1;
+    options.refHook[component] += 1;
     // console.log(refs);
     return [getRef, setRef];
     // return { current: refs[index] };

@@ -12,11 +12,12 @@ const LobbyPage = () => {
   const [myProfile, setMyProfile] = useState({});
   const [roomList, setRoomList] = useState([]);
   const [getLobbySocket, setLobbySocket] = useRef({});
+  console.log(myProfile); // debug
   useEffect(() => {
     const fetchProfile = async () => {
       const userMe = await axiosUserMe();
       setUserData(clinetUserStore.dispatch, userMe.data.user_info);
-      console.log(clinetUserStore.getState()); // debug
+      // console.log(clinetUserStore.getState()); // debug
       setMyProfile(userMe.data);
     };
     fetchProfile();
@@ -31,7 +32,7 @@ const LobbyPage = () => {
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
 
-        console.log(data); // debug
+        // console.log(data); // debug
         if (data.type === "room_list") {
           setRoomList(data.rooms);
         } else if (data.type === "join_approved") {

@@ -29,6 +29,18 @@ const shallowEqual = (obj1, obj2) => {
     }
   }
 
+  if (
+    !(obj1 instanceof WebSocket && obj2 instanceof WebSocket) &&
+    (obj1 instanceof WebSocket || obj2 instanceof WebSocket)
+  ) {
+    return false;
+  }
+
+  if (obj1 instanceof WebSocket && obj2 instanceof WebSocket) {
+    if (obj1.url !== obj2.url || obj1.readyState !== obj2.readyState) {
+      return false;
+    }
+  }
   return true;
 };
 
