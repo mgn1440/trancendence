@@ -6,22 +6,10 @@ import { axiosUserMe } from "@/api/axios.custom";
 import { useState, useEffect, useRef } from "@/lib/dom";
 import { isEmpty, gotoPage } from "@/lib/libft";
 import { MainProfileState } from "./GameRoom";
-import { clinetUserStore, setUserData } from "@/store/clientUserStore";
 
 const LobbyPage = () => {
-  const [myProfile, setMyProfile] = useState({});
   const [roomList, setRoomList] = useState([]);
   const [getLobbySocket, setLobbySocket] = useRef({});
-  console.log(myProfile); // debug
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const userMe = await axiosUserMe();
-      setUserData(clinetUserStore.dispatch, userMe.data.user_info);
-      // console.log(clinetUserStore.getState()); // debug
-      setMyProfile(userMe.data);
-    };
-    fetchProfile();
-  }, []);
 
   useEffect(() => {
     const socketAsync = async () => {
@@ -87,18 +75,17 @@ const LobbyPage = () => {
         <TopNavBar />
       </div>
       <div id="middle">
-        {isEmpty(myProfile) ? (
-          <div class="main-section flex-column"></div>
-        ) : (
-          <div class="main-section flex-column">
-            <LobbyProfile
-              data={myProfile}
-              sendLobbySocket={sendLobbySocket}
-              stat={MainProfileState.LOBBY}
-            />
-            <LobbyRooms roomList={roomList} sendLobbySocket={sendLobbySocket} />
-          </div>
-        )}
+        {/* {isEmpty(myProfile) ? (
+        ) : ( */}
+        <div class="main-section flex-column">
+          <LobbyProfile
+            // data={myProfile}
+            sendLobbySocket={sendLobbySocket}
+            stat={MainProfileState.LOBBY}
+          />
+          {/* )} */}
+          <LobbyRooms roomList={roomList} sendLobbySocket={sendLobbySocket} />
+        </div>
         <UserList />
       </div>
     </div>

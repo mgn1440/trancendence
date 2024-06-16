@@ -3,6 +3,7 @@ import { useEffect, useState } from "@/lib/dom";
 import { isEmpty } from "@/lib/libft";
 import { ws_userlist, startWebSocketConnection } from "@/store/userListWS";
 import { clinetUserStore } from "@/store/clientUserStore";
+import { calcGameRate } from "../utils/utils";
 
 export const moveToProfile = (userName) => {
   if (
@@ -44,16 +45,7 @@ export const User = ({ userName }) => {
             <p>
               win: {userData.win} lose: {userData.lose}
             </p>
-            <p>
-              rate:
-              {userData.win + userData.lose === 0
-                ? 0
-                : (
-                    (userData.win / (userData.win + userData.lose)) *
-                    100
-                  ).toFixed(2)}
-              %
-            </p>
+            <p>rate: {calcGameRate(userData)}%</p>
           </div>
         )}
       </div>
