@@ -37,6 +37,7 @@ const domRenderer = () => {
   };
 
   const _render = frameRunner(() => {
+    console.log("_render");
     const { $root, component, currentVDOM } = renderInfo;
     if (!$root || !component) return;
 
@@ -67,10 +68,11 @@ const domRenderer = () => {
     if (states.length === index) states.push(initialState);
     const state = states[index];
     const setState = (newState) => {
-      // console.log(options.states); // debug
+      console.log(options.states); // debug
       // TODO: diff알고리즘과 shallowEqual 함수 객체일 때 제대로 확인이 안되는 문제 발생 => 재정비 필요
       // 문제 발생 시 shallowEqual 함수를 주석처리하시오
-      // if (shallowEqual(state, newState)) return;
+      if (shallowEqual(state, newState)) return;
+      // console.log("shallowEqual Passed"); // debug
       states[index] = newState;
       // queueMicrotask(_render);
       _render();
@@ -85,7 +87,9 @@ const domRenderer = () => {
     const getRef = () => refs[index];
     const setRef = (newRef) => {
       // TODO: Create Room 안되는 문제
-      // if (shallowEqual(getRef(), newRef)) return;
+      // console.log("before shallowEqual", getRef(), newRef); // debug
+      if (shallowEqual(getRef(), newRef)) return;
+      // console.log("shallowEqual Passed"); // debug
       refs[index] = newRef;
     };
     options.refHook += 1;

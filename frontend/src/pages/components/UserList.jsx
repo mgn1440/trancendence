@@ -13,8 +13,7 @@ export const moveToProfile = (userName) => {
   }
   if (userName === clinetUserStore.getState().client.username) {
     window.location.href = `/profile/me`;
-  }
-  else{
+  } else {
     window.location.href = `/profile/${userName}`;
   }
 };
@@ -97,7 +96,7 @@ const UserList = () => {
   useEffect(() => {
     const socketAsync = async () => {
       startWebSocketConnection(ws_userlist.dispatch, setUserListData);
-      console.log(ws_userlist.getState()); //debug
+      // console.log(ws_userlist.getState()); //debug
     };
     socketAsync();
   }, []);
