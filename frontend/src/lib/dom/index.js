@@ -78,7 +78,7 @@ const domRenderer = () => {
     if (states[component].length === index)
       states[component].push(initialState);
     const state = states[component][index];
-    console.log("useState", component, initialState, states[component], state); // debug
+    // console.log("useState", component, initialState, states[component], state); // debug
     const setState = (newState) => {
       // console.log(options.states); // debug
       // TODO: diff알고리즘과 shallowEqual 함수 객체일 때 제대로 확인이 안되는 문제 발생 => 재정비 필요
