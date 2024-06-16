@@ -42,10 +42,16 @@ export const User = ({ userName }) => {
           <div>
             <h6>{userData.username}</h6>
             <p>
-              win: {userData.win} lose: {userData.lose} rate:
+              win: {userData.win} lose: {userData.lose}
+            </p>
+            <p>
+              rate:
               {userData.win + userData.lose === 0
                 ? 0
-                : (userData.win / (userData.win + userData.lose)) * 100}
+                : (
+                    (userData.win / (userData.win + userData.lose)) *
+                    100
+                  ).toFixed(2)}
               %
             </p>
           </div>
@@ -68,8 +74,11 @@ export const UserSleep = ({ userName }) => {
   const randNum = Math.ceil(Math.random() * 5);
   const imgSrc = `/img/minji_${randNum}.jpg`;
   return (
-    <div class="user-item" onclick={() => moveToProfile(userData.username)}>
-      <div class="profile sleep">
+    <div
+      class="user-item sleep"
+      onclick={() => moveToProfile(userData.username)}
+    >
+      <div class="profile">
         <img src={imgSrc} />
         <span class="isloggedin sleep">●</span>
       </div>
@@ -78,10 +87,16 @@ export const UserSleep = ({ userName }) => {
           <div>
             <h6>{userData.username}</h6>
             <p>
-              win: {userData.win} lose: {userData.lose} rate:
+              win: {userData.win} lose: {userData.lose}
+            </p>
+            <p>
+              rate:
               {userData.win + userData.lose === 0
                 ? 0
-                : (userData.win / (userData.win + userData.lose)) * 100}
+                : (
+                    (userData.win / (userData.win + userData.lose)) *
+                    100
+                  ).toFixed(2)}
               %
             </p>
           </div>
@@ -124,10 +139,6 @@ const UserList = () => {
             userListData.offline.map((user) => {
               return <UserSleep userName={user} />;
             })}
-        </div>
-        <div class="user-search-bar">
-          <input class="user-search-input"></input>
-          <img src="/icon/search.svg"></img>
         </div>
       </div>
       <div class="overlay" onclick={userListToggleBack}></div>

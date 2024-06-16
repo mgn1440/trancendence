@@ -25,7 +25,7 @@
 
 .user-list {
   width: 16rem;
-  height: calc(100vh - 6rem);
+  height: calc(100vh - 3rem);
   background-color: var(--black);
   border-left: 1px solid var(--white);
   display: flex;
@@ -126,8 +126,13 @@
   position: relative;
 }
 
-.user-item > .profile.sleep {
+.user-item.sleep {
   opacity: 0.3;
+}
+
+.user-item.sleep:hover {
+  opacity: 0.6;
+  transition: opacity 0.1s;
 }
 
 .user-item > .profile > img {
