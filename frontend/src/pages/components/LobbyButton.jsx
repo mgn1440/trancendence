@@ -56,6 +56,7 @@ const getModalInput = (data) => {
 };
 
 const LobbyButton = ({ data, sendLobbySocket }) => {
+  console.log(data); // debug
   useEffect(() => {
     const modalElement = document.getElementById("CreateRoomModal");
     const handleModalHidden = () => {
@@ -188,7 +189,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
   };
 
   return (
-    <div class="lobby-buttons">
+    <div>
       <Modal
         id="CreateRoomModal"
         title={() =>
@@ -258,39 +259,6 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
           </div>
         </div>
       </div>
-      <button class="lobby-game-btn">
-        <img src="/icon/user.svg"></img>
-        Offline Game
-      </button>
-      <button
-        class="lobby-game-btn"
-        data-bs-toggle="modal"
-        data-bs-target="#CreateRoomModal"
-      >
-        <img src="/icon/users.svg"></img>
-        Create Room
-      </button>
-      <button
-        class="lobby-game-btn"
-        data-bs-toggle="modal"
-        data-bs-target="#FindUserModal"
-      >
-        <img src="/icon/search.svg"></img>
-        Find user
-      </button>
-      <button
-        class="lobby-game-btn"
-        onclick={() => {
-          const quickMatchModal = new bootstrap.Modal(
-            document.getElementById("QuickMatchModal")
-          );
-          quickMatchModal.show();
-          sendLobbySocket({ type: "matchmaking" });
-        }}
-      >
-        <img src="/icon/quick.svg"></img>
-        Quick Match
-      </button>
     </div>
   );
 };
