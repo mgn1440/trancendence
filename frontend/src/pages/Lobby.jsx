@@ -12,6 +12,7 @@ const LobbyPage = () => {
   const [myProfile, setMyProfile] = useState({});
   const [roomList, setRoomList] = useState([]);
   const [getLobbySocket, setLobbySocket] = useRef({});
+  console.log(myProfile); // debug
   useEffect(() => {
     const fetchProfile = async () => {
       const userMe = await axiosUserMe();

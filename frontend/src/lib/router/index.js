@@ -1,6 +1,7 @@
 import { pathToRegex } from "./utils";
 import { createElement } from "../dom/client";
 import { render } from "../dom";
+import { setCurrentComponent } from "@/lib/jsx/jsx-runtime";
 
 const spaRouter = () => {
   let pageParams;
@@ -10,15 +11,15 @@ const spaRouter = () => {
   };
 
   const matchUrlToRoute = (routes, path) => {
-    const segments = path.split('/').map((segment) => {
-      if (segment === '') return '/';
+    const segments = path.split("/").map((segment) => {
+      if (segment === "") return "/";
       return segment;
     });
-    
-    if (segments.length <= 2 && segments[1] === '/') {
+
+    if (segments.length <= 2 && segments[1] === "/") {
       return { Component: routes[0].element, params: undefined };
     }
-    
+
     const traverse = (routes, segments, errorComponent) => {
       for (const route of routes) {
         const { path, children, element, errorElement } = route;
@@ -27,41 +28,41 @@ const spaRouter = () => {
         if (!pathname) continue;
         if (segments.length === 1) {
           return { Component: element, params: params };
-        }
-        else if (children) {
-          return traverse(children, segments.slice(1), errorElement ?? errorComponent);
+        } else if (children) {
+          return traverse(
+            children,
+            segments.slice(1),
+            errorElement ?? errorComponent
+          );
         }
       }
       return { Component: errorComponent, params: undefined };
-    }
+    };
     return traverse(routes, segments);
-  }
+  };
 
   const loadRouteComponent = (path) => {
     const { Component, params } = matchUrlToRoute(routeInfo.routes ?? [], path);
 
     if (!Component) {
       throw new Error("no matching component error");
-    }
-    else {
+    } else {
       pageParams = params;
       if (routeInfo.root) {
+        setCurrentComponent(Component.name);
         render(routeInfo.root, Component);
-      }
-      else {
+      } else {
         throw new Error("root element is empty");
       }
     }
-  }
-  // TODO: Implement the history method: replace, back 
+  };
+  // TODO: Implement the history method: replace, back
   const history = {
     getPageParams() {
       return pageParams;
     },
 
-    replace(path) {
-
-    },
+    replace(path) {},
 
     push(path) {
       const { pathname, search } = new URL(window.location.origin + path);
@@ -69,14 +70,12 @@ const spaRouter = () => {
       loadRouteComponent(pathname);
     },
 
-    back() {
-
-    },
+    back() {},
 
     currentPath() {
       return window.location.pathname;
-    }
-  }
+    },
+  };
 
   const router = (root, routes) => {
     routeInfo.root = root;
@@ -90,7 +89,7 @@ const spaRouter = () => {
         e.preventDefault();
         history.push(anchor.pathname + anchor.search);
       });
-    }
+    };
 
     const initLoad = () => {
       loadRouteComponent(history.currentPath());
@@ -99,12 +98,12 @@ const spaRouter = () => {
       window.addEventListener("popstate", () => {
         loadRouteComponent(history.currentPath());
       });
-    }
+    };
 
     initLoad();
-  }
+  };
 
   return { history, router };
-}
+};
 
 export const { history, router } = spaRouter();
