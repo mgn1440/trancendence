@@ -65,12 +65,14 @@ export const axiosGameRecords = async ({ username, isSingle }) => {
 export const axiosUserFollow = async (user_name) => {
   try {
     const apiURL = axiosUserFollowURL + "/";
-    const response = await instance.post(apiURL, { "following_username" : user_name });
+    const response = await instance.post(apiURL, {
+      following_username: user_name,
+    });
     return response;
   } catch (error) {
     return error;
   }
-}
+};
 
 export const axiosUserUnfollow = async (user_name) => {
   try {
@@ -80,7 +82,7 @@ export const axiosUserUnfollow = async (user_name) => {
   } catch (error) {
     return error;
   }
-}
+};
 
 export const axiosUserList = async () => {
   try {
@@ -89,4 +91,15 @@ export const axiosUserList = async () => {
   } catch (error) {
     return error;
   }
-}
+};
+
+export const axiosUserProfile = async (user_name) => {
+  try {
+    const response = await instance.get(
+      `${axiosUserURL}/${user_name}/profile-image`
+    );
+    return response;
+  } catch (error) {
+    return error;
+  }
+};
