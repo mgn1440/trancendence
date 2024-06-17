@@ -45,9 +45,7 @@ const getModalInput = (data) => {
   const retRoomData = {
     type: "create_room",
     room_name:
-      inputs[0].value === ""
-        ? `${data.user_info.username}'s Room`
-        : inputs[0].value,
+      inputs[0].value === "" ? `${data.username}'s Room` : inputs[0].value,
     mode: radios[2].checked ? 2 : 4,
     is_secret: radios[1].checked ? true : false,
     password: radios[1].checked ? inputs[1].value : "",
@@ -200,7 +198,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
             <div>
               <InputBox
                 text="Group Name"
-                defaultValue={`${data.user_info.username}'s Room`}
+                defaultValue={`${data.username}'s Room`}
               />
               <div class="radio-check body-element">
                 <RadioCheck text="Open Room" name="lock" id="open" />

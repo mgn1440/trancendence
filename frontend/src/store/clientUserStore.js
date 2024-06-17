@@ -1,12 +1,12 @@
 import { createStore } from "../lib/observer/Store.js";
 
-const SET_CLIENT = 'SET_CLIENT';
+const SET_CLIENT = "SET_CLIENT";
 
 const initState = {
-  client: {}
-}
+  client: {},
+};
 
-const set_client = client => ({
+const set_client = (client) => ({
   type: SET_CLIENT,
   payload: client,
 });
@@ -20,8 +20,8 @@ const reducer_client = (state = initState, action = {}) => {
   }
 };
 
-export const clinetUserStore = createStore(reducer_client);
+export const clientUserStore = createStore(reducer_client);
 
 export const setUserData = (dispatch, client) => {
-  dispatch(set_client(client))
-}
+  dispatch(set_client(client));
+};
