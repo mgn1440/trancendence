@@ -35,6 +35,8 @@ EXECTUE_FE_CMD		:= cd $(PWD) &&																										\
 											cd $(FE_PATH) && 																							\
 											npm run dev
 EXECTUE_BE_CMD		:= cd $(PWD) &&																										\
+											python3 -m venv ~/goinfre/venv && 													\
+											source ~/goinfre/venv/bin/activate &&             \
 											cd $(BE_PATH) &&																							\
 											export ENV=local &&																						\
 											pip3 install -r requirements.txt &&														\
@@ -63,8 +65,8 @@ $(NAME):
 
 local:
 	docker compose -f $(COMPOSE_FILE) up -d
-	$(MAKE) frontend
-	$(MAKE) backend
+# $(MAKE) frontend
+# $(MAKE) backend
 
 frontend:
 	@osascript -e 																																		\
@@ -88,6 +90,12 @@ fclean:
 	docker system prune --all --volumes --force
 	unset ENV
 	rm -f $(NAME)
+
+backend-restart:
+	docker compose -f $(COMPOSE_FILE) restart backend
+
+nginx-restart:
+	docker compose -f $(COMPOSE_FILE) restart nginx
 
 re:
 	make fclean
