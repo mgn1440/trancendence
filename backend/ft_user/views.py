@@ -5,11 +5,11 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
-from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer, SingleGameDetailSerializer, DayStatSerializer
+from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer, SingleGameDetailSerializer, DayStatSerializer, UserUpdateSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_framework.exceptions import NotFound, ValidationError
 import json
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -47,12 +47,20 @@ class UserNameDetailView(RetrieveAPIView):
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 
-class UserMeView(RetrieveAPIView):
+class UserMeView(RetrieveUpdateAPIView):
 	serializer_class = CustomUserSerializer
 	def get(self, request, *args, **kwargs):
 		user = get_jwt_user(self.request)
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
+	def update(self, request, *args, **kwargs):
+		user = get_jwt_user(self.request)
+		partial = kwargs.pop('partial', False)
+		serializer = UserUpdateSerializer(user, data=request.data, partial=partial)
+		if serializer.is_valid(raise_exception=True):
+			serializer.save()
+			return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
+		return JsonResponse({'status_code': '400', 'message': serializer.error}, status=400)
 
 class ProfileImageView(RetrieveUpdateDestroyAPIView):
 	serializer_class = ProfileImageSerializer

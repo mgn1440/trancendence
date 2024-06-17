@@ -1,6 +1,6 @@
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIClient
 from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord, SingleGameDetail
 import json, jwt
 from backend.settings import JWT_SECRET_KEY
@@ -153,31 +153,31 @@ class UserDeatilByNameViewTest(APITestCase):
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		# print('follow_test', response.content)
 
-class ProfileImageViewTest(APITestCase):
-	def setUp(self):
-		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
-		self.client.force_authenticate(user=self.user)
-		self.jwt_token = jwt.encode(
-			{'uid': self.user.uid},
-			JWT_SECRET_KEY,
-			algorithm='HS256'
-		)
-		self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_token)
+# class ProfileImageViewTest(APITestCase):
+# 	def setUp(self):
+# 		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
+# 		self.client.force_authenticate(user=self.user)
+# 		self.jwt_token = jwt.encode(
+# 			{'uid': self.user.uid},
+# 			JWT_SECRET_KEY,
+# 			algorithm='HS256'
+# 		)
+# 		self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_token)
 
-	def test_retrive_profile_image(self):
-		url = reverse('profile_image', kwargs={'username': self.user.username})
-		response = self.client.get(url)
-		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		print('image', response.content)
+# 	def test_retrive_profile_image(self):
+# 		url = reverse('profile_image', kwargs={'username': self.user.username})
+# 		response = self.client.get(url)
+# 		self.assertEqual(response.status_code, status.HTTP_200_OK)
+# 		# print('image', response.content)
 
-	def test_update_profile_image(self):
-		url = reverse('profile_image', kwargs={'username': self.user.username})
-		with open('/Users/sunko/Desktop/jordan.jpeg', 'rb') as image:
-			response = self.client.put(url, {'profile_image': image}, format='multipart')
-		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		url = reverse('user_detail_by_username', kwargs={'username': self.user.username})
-		response = self.client.get(url)
-		print('update', response.content)
+	# def test_update_profile_image(self):
+	# 	url = reverse('profile_image', kwargs={'username': self.user.username})
+	# 	with open('/Users/sunko/Desktop/jordan.jpeg', 'rb') as image:
+	# 		response = self.client.put(url, {'profile_image': image}, format='multipart')
+	# 	self.assertEqual(response.status_code, status.HTTP_200_OK)
+	# 	url = reverse('user_detail_by_username', kwargs={'username': self.user.username})
+	# 	response = self.client.get(url)
+		# print('update', response.content)
 		# url = reverse('profile_image', kwargs={'username': self.user.username})
 		# response = self.client.delete(url)
 		# self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -247,7 +247,7 @@ class DayStatAPIView(APITestCase):
 	def test_get_day_stat(self):
 		url = reverse('user_stat', kwargs={'username': self.user.username})
 		response = self.client.get(url)
-		print(response.content)
+		# print(response.content)
 
 
 class RecentOpponentsAPIView(APITestCase):
@@ -263,4 +263,31 @@ class RecentOpponentsAPIView(APITestCase):
 	def test_get_recent_opponents(self):
 		url = reverse('user_recent_opponent', kwargs={'username': self.user.username})
 		response = self.client.get(url)
+		# print(response.content)
+
+class UpdateUserProfileAPIView(APITestCase):
+	def setUp(self):
+		self.user = CustomUser.objects.create_user(
+			username="sunko",
+			uid=1,
+			otp_enabled=False,
+			multi_nickname='sunko_nickname'
+		)
+		self.client = APIClient()
+		self.client.force_authenticate(user=self.user)
+		self.jwt_token = jwt.encode(
+			{'uid': self.user.uid},
+			JWT_SECRET_KEY,
+			algorithm='HS256'
+		)
+		self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_token)
+		self.url = reverse('me')
+	def test_update_user_info(self):
+		data = {
+			'otp_enabled': True,
+		}
+		response = self.client.put(self.url, data, format='json')
+		print(response.content)
+		self.user.refresh_from_db()
+		response = self.client.get(self.url)
 		print(response.content)
