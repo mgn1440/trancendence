@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord, SingleGameDetail
+from rest_framework.validators import UniqueValidator
 
 class CustomUserSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -129,3 +130,12 @@ class DayStatSerializer(serializers.Serializer):
 	day = serializers.CharField()
 	count = serializers.IntegerField()
 	wins = serializers.IntegerField()
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+	username = serializers.CharField(
+		validators=[UniqueValidator(queryset=CustomUser.objects.all(), message="This username is already used.")]
+	)
+	class Meta:
+		model = CustomUser
+		fields = ['username', 'otp_enabled','profile_image', 'multi_nickname']
