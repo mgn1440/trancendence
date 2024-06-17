@@ -2,11 +2,13 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
 from ft_lobby.consumers import LobbyConsumer
+import asyncio
 
 
 
 class RoomConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+
         self.room_id_str = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = f'room_{self.room_id_str}'
         self.room_id = int(self.room_id_str)
@@ -25,10 +27,9 @@ class RoomConsumer(AsyncWebsocketConsumer):
             return
         
         
-        LobbyConsumer.rooms[self.room_id]['players'].append(self.scope['user'].username)
         
         # 방이 꽉 찼으면 연결 종료
-        if len(LobbyConsumer.rooms[self.room_id]['players']) > LobbyConsumer.rooms[self.room_id]['mode']:
+        if len(LobbyConsumer.rooms[self.room_id]['players']) >= LobbyConsumer.rooms[self.room_id]['mode']:
             await self.send(text_data=json.dumps({
                 'type': 'room_full',
             }))
@@ -43,6 +44,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
         
+        LobbyConsumer.rooms[self.room_id]['players'].append(self.scope['user'].username)
         await self.update_room_list()
         
         await self.send(text_data=json.dumps({
@@ -67,6 +69,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
                     'type': 'room_ready',
                 }
             )
+        return
         
         
 
@@ -78,10 +81,11 @@ class RoomConsumer(AsyncWebsocketConsumer):
             )
             return
         
-        LobbyConsumer.rooms[self.room_id]['players'].remove(self.scope['user'].username)
+        if self.scope['user'].username in LobbyConsumer.rooms[self.room_id]['players']:
+            LobbyConsumer.rooms[self.room_id]['players'].remove(self.scope['user'].username)
         
         # 게임상태가 game이면 폭파나 연결 끊기 메세지를 보내지 않음
-        if LobbyConsumer.rooms[self.room_id]['status'] == 'game':
+        if LobbyConsumer.rooms[self.room_id]['status'] == 'game' or LobbyConsumer.rooms[self.room_id]['status'] == 'playing':
             await self.update_room_list()
             await self.channel_layer.group_discard(
                 self.room_group_name,
@@ -107,6 +111,8 @@ class RoomConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
+        return
+
     async def receive(self, text_data):
         data = json.loads(text_data)
         print(data)
@@ -127,13 +133,17 @@ class RoomConsumer(AsyncWebsocketConsumer):
                 }
             )
             await self.update_room_list()
+        elif data['type'] == 'disconnect':
+            print('disconnect' + self.scope['user'].username)
+            await self.close()
+
             
 
     async def update_room_list(self):
         channel_layer = get_channel_layer()
         # 게임중인 방은 제외
         # 룸안에 유저가 없으면 방을 삭제
-        if not LobbyConsumer.rooms[self.room_id]['players'] and LobbyConsumer.rooms[self.room_id]['status'] != 'game':
+        if not LobbyConsumer.rooms[self.room_id]['players'] and LobbyConsumer.rooms[self.room_id]['status'] != 'game' and LobbyConsumer.rooms[self.room_id]['status'] != 'playing':
             del LobbyConsumer.rooms[self.room_id]
         await channel_layer.group_send(
             "lobby",
