@@ -67,6 +67,7 @@ class MultiGameRecord(models.Model):
 	player2 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="player2_multi", db_column="player2", null=True, blank=True)
 	player3 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="player3_multi", db_column="player3", null=True, blank=True)
 	player4 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="player4_multi", db_column="player4", null=True, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 	def __str__(self):
 		return f"multi-game-record at {self.created_at}"
 

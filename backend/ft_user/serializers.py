@@ -69,7 +69,7 @@ class SingleGameRecordSerializer(serializers.ModelSerializer):
 class MultiGameRecordSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MultiGameRecord
-		fields = ['game1', 'game2', 'game3', 'player1', 'player2', 'player3', 'player4']
+		fields = ['game1', 'game2', 'game3', 'player1', 'player2', 'player3', 'player4', 'created_at']
 
 	def to_representation(self, instance):
 		username = self.context.get('username')
@@ -88,6 +88,7 @@ class MultiGameRecordSerializer(serializers.ModelSerializer):
 			"opponent2_profile": opponents[1].profile_image.url if opponents[1].profile_image else None,
 			"opponent3_name": opponents[2].username,
 			"opponent3_profile": opponents[2].profile_image.url if opponents[2].profile_image else None,
+			"created_at": instance.created_at
 		}
 
 	def _get_user_player(self, instance, username):
@@ -114,12 +115,9 @@ class MultiGameRecordSerializer(serializers.ModelSerializer):
 		return opponents
 
 	def _calculate_user_win(self, instance, user_player):
-		def is_winner(game, user_player):
-			if game.player1 == user_player:
-				return game.player1_score > game.player2_score
-			else:
-				return game.player2_score > game.player1_score
-		return is_winner(instance.game3, user_player) if instance.game3 else False
+		return instance.game3.winner == user_player
+
+
 
 class SingleGameDetailSerializer(serializers.ModelSerializer):
 	class Meta:

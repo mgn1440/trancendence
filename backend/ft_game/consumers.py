@@ -8,7 +8,7 @@ import random
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
 from ft_lobby.consumers import LobbyConsumer
-from ft_user.models import CustomUser, SingleGameRecord
+from ft_user.models import CustomUser, SingleGameRecord, MultiGameRecord
 from asgiref.sync import sync_to_async
 
 class GameConsumer(AsyncWebsocketConsumer):
@@ -107,8 +107,8 @@ class GameConsumer(AsyncWebsocketConsumer):
             if len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 1:
                 winner_name = LobbyConsumer.rooms[self.room_id]['game']['players'][0]
                 loser_name = self.scope['user'].username
-                game_data = await GameConsumer.get_game_data(winner_name, loser_name, 5, 0)
-                await GameConsumer.create_game_records(game_data)
+                game_data = await get_game_data(winner_name, loser_name, 5, 0)
+                await create_game_records(game_data)
             elif len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 0:
                 del LobbyConsumer.rooms[self.room_id]
             await self.update_room_list()
@@ -211,8 +211,8 @@ class GameConsumer(AsyncWebsocketConsumer):
             del LobbyConsumer.rooms[self.room_id]
         winner_score = self.game['scores'][winner]
         loser_score = self.game['scores'][loser]
-        game_data = await GameConsumer.get_game_data(winner_username, loser_username, winner_score, loser_score)
-        await GameConsumer.create_game_records(game_data)
+        game_data = await get_game_data(winner_username, loser_username, winner_score, loser_score)
+        await create_game_records(game_data)
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -268,41 +268,45 @@ class GameConsumer(AsyncWebsocketConsumer):
             'message': event['message']
         }))
 
-    async def create_game_records(game_data):
-        await sync_to_async(SingleGameRecord.objects.create)(
-            player1=game_data['player1'],
-            player1_score=game_data['player1_score'],
-            player2=game_data['player2'],
-            player2_score=game_data['player2_score'],
-        )
+async def create_game_records(game_data, is_tournament=False):
+    game_record = await sync_to_async(SingleGameRecord.objects.create)(
+        player1=game_data['player1'],
+        player1_score=game_data['player1_score'],
+        player2=game_data['player2'],
+        player2_score=game_data['player2_score'],
+        is_tournament=is_tournament
+    )
+    return game_record.id
 
-    async def get_game_data(player1_name, player2_name, player1_score, player2_score):
-        player1 = await sync_to_async(CustomUser.objects.get)(username=player1_name)
-        player2 = await sync_to_async(CustomUser.objects.get)(username=player2_name)
-        if (player1_score > player2_score):
-            await GameConsumer.update_user_win_or_lose(player1, player2)
-        elif (player1_score < player2_score):
-            await GameConsumer.update_user_win_or_lose(player2, player1)
-        game_data = {
-            'player1': player1,
-            'player2': player2,
-            'player1_score': player1_score,
-            'player2_score': player2_score,
-        }
-        return game_data
+
+async def get_game_data(player1_name, player2_name, player1_score, player2_score):
+    player1 = await sync_to_async(CustomUser.objects.get)(username=player1_name)
+    player2 = await sync_to_async(CustomUser.objects.get)(username=player2_name)
+    if (player1_score > player2_score):
+        await update_user_win_or_lose(player1, player2)
+    elif (player1_score < player2_score):
+        await update_user_win_or_lose(player2, player1)
+    game_data = {
+        'player1': player1,
+        'player2': player2,
+        'player1_score': player1_score,
+        'player2_score': player2_score,
+    }
+    return game_data
 
     # 동기함수 호출을 비동기 함수로 변경
-    @sync_to_async
-    def update_user_win_or_lose(self, winner, loser):
-        winner.win += 1
-        winner.save()
-        loser.lose += 1
-        loser.save()
+@sync_to_async
+def update_user_win_or_lose(winner, loser):
+    winner.win += 1
+    winner.save()
+    loser.lose += 1
+    loser.save()
 
 
 
 class TournamentGameConsumer(AsyncWebsocketConsumer):
-    
+    game_record_list = {}
+    game_player_list = {}
     async def connect(self):
         self.room_id_str = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = self.room_id_str
@@ -333,7 +337,9 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             await self.send_error_message('Room is not in tournament mode')
             await self.close()
             return
-
+        if self.room_id not in TournamentGameConsumer.game_record_list:
+            TournamentGameConsumer.game_record_list[self.room_id] = []
+            TournamentGameConsumer.game_player_list[self.room_id] = []
         if 'game' not in LobbyConsumer.rooms[self.room_id]:
             LobbyConsumer.rooms[self.room_id]['game'] = {
                 'a' : {
@@ -368,6 +374,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             }
 
         LobbyConsumer.rooms[self.room_id]['game']['players'].append(self.scope['user'].username)
+        TournamentGameConsumer.game_player_list[self.room_id].append(self.scope['user'].username)
 
         if len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 4:
             LobbyConsumer.rooms[self.room_id]['game']['roles'] = {
@@ -403,7 +410,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         }))
 
     async def disconnect(self, close_code):
-        
+
         if self.room_id not in LobbyConsumer.rooms:
             await self.channel_layer.group_discard(
                 self.room_group_name,
@@ -425,7 +432,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                 self.channel_name
             )
             return
-        
+
         if self.status == 'waiting':
             await self.channel_layer.group_send(
                 self.room_group_name,
@@ -434,7 +441,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                     'message': 'user disconnected'
                 }
             )
-                
+
         if LobbyConsumer.rooms[self.room_id]['status'] == 'room':
             del LobbyConsumer.rooms[self.room_id]['game']
             await self.channel_layer.group_discard(
@@ -442,7 +449,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                 self.channel_name
             )
             return
-            
+
         if self.scope['user'].username in LobbyConsumer.rooms[self.room_id]['game']['players']:
             LobbyConsumer.rooms[self.room_id]['game']['players'].remove(self.scope['user'].username)
 
@@ -454,7 +461,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                 self.channel_name
             )
             return
-        
+
         if len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 0:
             del LobbyConsumer.rooms[self.room_id]['game']
             await self.update_room_list()
@@ -463,18 +470,18 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                 self.channel_name
             )
             return
-        
-        
+
+
         match = LobbyConsumer.rooms[self.room_id]['game']['match'][self.scope['user'].username]
         role = LobbyConsumer.rooms[self.room_id]['game']['roles'][self.scope['user'].username]
-        
+
         if role == 'observer':
             await self.channel_layer.group_discard(
                 self.room_group_name,
                 self.channel_name
             )
             return
-        
+
         # final 유저가 대기중에 나가는 경우 ex) a매치는 진행중인데 b매치의 승자가 나가는 경우
         if match == 'f':
             if self.scope['user'].username in LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players']:
@@ -485,7 +492,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                         self.channel_name
                     )
                     return
-        
+
         # a, b, f매치중 나가는 경우 부전 패 처리
         await self.handle_walkover(match)
 
@@ -504,6 +511,9 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         loser = self.scope['user'].username
         winner_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][winner]
         loser_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][loser]
+        game_data = await get_game_data(winner, loser, 3, 0)
+        game_record_id = await create_game_records(game_data, is_tournament=True)
+        TournamentGameConsumer.game_record_list[self.room_id].append(game_record_id)
         LobbyConsumer.rooms[self.room_id]['game'][match]['scores'][loser_role] = 0
         LobbyConsumer.rooms[self.room_id]['game'][match]['scores'][winner_role] = 3
         if match == 'a':
@@ -516,6 +526,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             LobbyConsumer.rooms[self.room_id]['game']['match'][winner] = 'f'
         elif match == 'f':
             LobbyConsumer.rooms[self.room_id]['game']['winner_f'] = winner
+            await self.create_multi_game_records()
         await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -525,8 +536,8 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                     'score': LobbyConsumer.rooms[self.room_id]['game'][match]['scores'],
                     'match': match,
                 }
-            )     
-        
+            )
+
     async def receive(self, text_data):
         data = json.loads(text_data)
         if data['type'] == 'start_game':
@@ -540,18 +551,22 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         elif data['type'] == 'stop_bar':
             self.game[data['match']]['bar_move'][data['role']] = 0
         elif data['type'] == 'final_ready':
-            if self.scope['user'].username == self.game['winner_a'] or self.scope['user'].username == self.game['winner_b']:    
+            if self.scope['user'].username == self.game['winner_a'] or self.scope['user'].username == self.game['winner_b']:
                 LobbyConsumer.rooms[self.room_id]['game']['f']['players'].append(self.scope['user'].username)
             if len(LobbyConsumer.rooms[self.room_id]['game']['f']['players']) == 2:
                 if len(LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players']) != 2:
                     # 이때가 f 매치 부전승 처리
                     winner = self.scope['user'].username
                     loser = LobbyConsumer.rooms[self.room_id]['game']['f']['players'][0]
+                    game_data = await get_game_data(winner, loser, 3, 0)
+                    game_record_id = await create_game_records(game_data, is_tournament=True)
+                    TournamentGameConsumer.game_record_list[self.room_id].append(game_record_id)
                     winner_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][winner]
                     loser_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][loser]
                     LobbyConsumer.rooms[self.room_id]['game']['f']['scores'][loser_role] = 0
                     LobbyConsumer.rooms[self.room_id]['game']['f']['scores'][winner_role] = 3
                     LobbyConsumer.rooms[self.room_id]['game']['winner_f'] = winner
+                    await self.create_multi_game_records()
                     await self.channel_layer.group_send(
                         self.room_group_name,
                         {
@@ -576,10 +591,10 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                 asyncio.create_task(self.start_ball_movement('f'))
         elif data['type'] == 'disconnect':
             await self.close()
-            
-    
-        
-                    
+
+
+
+
     async def start_ball_movement(self, match):
         while self.status == 'playing' and self.room_id in LobbyConsumer.rooms and len(LobbyConsumer.rooms[self.room_id]['game'][match]['players']) == 2:
             self.update_ball_position(match)
@@ -647,13 +662,24 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         player2 = self.game[match]['players'][1]
         winner_username = player1 if self.game['roles'][player1] == winner else player2
         loser_username = player1 if self.game['roles'][player1] == loser else player2
-        
+
         LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players'].append(winner_username)
         await self.game_over_match(winner_username, loser_username, match)
 
-            
     async def game_over_match(self, winner, loser, match):
         LobbyConsumer.rooms[self.room_id]['game'][match]['players'] = []
+        left_score = self.game[match]['scores']['left']
+        right_score = self.game[match]['scores']['right']
+        if (left_score > right_score):
+            winner_score = left_score
+            loser_score = right_score
+        else:
+            winner_score = right_score
+            loser_score = left_score
+        game_data = await get_game_data(winner, loser, winner_score, loser_score)
+        game_record_id = await create_game_records(game_data, is_tournament=True)
+        print(game_record_id)
+        TournamentGameConsumer.game_record_list[self.room_id].append(game_record_id)
         if match == 'a':
             LobbyConsumer.rooms[self.room_id]['game']['winner_a'] = winner
             LobbyConsumer.rooms[self.room_id]['game']['roles'][winner] = 'left'
@@ -662,6 +688,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             LobbyConsumer.rooms[self.room_id]['game']['roles'][winner] = 'right'
         elif match == 'f':
             LobbyConsumer.rooms[self.room_id]['game']['winner_f'] = winner
+            await self.create_multi_game_records()
         LobbyConsumer.rooms[self.room_id]['game']['roles'][loser] = 'observer'
         LobbyConsumer.rooms[self.room_id]['game']['match'][winner] = 'f'
         LobbyConsumer.rooms[self.room_id]['game']['match'][loser] = 'f'
@@ -675,8 +702,8 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                 'match': match,
             }
         )
-        
-                        
+
+
     async def update_room_list(self):
         channel_layer = get_channel_layer()
         await channel_layer.group_send(
@@ -703,7 +730,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             'role': role,
             'match': match,
         }))
-        
+
     async def final_game_start(self, event):
         match = 'f'
         role = event['game']['roles'][self.scope['user'].username]
@@ -723,9 +750,9 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             'role': role,
             'match': match,
         }))
-        
+
     async def game_over(self, event):
-        if event['winner'] == self.scope['user'].username or event['loser'] == self.scope['user'].username:    
+        if event['winner'] == self.scope['user'].username or event['loser'] == self.scope['user'].username:
             self.status = 'game_waiting'
         if event['match'] == 'f':
             LobbyConsumer.rooms[self.room_id]['status'] = 'room'
@@ -744,6 +771,19 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             'type': 'error',
             'message': event['message']
         }))
+
+    async def create_multi_game_records(self):
+        await sync_to_async(MultiGameRecord.objects.create)(
+            game1=await sync_to_async(SingleGameRecord.objects.get)(id=TournamentGameConsumer.game_record_list[self.room_id][0]),
+            game2=await sync_to_async(SingleGameRecord.objects.get)(id=TournamentGameConsumer.game_record_list[self.room_id][1]),
+            game3=await sync_to_async(SingleGameRecord.objects.get)(id=TournamentGameConsumer.game_record_list[self.room_id][2]),
+            player1=await sync_to_async(CustomUser.objects.get)(username=TournamentGameConsumer.game_player_list[self.room_id][0]),
+            player2=await sync_to_async(CustomUser.objects.get)(username=TournamentGameConsumer.game_player_list[self.room_id][1]),
+            player3=await sync_to_async(CustomUser.objects.get)(username=TournamentGameConsumer.game_player_list[self.room_id][2]),
+            player4=await sync_to_async(CustomUser.objects.get)(username=TournamentGameConsumer.game_player_list[self.room_id][3]),
+        )
+        del TournamentGameConsumer.game_record_list[self.room_id]
+        del TournamentGameConsumer.game_player_list[self.room_id]
 
 
 
