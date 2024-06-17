@@ -55,13 +55,16 @@ class UserMeView(RetrieveAPIView):
 		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 
 class ProfileImageView(RetrieveUpdateDestroyAPIView):
-	queryset = CustomUser.objects.all()
 	serializer_class = ProfileImageSerializer
 	parser_classes = [MultiPartParser, FormParser]
 	def get_object(self):
 		username = self.kwargs['username']
 		user = get_object_or_404(CustomUser, username=username)
 		return user
+	def get(self, request, *args, **kwargs):
+		user = self.get_object()
+		serializer = self.get_serializer(user)
+		return JsonResponse({'status_code': '200', 'profile_image': serializer.data}, status=200)
 	def destroy(self, request, *args, **kwargs):
 		user = self.get_object()
 		if user.profile_image:

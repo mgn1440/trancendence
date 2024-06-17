@@ -153,38 +153,38 @@ class UserDeatilByNameViewTest(APITestCase):
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		# print('follow_test', response.content)
 
-# class ProfileImageViewTest(APITestCase):
-# 	def setUp(self):
-# 		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
-# 		self.client.force_authenticate(user=self.user)
-# 		self.jwt_token = jwt.encode(
-# 			{'uid': self.user.uid},
-# 			JWT_SECRET_KEY,
-# 			algorithm='HS256'
-# 		)
-# 		self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_token)
+class ProfileImageViewTest(APITestCase):
+	def setUp(self):
+		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
+		self.client.force_authenticate(user=self.user)
+		self.jwt_token = jwt.encode(
+			{'uid': self.user.uid},
+			JWT_SECRET_KEY,
+			algorithm='HS256'
+		)
+		self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_token)
 
-	# def test_retrive_profile_image(self):
-	# 	url = reverse('profile_image', kwargs={'username': self.user.username})
-	# 	response = self.client.get(url)
-	# 	self.assertEqual(response.status_code, status.HTTP_200_OK)
-	# 	print('image', response.content)
+	def test_retrive_profile_image(self):
+		url = reverse('profile_image', kwargs={'username': self.user.username})
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		print('image', response.content)
 
-	# def test_update_profile_image(self):
-	# 	url = reverse('profile_image', kwargs={'username': self.user.username})
-	# 	with open('/Users/sunko/Desktop/nirvana.jpeg', 'rb') as image:
-	# 		response = self.client.put(url, {'profile_image': image}, format='multipart')
-	# 	self.assertEqual(response.status_code, status.HTTP_200_OK)
-	# 	url = reverse('user_detail_by_username', kwargs={'username': self.user.username})
-	# 	response = self.client.get(url)
-	# 	print('update', response.content)
-	# 	url = reverse('profile_image', kwargs={'username': self.user.username})
-	# 	response = self.client.delete(url)
-	# 	self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-	# 	url = reverse('user_detail_by_username', kwargs={'username': self.user.username})
-	# 	print(url)
-	# 	response = self.client.get(url)
-	# 	print('delete_image', response.content)
+	def test_update_profile_image(self):
+		url = reverse('profile_image', kwargs={'username': self.user.username})
+		with open('/Users/sunko/Desktop/jordan.jpeg', 'rb') as image:
+			response = self.client.put(url, {'profile_image': image}, format='multipart')
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		url = reverse('user_detail_by_username', kwargs={'username': self.user.username})
+		response = self.client.get(url)
+		print('update', response.content)
+		# url = reverse('profile_image', kwargs={'username': self.user.username})
+		# response = self.client.delete(url)
+		# self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+		# url = reverse('user_detail_by_username', kwargs={'username': self.user.username})
+		# print(url)
+		# response = self.client.get(url)
+		# print('delete_image', response.content)
 
 
 class SingleGameDetailListViewTest(APITestCase):
