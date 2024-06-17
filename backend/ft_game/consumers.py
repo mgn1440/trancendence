@@ -475,9 +475,8 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             )
             return
         
-
+        # final 유저가 대기중에 나가는 경우 ex) a매치는 진행중인데 b매치의 승자가 나가는 경우
         if match == 'f':
-            
             if self.scope['user'].username in LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players']:
                 LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players'].remove(self.scope['user'].username)
                 if len(LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players']) == 0:
@@ -486,94 +485,47 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                         self.channel_name
                     )
                     return
-            
-            LobbyConsumer.rooms[self.room_id]['game']['f']['players'].remove(self.scope['user'].username)
-            winner = LobbyConsumer.rooms[self.room_id]['game']['f']['players'][0] # 얘가 없으면 지금 매치중인 winner가 우승자
-            LobbyConsumer.rooms[self.room_id]['game']['f']['players'] = []
-            loser = self.scope['user'].username
-            winner_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][winner]
-            loser_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][loser]
-            LobbyConsumer.rooms[self.room_id]['game']['f']['scores'][loser_role] = 0
-            LobbyConsumer.rooms[self.room_id]['game']['f']['scores'][winner_role] = 3
-            LobbyConsumer.rooms[self.room_id]['game']['winner_f'] = winner
-            
-            
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'game_over',
-                    'winner': winner,
-                    'loser': loser,
-                    'score': LobbyConsumer.rooms[self.room_id]['game']['f']['scores'],
-                    'match': 'f',
-                }
-            )
-            await self.channel_layer.group_discard(
-                self.room_group_name,
-                self.channel_name
-            )
-            return
         
-        if match == 'a':
-            LobbyConsumer.rooms[self.room_id]['game']['a']['players'].remove(self.scope['user'].username)
-            winner = LobbyConsumer.rooms[self.room_id]['game']['a']['players'][0]
-            
-            LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players'].append(winner)
-            
-            
-            LobbyConsumer.rooms[self.room_id]['game']['a']['players'] = []
-            loser = self.scope['user'].username
-            winner_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][winner]
-            loser_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][loser]
-            LobbyConsumer.rooms[self.room_id]['game']['a']['scores'][loser_role] = 0
-            LobbyConsumer.rooms[self.room_id]['game']['a']['scores'][winner_role] = 3
-            LobbyConsumer.rooms[self.room_id]['game']['winner_a'] = winner
-            LobbyConsumer.rooms[self.room_id]['game']['roles'][winner] = 'left'
-            LobbyConsumer.rooms[self.room_id]['game']['match'][winner] = 'f'
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'game_over',
-                    'winner': winner,
-                    'loser': loser,
-                    'score': LobbyConsumer.rooms[self.room_id]['game']['a']['scores'],
-                    'match': 'a',
-                }
-            )
-        
-        elif match == 'b':
-            LobbyConsumer.rooms[self.room_id]['game']['b']['players'].remove(self.scope['user'].username)
-            winner = LobbyConsumer.rooms[self.room_id]['game']['b']['players'][0]
-            
-            
-            LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players'].append(winner)
-            
-            
-            LobbyConsumer.rooms[self.room_id]['game']['b']['players'] = []
-            loser = self.scope['user'].username
-            winner_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][winner]
-            loser_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][loser]
-            LobbyConsumer.rooms[self.room_id]['game']['b']['scores'][loser_role] = 0
-            LobbyConsumer.rooms[self.room_id]['game']['b']['scores'][winner_role] = 3
-            LobbyConsumer.rooms[self.room_id]['game']['winner_b'] = winner
-            LobbyConsumer.rooms[self.room_id]['game']['roles'][winner] = 'right'
-            LobbyConsumer.rooms[self.room_id]['game']['match'][winner] = 'f'
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'game_over',
-                    'winner': winner,
-                    'loser': loser,
-                    'score': LobbyConsumer.rooms[self.room_id]['game']['b']['scores'],
-                    'match': 'b',
-                }
-            )
+        # a, b, f매치중 나가는 경우 부전 패 처리
+        await self.handle_walkover(match)
 
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
 
+    # 부전 패 처리
+    async def handle_walkover(self, match):
+        LobbyConsumer.rooms[self.room_id]['game'][match]['players'].remove(self.scope['user'].username)
+        winner = LobbyConsumer.rooms[self.room_id]['game'][match]['players'][0]
+        if match != 'f':
+            LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players'].append(winner)
+        LobbyConsumer.rooms[self.room_id]['game'][match]['players'] = []
+        loser = self.scope['user'].username
+        winner_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][winner]
+        loser_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][loser]
+        LobbyConsumer.rooms[self.room_id]['game'][match]['scores'][loser_role] = 0
+        LobbyConsumer.rooms[self.room_id]['game'][match]['scores'][winner_role] = 3
+        if match == 'a':
+            LobbyConsumer.rooms[self.room_id]['game']['winner_a'] = winner
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][winner] = 'left'
+            LobbyConsumer.rooms[self.room_id]['game']['match'][winner] = 'f'
+        elif match == 'b':
+            LobbyConsumer.rooms[self.room_id]['game']['winner_b'] = winner
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][winner] = 'right'
+            LobbyConsumer.rooms[self.room_id]['game']['match'][winner] = 'f'
+        elif match == 'f':
+            LobbyConsumer.rooms[self.room_id]['game']['winner_f'] = winner
+        await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'game_over',
+                    'winner': winner,
+                    'loser': loser,
+                    'score': LobbyConsumer.rooms[self.room_id]['game'][match]['scores'],
+                    'match': match,
+                }
+            )     
         
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -592,6 +544,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                 LobbyConsumer.rooms[self.room_id]['game']['f']['players'].append(self.scope['user'].username)
             if len(LobbyConsumer.rooms[self.room_id]['game']['f']['players']) == 2:
                 if len(LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players']) != 2:
+                    # 이때가 f 매치 부전승 처리
                     winner = self.scope['user'].username
                     loser = LobbyConsumer.rooms[self.room_id]['game']['f']['players'][0]
                     winner_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][winner]
@@ -622,9 +575,10 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             if self.room_id in LobbyConsumer.rooms and data['role'] == 'left' and data['match'] == 'f':
                 asyncio.create_task(self.start_ball_movement('f'))
         elif data['type'] == 'disconnect':
-            print (self.scope['user'])
-            print('disconnect game ' + self.scope['user'].username)
             await self.close()
+            
+    
+        
                     
     async def start_ball_movement(self, match):
         while self.status == 'playing' and self.room_id in LobbyConsumer.rooms and len(LobbyConsumer.rooms[self.room_id]['game'][match]['players']) == 2:
@@ -689,56 +643,39 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             await self.game_end('right', 'left', match)
 
     async def game_end(self, winner, loser, match):
-        winner_username = self.game[match]['players'][0] if winner == 'left' else self.game[match]['players'][1]
-        loser_username = self.game[match]['players'][0] if loser == 'left' else self.game[match]['players'][1]
+        player1 = self.game[match]['players'][0]
+        player2 = self.game[match]['players'][1]
+        winner_username = player1 if self.game['roles'][player1] == winner else player2
+        loser_username = player1 if self.game['roles'][player1] == loser else player2
         
         LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players'].append(winner_username)
-        
+        await self.game_over_match(winner_username, loser_username, match)
+
+            
+    async def game_over_match(self, winner, loser, match):
+        LobbyConsumer.rooms[self.room_id]['game'][match]['players'] = []
         if match == 'a':
-            LobbyConsumer.rooms[self.room_id]['game']['winner_a'] = winner_username
-            LobbyConsumer.rooms[self.room_id]['game'][match]['players'] = []
-            LobbyConsumer.rooms[self.room_id]['game']['roles'][winner_username] = 'left'
-            LobbyConsumer.rooms[self.room_id]['game']['roles'][loser_username] = 'observer'
-            LobbyConsumer.rooms[self.room_id]['game']['match'][winner_username] = 'f'
-            LobbyConsumer.rooms[self.room_id]['game']['match'][loser_username] = 'f'
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'game_over',
-                    'winner': winner_username,
-                    'loser': loser_username,
-                    'score': self.game[match]['scores'],
-                    'match': match,
-                }
-            )
+            LobbyConsumer.rooms[self.room_id]['game']['winner_a'] = winner
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][winner] = 'left'
         elif match == 'b':
-            LobbyConsumer.rooms[self.room_id]['game']['winner_b'] = winner_username
-            LobbyConsumer.rooms[self.room_id]['game'][match]['players'] = []
-            LobbyConsumer.rooms[self.room_id]['game']['roles'][winner_username] = 'right'
-            LobbyConsumer.rooms[self.room_id]['game']['roles'][loser_username] = 'observer'
-            LobbyConsumer.rooms[self.room_id]['game']['match'][winner_username] = 'f'
-            LobbyConsumer.rooms[self.room_id]['game']['match'][loser_username] = 'f'
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'game_over',
-                    'winner': winner_username,
-                    'loser': loser_username,
-                    'score': self.game[match]['scores'],
-                    'match': match,
-                }
-            )
+            LobbyConsumer.rooms[self.room_id]['game']['winner_b'] = winner
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][winner] = 'right'
         elif match == 'f':
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'game_over',
-                    'winner': winner_username,
-                    'loser': loser_username,
-                    'score': self.game[match]['scores'],
-                    'match': match,
-                }
-            )
+            LobbyConsumer.rooms[self.room_id]['game']['winner_f'] = winner
+        LobbyConsumer.rooms[self.room_id]['game']['roles'][loser] = 'observer'
+        LobbyConsumer.rooms[self.room_id]['game']['match'][winner] = 'f'
+        LobbyConsumer.rooms[self.room_id]['game']['match'][loser] = 'f'
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'game_over',
+                'winner': winner,
+                'loser': loser,
+                'score': self.game[match]['scores'],
+                'match': match,
+            }
+        )
+        
                         
     async def update_room_list(self):
         channel_layer = get_channel_layer()
