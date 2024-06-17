@@ -79,7 +79,7 @@
         console.log("웹소켓 서버에 연결되었습니다.");
       };
 
-      socket.onmessage = function (e) {
+      socket.onmessage = async function (e) {
         const data = JSON.parse(e.data);
         console.log("서버로부터 메시지를 받았습니다:", data);
         if (data.type === "room_destroyed") {
@@ -100,9 +100,16 @@
           window.location.href = "/api/lobby/";
         } else if (data.type === "goto_game") {
           if (data.mode === 2) {
+            await socket.close();
             window.location.href = "/api/game/" + data.room_id + "/";
           } else if (data.mode === 4) {
-            window.location.href = "/api/game/tournament/" + data.room_id + "/";
+            const Data = {
+              type: "disconnect",
+            };
+            socket.send(JSON.stringify(Data));
+            setTimeout(() => {
+              window.location.href = "/api/game/tournament/" + data.room_id + "/";
+            }, 1000);
           }
         }
       };
