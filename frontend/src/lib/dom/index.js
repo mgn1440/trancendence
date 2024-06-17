@@ -2,6 +2,7 @@ import { updateElement } from "./diff";
 import { shallowEqual } from "./utils/object";
 import { createElement } from "./client";
 import { currentComponent, setCurrentComponent } from "@/lib/jsx/jsx-runtime";
+import { disconnectGameLogicWebSocket } from "@/store/gameLogicWS";
 
 const frameRunner = (callback) => {
   let requestId;
@@ -61,6 +62,7 @@ const domRenderer = () => {
     resetOptions();
     renderInfo.$root = root;
     renderInfo.component = component;
+    disconnectGameLogicWebSocket();
     _render();
   };
 
@@ -70,7 +72,7 @@ const domRenderer = () => {
     if (!stateHook[component]) {
       stateHook[component] = 0;
     }
-    console.log("states", states[component]); // debug
+    // console.log("states", states[component]); // debug
     if (states[component] === undefined) {
       states[component] = [];
     }

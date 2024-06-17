@@ -25,11 +25,14 @@ const reducer_gamelogic = (state = initState, action = {}) => {
 
 export const ws_gamelogic = createStore(reducer_gamelogic);
 
-export const connectGameLogicWebSocket = async (dispatch, path) => {
+export const disconnectGameLogicWebSocket = () => {
   if (ws_gamelogic.getState().socket instanceof WebSocket === true) {
     ws_gamelogic.getState().socket.close();
   }
-  const socket = new WebSocket("ws://" + "localhost:8000" + path);
+};
 
+export const connectGameLogicWebSocket = (dispatch, path) => {
+  disconnectGameLogicWebSocket();
+  const socket = new WebSocket("ws://" + "localhost:8000" + path);
   dispatch(webSocketConnect(socket));
 };
