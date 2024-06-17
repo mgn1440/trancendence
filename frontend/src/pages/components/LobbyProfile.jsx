@@ -17,6 +17,7 @@ const LobbyProfile = ({ data, sendLobbySocket, stat }) => {
     };
     fetchProfile();
   }, []);
+  console.log(myProfile); // debug
 
   return (
     <div class="lobby-profile">
@@ -34,44 +35,50 @@ const LobbyProfile = ({ data, sendLobbySocket, stat }) => {
             </div>
             {stat === MainProfileState.LOBBY ? (
               <LobbyButton data={myProfile} sendLobbySocket={sendLobbySocket} />
-            ) : null}
+            ) : (
+              <div></div>
+            )}
           </div>
         )}
-        <div class="lobby-buttons">
-          <button class="lobby-game-btn">
-            <img src="/icon/user.svg"></img>
-            Offline Game
-          </button>
-          <button
-            class="lobby-game-btn"
-            data-bs-toggle="modal"
-            data-bs-target="#CreateRoomModal"
-          >
-            <img src="/icon/users.svg"></img>
-            Create Room
-          </button>
-          <button
-            class="lobby-game-btn"
-            data-bs-toggle="modal"
-            data-bs-target="#FindUserModal"
-          >
-            <img src="/icon/search.svg"></img>
-            Find user
-          </button>
-          <button
-            class="lobby-game-btn"
-            onclick={() => {
-              const quickMatchModal = new bootstrap.Modal(
-                document.getElementById("QuickMatchModal")
-              );
-              quickMatchModal.show();
-              sendLobbySocket({ type: "matchmaking" });
-            }}
-          >
-            <img src="/icon/quick.svg"></img>
-            Quick Match
-          </button>
-        </div>
+        {stat === MainProfileState.LOBBY ? (
+          <div class="lobby-buttons">
+            <button class="lobby-game-btn">
+              <img src="/icon/user.svg"></img>
+              Offline Game
+            </button>
+            <button
+              class="lobby-game-btn"
+              data-bs-toggle="modal"
+              data-bs-target="#CreateRoomModal"
+            >
+              <img src="/icon/users.svg"></img>
+              Create Room
+            </button>
+            <button
+              class="lobby-game-btn"
+              data-bs-toggle="modal"
+              data-bs-target="#FindUserModal"
+            >
+              <img src="/icon/search.svg"></img>
+              Find user
+            </button>
+            <button
+              class="lobby-game-btn"
+              onclick={() => {
+                const quickMatchModal = new bootstrap.Modal(
+                  document.getElementById("QuickMatchModal")
+                );
+                quickMatchModal.show();
+                sendLobbySocket({ type: "matchmaking" });
+              }}
+            >
+              <img src="/icon/quick.svg"></img>
+              Quick Match
+            </button>
+          </div>
+        ) : (
+          <div></div>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import UserList from "./components/UserList";
-import Profile from "./components/LobbyProfile";
+import LobbyProfile from "./components/LobbyProfile";
 import LobbyRooms from "./components/LobbyRooms";
 import TopNavBar from "./components/TopNavBar";
 import { useEffect, useState } from "@/lib/dom";
@@ -52,7 +52,8 @@ const RoomPage = () => {
             setStartBtn(true);
           }
         } else if (data.type === "goto_game") {
-          gotoPage(`/game/${data.room_id}`);
+          if (data.mode === 2) gotoPage(`/game/${data.room_id}`);
+          else if (data.mode === 4) gotoPage(`/tournament/${data.room_id}`);
         }
       };
     };
@@ -76,19 +77,14 @@ const RoomPage = () => {
         <TopNavBar />
       </div>
       <div id="middle">
-        {isEmpty(myProfile) ? (
-          <div class="main-section flex-column"></div>
-        ) : (
-          <div class="main-section flex-column">
-            <Profile data={myProfile} stat={MainProfileState.ROOM} />
-
-            <GameRoom
-              gameData={gameData}
-              isStart={startBtn}
-              sendRoomSocket={sendRoomSocket}
-            />
-          </div>
-        )}
+        <div class="main-section flex-column">
+          <LobbyProfile stat={MainProfileState.ROOM} />
+          <GameRoom
+            gameData={gameData}
+            isStart={startBtn}
+            sendRoomSocket={sendRoomSocket}
+          />
+        </div>
         <UserList />
       </div>
     </div>

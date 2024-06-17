@@ -18,11 +18,12 @@ const GameRoom = ({ gameData, isStart, sendRoomSocket }) => {
         {/* <img src="/img/left_arrow.svg"></img> */}
         <div class="user-cards">
           {/* js 코드 생각해서 component 변경하기 */}
-          {gameData &&
+          {gameData.user_list &&
             gameData.user_list.map((data) => <UserCard user_name={data} />)}
-          {[...Array(gameData.mode - gameData.user_list.length)].map((i) => (
-            <UserCard user_name="-" />
-          ))}
+          {gameData.user_list &&
+            [...Array(gameData.mode - gameData.user_list.length)].map((i) => (
+              <UserCard user_name="-" />
+            ))}
         </div>
         {isStart ? (
           <button class="small-btn" onclick={handleStartBtn}>
