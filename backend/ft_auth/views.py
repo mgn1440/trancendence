@@ -35,7 +35,9 @@ class Callback(View): # TODO: POST otp check function
 			'code': code,
 			'redirect_uri': API_REDIRECT_URI,
 		}
+		print(API_CLIENT_SECRET)
 		response = requests.post('https://api.intra.42.fr/oauth/token', data=data)
+		print(response.json())
 		if response.status_code != 200:
 			return JsonResponse({'error': '42 API Access Token Error'}, status=400)
 		access_token = response.json()['access_token']

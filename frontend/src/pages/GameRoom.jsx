@@ -74,6 +74,7 @@ const RoomPage = () => {
       roomSocket.send(JSON.stringify(roomData));
     }
   };
+
   return (
     <div>
       <div id="top">
