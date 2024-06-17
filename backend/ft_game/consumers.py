@@ -697,21 +697,33 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         match = event['game']['match'][self.scope['user'].username]
         role = event['game']['roles'][self.scope['user'].username]
         self.status = 'game_waiting'
+
+        roles = {
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][event['game'][match]['players'][0]] : event['game'][match]['players'][0],
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][event['game'][match]['players'][1]] : event['game'][match]['players'][1],
+        } 
         await self.send(text_data=json.dumps({
             'type': 'game_start',
             'game': event['game'][match],
             'role': role,
             'match': match,
+            'roles': roles,
+            'you': self.scope['user'].username,
         }))
         
     async def final_game_start(self, event):
         match = 'f'
         role = event['game']['roles'][self.scope['user'].username]
+        roles = {
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][event['game'][match]['players'][0]] : event['game'][match]['players'][0],
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][event['game'][match]['players'][1]] : event['game'][match]['players'][1],
+        } 
         await self.send(text_data=json.dumps({
             'type': 'final_game_start',
             'game': event['game'][match],
             'role': role,
             'match': match,
+            'roles': roles,
         }))
 
     async def update_game(self, event):
@@ -722,6 +734,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             'game': event['game'][match],
             'role': role,
             'match': match,
+            'you': self.scope['user'].username,
         }))
         
     async def game_over(self, event):

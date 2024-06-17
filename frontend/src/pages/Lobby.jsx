@@ -37,9 +37,13 @@ const LobbyPage = () => {
             document.getElementById("QuickMatchModal")
           );
           setTimeout(() => {
-            quickMatchModal.hide();
+            if (quickMatchModal) {
+              quickMatchModal.hide();
+            }
             const modalBackdrop = document.querySelector(".modal-backdrop");
-            if (modalBackdrop) modalBackdrop.remove();
+            if (modalBackdrop) {
+              modalBackdrop.remove();
+            }
           }, 10);
           console.log(quickMatchModal); //debug
           gotoPage(`/game/${data.room_id}`);
@@ -49,9 +53,6 @@ const LobbyPage = () => {
       };
     };
     socketAsync();
-    // return () => {
-    //   if ()
-    // };
   }, []);
 
   const sendLobbySocket = (roomData) => {
@@ -72,15 +73,11 @@ const LobbyPage = () => {
         <TopNavBar />
       </div>
       <div id="middle">
-        {/* {isEmpty(myProfile) ? (
-        ) : ( */}
         <div class="main-section flex-column">
           <LobbyProfile
-            // data={myProfile}
             sendLobbySocket={sendLobbySocket}
             stat={MainProfileState.LOBBY}
           />
-          {/* )} */}
           <LobbyRooms roomList={roomList} sendLobbySocket={sendLobbySocket} />
         </div>
         <UserList />
