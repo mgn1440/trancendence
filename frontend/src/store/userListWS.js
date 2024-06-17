@@ -42,6 +42,38 @@ export const startWebSocketConnection = (dispatch, setUserList) => {
       if (data.type === "status") {
         dispatch(webSocketConnect(socket, data));
         setUserList(data);
+      } else if (data.type === "add_online") {
+        if (
+          !ws_userlist
+            .getState()
+            .userList.online.some(
+              (obj) => obj.username === data.online[0].username
+            )
+        ) {
+          ws_userlist.getState().userList.online.push(data.online[0]);
+        }
+        ws_userlist.getState().userList.offline.find((user, index) => {
+          if (user.username === data.online[0].username) {
+            ws_userlist.getState().userList.offline.splice(index, 1);
+          }
+        });
+        setUserList(ws_userlist.getState().userList);
+      } else if (data.type === "add_offline") {
+        if (
+          !ws_userlist
+            .getState()
+            .userList.offline.some(
+              (obj) => obj.username === data.offline[0].username
+            )
+        ) {
+          ws_userlist.getState().userList.offline.push(data.offline[0]);
+        }
+        ws_userlist.getState().userList.online.find((user, index) => {
+          if (user.username === data.offline[0].username) {
+            ws_userlist.getState().userList.online.splice(index, 1);
+          }
+        });
+        setUserList(ws_userlist.getState().userList);
       }
     };
   } else {
