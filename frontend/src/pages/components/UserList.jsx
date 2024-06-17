@@ -1,21 +1,22 @@
 import { axiosUserOther } from "@/api/axios.custom";
 import { useEffect, useState } from "@/lib/dom";
-import { isEmpty } from "@/lib/libft";
+import { gotoPage, isEmpty } from "@/lib/libft";
 import { ws_userlist, startWebSocketConnection } from "@/store/userListWS";
-import { clinetUserStore } from "@/store/clientUserStore";
+import { clientUserStore } from "@/store/clientUserStore";
 import { calcGameRate } from "../utils/utils";
+import { history } from "@/lib/router";
 
 export const moveToProfile = (userName) => {
   if (
-    window.location.pathname === `/profile/${userName}` ||
+    history.currentPath() === `/profile/${userName}` ||
     userName === undefined
   ) {
     return;
   }
-  if (userName === clinetUserStore.getState().client.username) {
-    window.location.href = `/profile/me`;
+  if (userName === clientUserStore.getState().client.username) {
+    gotoPage(`/profile/me`);
   } else {
-    window.location.href = `/profile/${userName}`;
+    gotoPage(`/profile/${userName}`);
   }
 };
 

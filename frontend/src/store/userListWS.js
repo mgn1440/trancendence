@@ -53,6 +53,7 @@ export const startWebSocketConnection = (dispatch, setUserList) => {
           ws_userlist.getState().userList.online.push(data.online[0]);
         }
         ws_userlist.getState().userList.offline.find((user, index) => {
+          console.log(user);
           if (user.username === data.online[0].username) {
             ws_userlist.getState().userList.offline.splice(index, 1);
           }
@@ -69,6 +70,7 @@ export const startWebSocketConnection = (dispatch, setUserList) => {
           ws_userlist.getState().userList.offline.push(data.offline[0]);
         }
         ws_userlist.getState().userList.online.find((user, index) => {
+          console.log(user);
           if (user.username === data.offline[0].username) {
             ws_userlist.getState().userList.online.splice(index, 1);
           }
