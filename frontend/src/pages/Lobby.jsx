@@ -6,18 +6,16 @@ import { axiosUserMe } from "@/api/axios.custom";
 import { useState, useEffect, useRef } from "@/lib/dom";
 import { isEmpty, gotoPage } from "@/lib/libft";
 import { MainProfileState } from "./GameRoom";
+import { ws_gamelogic, connectGameLogicWebSocket } from "@/store/gameLogicWS";
 
 const LobbyPage = () => {
   const [roomList, setRoomList] = useState([]);
-  const [getLobbySocket, setLobbySocket] = useRef({});
 
   useEffect(() => {
     const socketAsync = async () => {
-      const socket = new WebSocket("ws://" + "localhost:8000" + "/ws/lobby/");
-
-      socket.onopen = (e) => {};
-
-      socket.onmessage = (e) => {
+      await connectGameLogicWebSocket(ws_gamelogic.dispatch, "/ws/lobby/");
+      console.log(ws_gamelogic.getState().socket); // debug
+      ws_gamelogic.getState().socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
 
         // console.log(data); // debug
@@ -40,7 +38,8 @@ const LobbyPage = () => {
           );
           setTimeout(() => {
             quickMatchModal.hide();
-            document.querySelector(".modal-backdrop").remove();
+            const modalBackdrop = document.querySelector(".modal-backdrop");
+            if (modalBackdrop) modalBackdrop.remove();
           }, 10);
           console.log(quickMatchModal); //debug
           gotoPage(`/game/${data.room_id}`);
@@ -48,11 +47,6 @@ const LobbyPage = () => {
           gotoPage(`/lobby/${data.room_id}`);
         }
       };
-
-      while (socket.readyState !== WebSocket.OPEN) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-      setLobbySocket(socket);
     };
     socketAsync();
     // return () => {
@@ -61,8 +55,11 @@ const LobbyPage = () => {
   }, []);
 
   const sendLobbySocket = (roomData) => {
-    if (getLobbySocket() && getLobbySocket().readyState === WebSocket.OPEN) {
-      getLobbySocket().send(JSON.stringify(roomData));
+    if (
+      ws_gamelogic.getState().socket &&
+      ws_gamelogic.getState().socket.readyState === WebSocket.OPEN
+    ) {
+      ws_gamelogic.getState().socket.send(JSON.stringify(roomData));
       console.log(roomData);
     } else {
       console.log("socket is not ready");
