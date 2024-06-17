@@ -19,80 +19,26 @@ export const moveToProfile = (userName) => {
   }
 };
 
-export const User = ({ userName }) => {
-  const [userData, setUserData] = useState({});
-  const randNum = Math.ceil(Math.random() * 5);
-  const imgSrc = `/img/minji_${randNum}.jpg`;
-  useEffect(() => {
-    const fetchUser = async () => {
-      const user_temp = await axiosUserOther(userName);
-      setUserData(user_temp.data.user_info);
-      console.log(user_temp.data);
-    };
-    fetchUser();
-  }, [userName]);
-
-  return (
-    <div class="user-item" onclick={() => moveToProfile(userData.username)}>
-      <div class="profile">
-        <img src={imgSrc} />
-        <span class="isloggedin active">●</span>
-      </div>
-      <div class="user-info">
-        {isEmpty(userData) ? null : (
-          <div>
-            <h6>{userData.username}</h6>
-            <p>
-              win: {userData.win} lose: {userData.lose}
-            </p>
-            <p>rate: {calcGameRate(userData)}%</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export const UserSleep = ({ userName }) => {
-  const [userData, setUserData] = useState({});
-  useEffect(() => {
-    const fetchUser = async () => {
-      const userData = await axiosUserOther(userName);
-      setUserData(userData.data.user_info);
-    };
-    fetchUser();
-  }, [userName]);
-
-  const randNum = Math.ceil(Math.random() * 5);
+export const User = ({ user, isactive }) => {
+  const randNum = (user.username[0].charCodeAt(0) % 5) + 1;
   const imgSrc = `/img/minji_${randNum}.jpg`;
   return (
     <div
-      class="user-item sleep"
-      onclick={() => moveToProfile(userData.username)}
+      class={`user-item ${isactive ? "active" : "sleep"}`}
+      onclick={() => moveToProfile(user.username)}
     >
       <div class="profile">
-        <img src={imgSrc} />
-        <span class="isloggedin sleep">●</span>
+        <img src={user.profile_image ? user.profile_image : imgSrc} />
+        <span class={`isloggedin ${isactive ? "active" : "sleep"}`}>●</span>
       </div>
       <div class="user-info">
-        {isEmpty(userData) ? null : (
-          <div>
-            <h6>{userData.username}</h6>
-            <p>
-              win: {userData.win} lose: {userData.lose}
-            </p>
-            <p>
-              rate:
-              {userData.win + userData.lose === 0
-                ? 0
-                : (
-                    (userData.win / (userData.win + userData.lose)) *
-                    100
-                  ).toFixed(2)}
-              %
-            </p>
-          </div>
-        )}
+        <div>
+          <h6>{user.username}</h6>
+          <p>
+            win: {user.win} lose: {user.lose}
+          </p>
+          <p>rate: {calcGameRate(user)}%</p>
+        </div>
       </div>
     </div>
   );
@@ -125,11 +71,11 @@ const UserList = () => {
         <div class="user-list">
           {userListData.online &&
             userListData.online.map((user) => {
-              return <User userName={user} />;
+              return <User user={user} isactive={true} />;
             })}
           {userListData.offline &&
             userListData.offline.map((user) => {
-              return <UserSleep userName={user} />;
+              return <User user={user} isactive={false} />;
             })}
         </div>
       </div>
