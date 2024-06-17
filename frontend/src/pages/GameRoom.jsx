@@ -7,6 +7,7 @@ import { axiosUserMe } from "@/api/axios.custom";
 import { isEmpty, gotoPage } from "@/lib/libft";
 import GameRoom from "./components/GameRoom";
 import { history } from "@/lib/router";
+import { ws_gamelogic, connectGameLogicWebSocket } from "@/store/gameLogicWS";
 
 export const MainProfileState = {
   LOBBY: 1,
@@ -16,7 +17,6 @@ export const MainProfileState = {
 const RoomPage = () => {
   const [myProfile, setMyProfile] = useState({});
   const [gameData, setGameData] = useState([]);
-  const [roomSocket, setRoomSocket] = useState({});
   const [startBtn, setStartBtn] = useState(false);
   useEffect(() => {
     const fetchProfile = async () => {
@@ -24,17 +24,14 @@ const RoomPage = () => {
       setMyProfile(userMe.data);
     };
     const socketAsync = async () => {
-      const socket = new WebSocket(
-        "ws://" +
-          "localhost:8000" +
-          "/ws/room/" +
-          history.currentPath().split("/")[2] +
-          "/"
+      await connectGameLogicWebSocket(
+        ws_gamelogic.dispatch,
+        `/ws/room/${history.currentPath().split("/")[2]}/`
       );
 
-      socket.onopen = function (e) {};
+      ws_gamelogic.getState().socket.onopen = function (e) {};
 
-      socket.onmessage = (e) => {
+      ws_gamelogic.getState().socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
         console.log(data);
         if (data.type === "room_info" || data.type === "connect_user") {
@@ -58,20 +55,18 @@ const RoomPage = () => {
           gotoPage(`/game/${data.room_id}`);
         }
       };
-
-      while (socket.readyState !== WebSocket.OPEN) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-      setRoomSocket(socket);
     };
     fetchProfile();
     socketAsync();
   }, []);
 
   const sendRoomSocket = (roomData) => {
-    if (roomSocket && roomSocket.readyState === WebSocket.OPEN) {
+    if (
+      ws_gamelogic.getState().socket &&
+      ws_gamelogic.getState().socket.readyState === WebSocket.OPEN
+    ) {
       console.log(roomData);
-      roomSocket.send(JSON.stringify(roomData));
+      ws_gamelogic.getState().socket.send(JSON.stringify(roomData));
     }
   };
 

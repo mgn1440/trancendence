@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "@/lib/dom";
 import { gotoPage, isEmpty } from "@/lib/libft";
 import { history } from "@/lib/router";
+import { ws_gamelogic, connectGameLogicWebSocket } from "@/store/gameLogicWS";
 
 let gameState;
 let canvas;
@@ -66,23 +67,26 @@ const GamePage = () => {
   let startFlag = false;
   useEffect(() => {
     const socketAsync = async () => {
-      const socket = new WebSocket(
-        "ws://" +
-          "localhost:8000" +
-          `/ws/game/${history.currentPath().split("/")[2]}/`
+      connectGameLogicWebSocket(
+        ws_gamelogic.dispatch,
+        `/ws/game/${history.currentPath().split("/")[2]}/`
       );
 
-      socket.onopen = (e) => {
+      ws_gamelogic.getState().socket.onopen = (e) => {
         const waitOpponent = async () => {
           await new Promise((resolve) => setTimeout(resolve, 10000));
           if (!startFlag) {
-            socket.send(JSON.stringify({ type: "error", message: "timeout" }));
+            ws_gamelogic
+              .getState()
+              .socket.send(
+                JSON.stringify({ type: "error", message: "timeout" })
+              );
           }
         };
         waitOpponent();
       };
 
-      socket.onmessage = (e) => {
+      ws_gamelogic.getState().socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
         console.log(data);
         if (data.type === "game_start") {
@@ -100,7 +104,9 @@ const GamePage = () => {
             if (timer <= 0) {
               counter.style.display = "none";
               clearInterval(interval);
-              socket.send(JSON.stringify({ type: "start_game" }));
+              ws_gamelogic
+                .getState()
+                .socket.send(JSON.stringify({ type: "start_game" }));
             }
           }, 1000);
           document.addEventListener("keydown", (e) => {
@@ -110,7 +116,7 @@ const GamePage = () => {
               e.key === "ArrowDown"
             ) {
               direction = e.key === "ArrowUp" ? dirStat.UP : dirStat.DOWN;
-              socket.send(
+              ws_gamelogic.getState().socket.send(
                 JSON.stringify({
                   type: "move_bar",
                   direction: direction === dirStat.UP ? "up" : "down",
@@ -127,7 +133,7 @@ const GamePage = () => {
                 (e.key === "ArrowDown" && direction === dirStat.DOWN))
             ) {
               direction = dirStat.STOP;
-              socket.send(
+              ws_gamelogic.getState().socket.send(
                 JSON.stringify({
                   type: "stop_bar",
                   role: data.you,
