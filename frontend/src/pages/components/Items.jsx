@@ -2,7 +2,7 @@ const ItemInput = (props) => {
   return (
     <div class="item">
       <h6>{props.ItemName}</h6>
-      <input type="text"></input>
+      <input type="text" placeholder={props.defaultValue}></input>
     </div>
   );
 };

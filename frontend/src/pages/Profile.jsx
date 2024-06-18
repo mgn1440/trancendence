@@ -30,7 +30,7 @@ const ProfilePage = () => {
         if (!follow) setStat(2);
         else setStat(3);
       }
-      setProfile(user.data);
+      setProfile(user.data.user_info);
     };
     fetchProfile();
   }, []);
@@ -45,8 +45,8 @@ const ProfilePage = () => {
           <div class="main-section flex-row"></div>
         ) : (
           <div class="main-section flex-row">
-            <ProfileImg stat={stat} setStat={setStat} user_name={userName} />
-            <ProfileInfo data={profile} />
+            <ProfileImg stat={stat} setStat={setStat} profile={profile} />
+            <ProfileInfo profile={profile} />
           </div>
         )}
         <UserList />
