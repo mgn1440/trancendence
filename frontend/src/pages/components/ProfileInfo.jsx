@@ -9,8 +9,7 @@ function convertOrdinalNumber(n) {
   return n + (suffix[(mod100 - 20) % 10] || suffix[mod100] || suffix[0]);
 }
 
-function convertDate(date)
-{
+function convertDate(date) {
   var monthNames = [
     "January",
     "February",
@@ -26,9 +25,11 @@ function convertDate(date)
     "December",
   ];
   const date_type = new Date(date);
-  const date_text = `${convertOrdinalNumber(date_type.getDate())} ${monthNames[date_type.getMonth()]}`;
+  const date_text = `${convertOrdinalNumber(date_type.getDate())} ${
+    monthNames[date_type.getMonth()]
+  }`;
 
-  return (date_text);
+  return date_text;
 }
 
 const LogSingleItem = ({ record }) => {
@@ -90,7 +91,7 @@ const PlayStat = {
   MULTI: false,
 };
 
-const LobbyProfile = ({ data }) => {
+const LobbyProfile = ({ profile }) => {
   const [logStat, setLogStat] = useState(PlayStat.SINGLE);
   const [gameRecords, setGameRecords] = useState([]);
 
@@ -98,7 +99,7 @@ const LobbyProfile = ({ data }) => {
     // axios
     const getGameHistory = async () => {
       const gameRecordsApi = await axiosGameRecords({
-        username: data.user_info.username,
+        username: profile.username,
         isSingle: logStat ? "SINGLE" : "MULTI",
       });
       setGameRecords(gameRecordsApi.data.record_list);
@@ -106,7 +107,6 @@ const LobbyProfile = ({ data }) => {
     getGameHistory();
   }, [logStat]);
 
-  const profile = data.user_info;
   const matchNum = profile.win + profile.lose;
   const multiName = "Hyungjuk_multi";
   const handleLogStat = (stat) => {
@@ -143,17 +143,18 @@ const LobbyProfile = ({ data }) => {
         {gameRecords ? (
           logStat ? (
             <div class="log-container">
-              {
-              gameRecords.map((record) => (
+              {gameRecords.map((record) => (
                 <LogSingleItem record={record} />
               ))}
             </div>
           ) : (
             <div class="log-container">
-              {gameRecords.map((record) => (
-                console.log(record),
-                <LogMultiItem name={profile.username} record={record} />
-              ))}
+              {gameRecords.map(
+                (record) => (
+                  console.log(record),
+                  (<LogMultiItem name={profile.username} record={record} />)
+                )
+              )}
             </div>
           )
         ) : null}

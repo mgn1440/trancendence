@@ -46,9 +46,10 @@ export const User = ({ user, isactive }) => {
 };
 
 const UserList = () => {
-  const [userListData, setUserListData] = useState(
-    ws_userlist.getState().userList
-  );
+  const [userListData, setUserListData] = useState({
+    offline: ws_userlist.getState().offline,
+    online: ws_userlist.getState().online,
+  });
   useEffect(() => {
     const socketAsync = async () => {
       startWebSocketConnection(ws_userlist.dispatch, setUserListData);

@@ -4,12 +4,13 @@ const WS_CONNECT = "WS_CONNECT";
 
 const initState = {
   socket: {},
-  userList: {},
+  offline: [],
+  online: [],
 };
 
-const webSocketConnect = (socket, userList) => ({
+const webSocketConnect = (socket, offline, online) => ({
   type: WS_CONNECT,
-  payload: [socket, userList],
+  payload: [socket, offline, online],
 });
 
 const reducer_userlist = (state = initState, action = {}) => {
@@ -18,7 +19,8 @@ const reducer_userlist = (state = initState, action = {}) => {
       return {
         ...state,
         socket: action.payload[0],
-        userList: action.payload[1],
+        offline: action.payload[1],
+        online: action.payload[2],
       };
     default:
       return state;
@@ -31,7 +33,7 @@ export const startWebSocketConnection = (dispatch, setUserList) => {
   if (ws_userlist.getState().socket instanceof WebSocket === false) {
     const socket = new WebSocket("ws://" + "localhost:8000" + "/ws/online/");
 
-    dispatch(webSocketConnect(socket, {}));
+    dispatch(webSocketConnect(socket, [], []));
     socket.onopen = (e) => {
       console.log("Socket Connected");
     };
@@ -43,42 +45,65 @@ export const startWebSocketConnection = (dispatch, setUserList) => {
     const data = JSON.parse(e.data);
     console.log(data);
     if (data.type === "status") {
-      dispatch(webSocketConnect(ws_userlist.getState().socket, data));
+      dispatch(
+        webSocketConnect(
+          ws_userlist.getState().socket,
+          data.offline,
+          data.online
+        )
+      );
       setUserList(data);
     } else if (data.type === "add_online") {
-      if (
-        !ws_userlist
-          .getState()
-          .userList.online.some(
-            (obj) => obj.username === data.online[0].username
-          )
-      ) {
-        ws_userlist.getState().userList.online.push(data.online[0]);
-      }
-      ws_userlist.getState().userList.offline.find((user, index) => {
-        console.log(user);
-        if (user.username === data.online[0].username) {
-          ws_userlist.getState().userList.offline.splice(index, 1);
-        }
+      dispatch(
+        webSocketConnect(
+          ws_userlist.getState().socket,
+          ws_userlist
+            .getState()
+            .offline.filter((obj) => obj.username !== data.online[0].username),
+          [
+            ...ws_userlist.getState().online,
+            !ws_userlist
+              .getState()
+              .online.some((obj) => obj.username === data.online[0].username)
+              ? data.online[0]
+              : null,
+          ].filter((obj) => obj !== null)
+        )
+      );
+
+      setUserList({
+        online: ws_userlist.getState().online,
+        offline: ws_userlist.getState().offline,
       });
-      setUserList(ws_userlist.getState().userList);
     } else if (data.type === "add_offline") {
-      if (
-        !ws_userlist
+      console.log(ws_userlist.getState().offline);
+      console.log(ws_userlist.getState().online);
+      console.log(
+        ws_userlist
           .getState()
-          .userList.offline.some(
-            (obj) => obj.username === data.offline[0].username
-          )
-      ) {
-        ws_userlist.getState().userList.offline.push(data.offline[0]);
-      }
-      ws_userlist.getState().userList.online.find((user, index) => {
-        console.log(user);
-        if (user.username === data.offline[0].username) {
-          ws_userlist.getState().userList.online.splice(index, 1);
-        }
+          .online.filter((obj) => obj.username !== data.offline[0].username)
+      );
+      dispatch(
+        webSocketConnect(
+          ws_userlist.getState().socket,
+          [
+            ...ws_userlist.getState().offline,
+            !ws_userlist
+              .getState()
+              .offline.some((obj) => obj.username === data.offline[0].username)
+              ? data.offline[0]
+              : null,
+          ].filter((obj) => obj !== null),
+          ws_userlist
+            .getState()
+            .online.filter((obj) => obj.username !== data.offline[0].username)
+        )
+      );
+
+      setUserList({
+        online: ws_userlist.getState().online,
+        offline: ws_userlist.getState().offline,
       });
-      setUserList(ws_userlist.getState().userList);
     }
   };
 };
