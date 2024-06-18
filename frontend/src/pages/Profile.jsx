@@ -45,7 +45,7 @@ const ProfilePage = () => {
           <div class="main-section flex-row"></div>
         ) : (
           <div class="main-section flex-row">
-            <ProfileImg stat={stat} setStat={setStat} user_name={userName} />
+            <ProfileImg stat={stat} setStat={setStat} profile={profile} />
             <ProfileInfo profile={profile} />
           </div>
         )}
