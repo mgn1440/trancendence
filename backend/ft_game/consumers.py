@@ -8,8 +8,9 @@ import random
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
 from ft_lobby.consumers import LobbyConsumer
-from ft_user.models import CustomUser, SingleGameRecord, MultiGameRecord
+from ft_user.models import CustomUser, SingleGameRecord, MultiGameRecord, SingleGameDetail
 from asgiref.sync import sync_to_async
+from pprint import pprint
 
 class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -17,6 +18,8 @@ class GameConsumer(AsyncWebsocketConsumer):
         self.room_group_name = self.room_id_str
         self.room_id = int(self.room_id_str)
         self.status = 'waiting'
+        self.ball_count = 0
+        self.past_ball_position = []
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -53,6 +56,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 'players': [],
                 'roles': {},
                 'bar_move': {'left': 0, 'right': 0},
+                'record': [],
             }
 
         LobbyConsumer.rooms[self.room_id]['game']['players'].append(self.scope['user'].username)
@@ -108,7 +112,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 winner_name = LobbyConsumer.rooms[self.room_id]['game']['players'][0]
                 loser_name = self.scope['user'].username
                 game_data = await get_game_data(winner_name, loser_name, 5, 0)
-                await create_game_records(game_data)
+                await create_game_records(game_data, is_tournament=False, game_record_details=LobbyConsumer.rooms[self.room_id]['game']['record'])
             elif len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 0:
                 del LobbyConsumer.rooms[self.room_id]
             await self.update_room_list()
@@ -141,6 +145,10 @@ class GameConsumer(AsyncWebsocketConsumer):
     async def start_ball_movement(self):
         while self.status == 'playing' and self.room_id in LobbyConsumer.rooms and len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 2:
             self.update_ball_position()
+            self.ball_count += 1
+            self.past_ball_position.append(self.game['ball'].copy()) 
+            if len(self.past_ball_position) > 33:
+                self.past_ball_position.pop(0)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -151,7 +159,6 @@ class GameConsumer(AsyncWebsocketConsumer):
             await asyncio.sleep(0.03)
 
     def update_ball_position(self):
-
         self.game['player_bar']['left'] = min(720, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
         self.game['player_bar']['right'] = min(720, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
         self.game['player_bar']['left'] = max(0, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
@@ -173,11 +180,22 @@ class GameConsumer(AsyncWebsocketConsumer):
         if (self.game['ball']['x'] - self.game['ball']['radius'] < 0) or (self.game['ball']['x'] + self.game['ball']['radius'] > 1200):
             if self.game['ball']['x'] - self.game['ball']['radius'] < 0:
                 self.game['scores']['right'] += 1
+                self.record_goal('right')
             else:
                 self.game['scores']['left'] += 1
+                self.record_goal('left')
             asyncio.create_task(self.broadcast_scores())
             asyncio.create_task(self.check_game_over())
             self.reset_ball()
+
+    def record_goal(self, goal_user_position):
+        self.game['record'].append({
+            'goal_user_name': self.game['roles'][goal_user_position],
+            'goal_user_position': goal_user_position,
+            'ball_start_position': self.past_ball_position[0].copy(),
+            'ball_end_position': self.game['ball'].copy(),
+            'timestamp': self.ball_count
+        })
 
     def reset_ball(self):
         self.game['ball']['x'] = 600
@@ -206,13 +224,14 @@ class GameConsumer(AsyncWebsocketConsumer):
         LobbyConsumer.rooms[self.room_id]['in_game_players'] = []
         winner_username = LobbyConsumer.rooms[self.room_id]['game']['roles'][winner]
         loser_username = LobbyConsumer.rooms[self.room_id]['game']['roles'][loser]
-        del LobbyConsumer.rooms[self.room_id]['game']
-        if LobbyConsumer.rooms[self.room_id]['mode'] == 'matchmaking':
-            del LobbyConsumer.rooms[self.room_id]
         winner_score = self.game['scores'][winner]
         loser_score = self.game['scores'][loser]
         game_data = await get_game_data(winner_username, loser_username, winner_score, loser_score)
-        await create_game_records(game_data)
+        await create_game_records(game_data, is_tournament=False, game_record_details=LobbyConsumer.rooms[self.room_id]['game']['record'])
+        del LobbyConsumer.rooms[self.room_id]['game']
+        if LobbyConsumer.rooms[self.room_id]['mode'] == 'matchmaking':
+            del LobbyConsumer.rooms[self.room_id]
+        
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -268,7 +287,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             'message': event['message']
         }))
 
-async def create_game_records(game_data, is_tournament=False):
+async def create_game_records(game_data, is_tournament=False, game_record_details=None):
     game_record = await sync_to_async(SingleGameRecord.objects.create)(
         player1=game_data['player1'],
         player1_score=game_data['player1_score'],
@@ -276,6 +295,19 @@ async def create_game_records(game_data, is_tournament=False):
         player2_score=game_data['player2_score'],
         is_tournament=is_tournament
     )
+    print(game_record.id)
+    for record_detail in game_record_details:
+        ball_start_position = json.dumps(record_detail['ball_start_position'])
+        ball_end_position = json.dumps(record_detail['ball_end_position'])
+        
+        SingleGameDetail.objects.create(
+            game=game_record,
+            goal_user_name=record_detail['goal_user_name'],
+            goal_user_position=record_detail['goal_user_position'],
+            ball_start_position=ball_start_position,
+            ball_end_position=ball_end_position,
+            timestamp=record_detail['timestamp'] * 0.03
+        )
     return game_record.id
 
 
@@ -312,6 +344,8 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         self.room_group_name = self.room_id_str
         self.room_id = int(self.room_id_str)
         self.status = 'waiting'
+        self.ball_count = 0
+        self.past_ball_position = []
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
@@ -348,6 +382,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                     'scores': {'left': 0, 'right': 0},
                     'bar_move': {'left': 0, 'right': 0},
                     'players' : [],
+                    'record' : [],
                 },
                 'b' : {
                     'ball': {'x': 600, 'y': 450, 'radius': 10, 'speedX': 10, 'speedY': 10},
@@ -355,6 +390,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                     'scores': {'left': 0, 'right': 0},
                     'bar_move': {'left': 0, 'right': 0},
                     'players' : [],
+                    'record': [],
                 },
                 'f' : {
                     'ball': {'x': 600, 'y': 450, 'radius': 10, 'speedX': 10, 'speedY': 10},
@@ -363,11 +399,11 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                     'bar_move': {'left': 0, 'right': 0},
                     'players' : [],
                     'waiting_players' : [],
+                    'record': [],
                 },
                 'players': [],
                 'roles' : {},
                 'match' : {},
-                'record' : {},
                 'winner_a' : None,
                 'winner_b' : None,
                 'winner_f' : None,
@@ -512,7 +548,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         winner_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][winner]
         loser_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][loser]
         game_data = await get_game_data(winner, loser, 3, 0)
-        game_record_id = await create_game_records(game_data, is_tournament=True)
+        game_record_id = await create_game_records(game_data, is_tournament=True, game_record_details=LobbyConsumer.rooms[self.room_id]['game'][match]['record'])
         TournamentGameConsumer.game_record_list[self.room_id].append(game_record_id)
         LobbyConsumer.rooms[self.room_id]['game'][match]['scores'][loser_role] = 0
         LobbyConsumer.rooms[self.room_id]['game'][match]['scores'][winner_role] = 3
@@ -559,7 +595,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                     winner = self.scope['user'].username
                     loser = LobbyConsumer.rooms[self.room_id]['game']['f']['players'][0]
                     game_data = await get_game_data(winner, loser, 3, 0)
-                    game_record_id = await create_game_records(game_data, is_tournament=True)
+                    game_record_id = await create_game_records(game_data, is_tournament=True, game_record_details=LobbyConsumer.rooms[self.room_id]['game']['f']['record'])
                     TournamentGameConsumer.game_record_list[self.room_id].append(game_record_id)
                     winner_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][winner]
                     loser_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][loser]
@@ -596,8 +632,14 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 
 
     async def start_ball_movement(self, match):
+        self.ball_count = 0
+        self.past_ball_position = []
         while self.status == 'playing' and self.room_id in LobbyConsumer.rooms and len(LobbyConsumer.rooms[self.room_id]['game'][match]['players']) == 2:
             self.update_ball_position(match)
+            self.ball_count += 1
+            self.past_ball_position.append(self.game[match]['ball'].copy())
+            if len(self.past_ball_position) > 33:
+                self.past_ball_position.pop(0)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -630,11 +672,29 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         if (self.match['ball']['x'] - self.match['ball']['radius'] < 0) or (self.match['ball']['x'] + self.match['ball']['radius'] > 1200):
             if self.match['ball']['x'] - self.match['ball']['radius'] < 0:
                 self.match['scores']['right'] += 1
+                self.record_goal('right', match)
             else:
                 self.match['scores']['left'] += 1
+                self.record_goal('left', match)
             asyncio.create_task(self.broadcast_scores())
             asyncio.create_task(self.check_game_over(match))
             self.reset_ball(match)
+
+    def record_goal(self, goal_user_position, match):
+        match_player_1 = self.game[match]['players'][0]
+        match_player_2 = self.game[match]['players'][1]
+        goal_user_name = ''
+        if self.game['roles'][match_player_1] == goal_user_position:
+            goal_user_name = match_player_1
+        else:
+            goal_user_name = match_player_2
+        self.game[match]['record'].append({
+            'goal_user_name': goal_user_name,
+            'goal_user_position': goal_user_position,
+            'ball_start_position': self.past_ball_position[0].copy(),
+            'ball_end_position': self.game[match]['ball'].copy(),
+            'timestamp': self.ball_count
+        })
 
     def reset_ball(self, match):
         self.game[match]['ball']['x'] = 600
@@ -677,7 +737,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             winner_score = right_score
             loser_score = left_score
         game_data = await get_game_data(winner, loser, winner_score, loser_score)
-        game_record_id = await create_game_records(game_data, is_tournament=True)
+        game_record_id = await create_game_records(game_data, is_tournament=True, game_record_details=self.game[match]['record'])
         print(game_record_id)
         TournamentGameConsumer.game_record_list[self.room_id].append(game_record_id)
         if match == 'a':
