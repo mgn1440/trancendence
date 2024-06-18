@@ -55,6 +55,7 @@ const domRenderer = () => {
 
     options.effectList.forEach((effect) => effect());
     options.effectList = [];
+    options.dependencies = [];
   });
 
   const render = (root, component) => {
@@ -135,6 +136,7 @@ const domRenderer = () => {
         ? dependencies?.some((deps, i) => !shallowEqual(deps, prevDeps[i]))
         : true;
 
+      console.log("useEffect", prevDeps, hasNoDeps, hasChangedDeps, callback);
       if (hasNoDeps || hasChangedDeps) {
         options.dependencies[index] = dependencies;
         callback();

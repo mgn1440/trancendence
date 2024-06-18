@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "@/lib/dom";
 import { moveToProfile } from "./UserList";
 import { axiosUserOther } from "@/api/axios.custom";
 import { isEmpty } from "@/lib/libft";
+import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 
 export const UserFind = ({ userData }) => {
   const randNum = Math.ceil(Math.random() * 5);
@@ -56,6 +57,7 @@ const getModalInput = (data) => {
 const LobbyButton = ({ data, sendLobbySocket }) => {
   console.log(data); // debug
   useEffect(() => {
+    console.log("lobby button mounted"); // debug
     const modalElement = document.getElementById("CreateRoomModal");
     const handleModalHidden = () => {
       const inputs = modalElement.querySelectorAll("input[type=text]");
@@ -68,7 +70,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
 
     modalElement.addEventListener("hidden.bs.modal", handleModalHidden);
 
-    document.addEventListener("DOMContentLoaded", () => {
+    addEventArray(eventType.DOMLOADED, () => {
       const radios = modalElement.querySelectorAll("input[type=radio]");
       const inputs = modalElement.querySelectorAll("input[type=text]");
       if (radios[0].checked == true) inputs[1].disable = true;
@@ -112,7 +114,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     const findModalInput = findModalElement.querySelector("input");
     findModalInput.addEventListener("keydown", handleFindInput);
 
-    document.addEventListener("keydown", (e) => {
+    addEventArray(eventType.KEYDOWN, (e) => {
       let isModalOpen = false;
       document.querySelectorAll(".modal").forEach((modal) => {
         if (modal.classList.contains("show")) {
@@ -147,20 +149,22 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
         }
       }
     });
+    addEventHandler();
 
-    return () => {
-      modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
-      loaderElement.removeEventListener("hidden.bs.modal", handleLoaderHidden);
-      findModalElement.removeEventListener(
-        "hidden.bs.modal",
-        handleFindModalHidden
-      );
-      findModalElement.removeEventListener(
-        "shown.bs.modal",
-        handleFindModalShown
-      );
-      findModalInput.removeEventListener("keydown", handleFindInput);
-    };
+    // return () => {
+    //   console.log("hi"); // debug
+    //   modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
+    //   loaderElement.removeEventListener("hidden.bs.modal", handleLoaderHidden);
+    //   findModalElement.removeEventListener(
+    //     "hidden.bs.modal",
+    //     handleFindModalHidden
+    //   );
+    //   findModalElement.removeEventListener(
+    //     "shown.bs.modal",
+    //     handleFindModalShown
+    //   );
+    //   findModalInput.removeEventListener("keydown", handleFindInput);
+    // };
   }, []);
 
   const findModalInput = useRef("");
