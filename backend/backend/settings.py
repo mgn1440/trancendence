@@ -14,6 +14,8 @@ from pathlib import Path
 import os
 from os.path import join
 from dotenv import load_dotenv
+from google.oauth2 import service_account
+import json
 
 PROJECT_PATH = os.path.abspath(os.path.dirname(__name__))
 if os.getenv('ENV') == 'local':
@@ -69,6 +71,7 @@ INSTALLED_APPS = [
 	'django_otp.plugins.otp_email',
 	'rest_framework',
 	'rest_framework_simplejwt',
+    'storages',
 ]
 
 ASGI_APPLICATION = 'backend.asgi.application'
@@ -240,3 +243,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_BUCKET_NAME = "pingpong_transendence"
+SERVICE_ACCOUNT_FILE= "/Users/sunko/Documents/transendence/backend/transendence-426802-edf4fca5eaaf.json"
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE)

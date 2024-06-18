@@ -133,6 +133,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 	username = serializers.CharField(
 		validators=[UniqueValidator(queryset=CustomUser.objects.all(), message="This username is already used.")]
 	)
+	profile_image = serializers.ImageField(required=False)
 	class Meta:
 		model = CustomUser
 		fields = ['username', 'otp_enabled','profile_image', 'multi_nickname']
