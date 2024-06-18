@@ -83,7 +83,7 @@ backend:
 # @$(EXECTUE_BE_CMD)
 
 clean:
-	docker compose down --rmi all --volumes --remove-orphans
+	docker compose down --volumes --remove-orphans
 
 fclean:
 	make clean
@@ -113,7 +113,7 @@ status: ps images volume network top
 ps logs images top:
 	docker compose $@
 
-.PHONY: ps logs images top 
+.PHONY: ps logs images top
 
 network volume:
 	docker $@ ls

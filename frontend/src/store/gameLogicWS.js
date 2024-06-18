@@ -33,6 +33,6 @@ export const disconnectGameLogicWebSocket = () => {
 
 export const connectGameLogicWebSocket = (dispatch, path) => {
   disconnectGameLogicWebSocket();
-  const socket = new WebSocket("ws://" + "localhost:8000" + path);
+  const socket = new WebSocket("wss://" + "localhost" + path);
   dispatch(webSocketConnect(socket));
 };
