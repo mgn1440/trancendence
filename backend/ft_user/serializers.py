@@ -131,6 +131,7 @@ class DayStatSerializer(serializers.Serializer):
 
 class UserUpdateSerializer(serializers.ModelSerializer):
 	username = serializers.CharField(
+		required=False,
 		validators=[UniqueValidator(queryset=CustomUser.objects.all(), message="This username is already used.")]
 	)
 	class Meta:

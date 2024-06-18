@@ -7,25 +7,24 @@ import { axiosUserMeConfig } from "@/api/axios.custom.js";
 
 const ProfileConfig = ({ profile, getProfileImg }) => {
   const saveMyConfig = () => {
-    const config2Change = {};
+    const config2Change = new FormData();
     console.log("saveMyConfig");
     if (document.querySelectorAll("input[type=text]")[0].value !== "") {
-      config2Change.username =
-        document.querySelectorAll("input[type=text]")[0].value;
+      config2Change.append("username", document.querySelectorAll("input[type=text]")[0].value);
     }
     if (document.querySelectorAll("input[type=text]")[1].value !== "") {
-      config2Change.multi_nickname =
-        document.querySelectorAll("input[type=text]")[1].value;
+      config2Change.append("multi_nickname", document.querySelectorAll("input[type=text]")[1].value);
     }
 
-    config2Change.otp_enabled = document.querySelectorAll(
+    config2Change.append("otp_enabled", document.querySelectorAll(
       "input[type=checkbox]"
-    )[0].checked;
+    )[0].checked);
     if (getProfileImg()) {
-      config2Change.profile_image = getProfileImg();
+      config2Change.append('profile_image', getProfileImg());
     }
     console.log(config2Change);
     axiosUserMeConfig(config2Change);
+    gotoPage("/profile/me");
   };
   return (
     <div class="profile-config-main">
