@@ -2,6 +2,7 @@ import { useEffect, useState } from "../lib/dom";
 import { createElement } from "../lib/createElement";
 import { axiosVerfiyOTP } from "@/api/axios.custom";
 import axios from "axios";
+import { gotoPage } from "../lib/libft";
 
 const isFull = (inputs) => {
   for (let i = 0; i < inputs.length; i++) {
@@ -13,9 +14,6 @@ const isFull = (inputs) => {
 };
 
 const OTP = ({ len }) => {
-  const MoveToLobby = () => {
-    gotoPage("/lobby");
-  };
   useEffect(() => {
     const inputs = document.querySelectorAll(".otp .input");
     let backspacePressed = false;
@@ -39,7 +37,7 @@ const OTP = ({ len }) => {
                 .join("")
             );
             if (ret.status === 200) {
-              MoveToLobby();
+              gotoPage("/lobby");
             } else {
               setTimeout(() => {
                 gotoPage("/2fa");

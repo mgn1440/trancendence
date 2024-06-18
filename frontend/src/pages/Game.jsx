@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "@/lib/dom";
 import { gotoPage, isEmpty } from "@/lib/libft";
 import { history } from "@/lib/router";
 import { ws_gamelogic, connectGameLogicWebSocket } from "@/store/gameLogicWS";
+import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 
 let gameState;
 let canvas;
@@ -109,7 +110,7 @@ const GamePage = () => {
                 .socket.send(JSON.stringify({ type: "start_game" }));
             }
           }, 1000);
-          document.addEventListener("keydown", (e) => {
+          addEventArray(eventType.KEYDOWN, (e) => {
             if (
               // direction === dirStat.STOP &&
               e.key === "ArrowUp" ||
@@ -125,7 +126,7 @@ const GamePage = () => {
               );
             }
           });
-          document.addEventListener("keyup", (e) => {
+          addEventArray(eventType.KEYUP, (e) => {
             if (
               direction !== dirStat.STOP &&
               // (e.key === "ArrowUp" || e.key === "ArrowDown")
@@ -141,6 +142,7 @@ const GamePage = () => {
               );
             }
           });
+          addEventHandler();
         } else if (data.type === "update_game") {
           gameState = data.game;
           // setGameScore(data.game.scores);
