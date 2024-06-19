@@ -55,9 +55,7 @@ const getModalInput = (data) => {
 };
 
 const LobbyButton = ({ data, sendLobbySocket }) => {
-  console.log(data); // debug
   useEffect(() => {
-    console.log("lobby button mounted"); // debug
     const modalElement = document.getElementById("CreateRoomModal");
     const handleModalHidden = () => {
       const inputs = modalElement.querySelectorAll("input[type=text]");

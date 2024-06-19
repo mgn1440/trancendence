@@ -76,13 +76,6 @@ export const startWebSocketConnection = (dispatch, setUserList) => {
         offline: ws_userlist.getState().offline,
       });
     } else if (data.type === "add_offline") {
-      console.log(ws_userlist.getState().offline);
-      console.log(ws_userlist.getState().online);
-      console.log(
-        ws_userlist
-          .getState()
-          .online.filter((obj) => obj.username !== data.offline[0].username)
-      );
       dispatch(
         webSocketConnect(
           ws_userlist.getState().socket,

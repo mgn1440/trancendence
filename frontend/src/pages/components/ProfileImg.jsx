@@ -69,8 +69,6 @@ const ProfileImg = ({ stat, setStat, profile, setProfileImg }) => {
   const [profileImgSrc, setProfileImgSrc] = useState(profile.profile_image);
   const defaultImg = `/img/minji_${(username[0].charCodeAt(0) % 5) + 1}.jpg`;
 
-  console.log(stat);
-
   useEffect(() => {
     const realUpload = document.querySelector(".real-upload");
     if (!realUpload) return;

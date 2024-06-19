@@ -95,6 +95,8 @@ const LobbyProfile = ({ profile }) => {
   const [logStat, setLogStat] = useState(PlayStat.SINGLE);
   const [gameRecords, setGameRecords] = useState([]);
 
+  console.log(logStat);
+
   useEffect(() => {
     // axios
     const getGameHistory = async () => {
