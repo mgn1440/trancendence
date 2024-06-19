@@ -21,26 +21,37 @@ const LobbyProfile = ({ data, sendLobbySocket, stat }) => {
 
   return (
     <div class="lobby-profile">
-      <img src={`/img/minji_${1}.jpg`}></img>
       <div class="profile-space-btw">
         {isEmpty(clientUserStore.getState().client) ? (
           <div></div>
         ) : (
-          <div>
+          <div class="profile-start">
+            <img
+              src={
+                clientUserStore.getState().client.profile_image ??
+                `/img/minji_${
+                  (clientUserStore.getState().client.username[0].charCodeAt(0) %
+                    5) +
+                  1
+                }.jpg`
+              }
+            ></img>
             <div>
-              <h3>{clientUserStore.getState().client.username}</h3>
-              <p>Win: {clientUserStore.getState().client.win}</p>
-              <p>Lose: {clientUserStore.getState().client.lose}</p>
-              <p>Rate: {calcGameRate(clientUserStore.getState().client)}%</p>
+              <div>
+                <h3>{clientUserStore.getState().client.username}</h3>
+                <p>Win: {clientUserStore.getState().client.win}</p>
+                <p>Lose: {clientUserStore.getState().client.lose}</p>
+                <p>Rate: {calcGameRate(clientUserStore.getState().client)}%</p>
+              </div>
+              {stat === MainProfileState.LOBBY ? (
+                <LobbyButton
+                  data={clientUserStore.getState().client}
+                  sendLobbySocket={sendLobbySocket}
+                />
+              ) : (
+                <div></div>
+              )}
             </div>
-            {stat === MainProfileState.LOBBY ? (
-              <LobbyButton
-                data={clientUserStore.getState().client}
-                sendLobbySocket={sendLobbySocket}
-              />
-            ) : (
-              <div></div>
-            )}
           </div>
         )}
         {stat === MainProfileState.LOBBY ? (

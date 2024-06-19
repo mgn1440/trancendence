@@ -6,12 +6,13 @@
   align-items: center;
 }
 
-.lobby-profile > img {
-  height: 90%;
+.profile-start > img {
+  height: 18vh;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   /* border: 1px solid var(--white); */
   margin: 0.5rem;
+  margin-left: 2.5rem;
 }
 
 .profile-space-btw {
@@ -19,9 +20,18 @@
   display: flex;
   flex-flow: row nowrap;
   justify-content: space-between;
+  align-items: center;
 }
 
-.profile-space-btw > div {
+.profile-start {
+  flex: 1;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: start;
+  align-items: center;
+}
+
+.profile-start > div {
   margin-left: 1rem;
 }
 
@@ -50,9 +60,12 @@
 }
 
 .lobby-buttons {
+  height: 80%;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
+  place-items: center start;
+  place-content: center start;
 }
 
 .user-search-bar {
