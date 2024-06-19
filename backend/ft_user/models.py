@@ -23,7 +23,7 @@ class CustomUser(ExportModelOperationsMixin("user"), AbstractUser):
 		self.refresh_token = refresh_token
 		self.save()
 
-class FollowList(models.Model):
+class FollowList(ExportModelOperationsMixin("follow_list"), models.Model):
 	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, db_column="user")
 	following_username = models.CharField(max_length=128, null=True, blank=True)
 
@@ -37,7 +37,7 @@ class FollowList(models.Model):
 			raise Exception('이미 친구로 추가된 사용자입니다.')
 		super().save(*args, **kwargs)
 
-class SingleGameRecord(models.Model):
+class SingleGameRecord(ExportModelOperationsMixin("game_record"), models.Model):
 	id = models.BigAutoField(primary_key=True)
 	player1 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="player1", db_column="player1", null=True, blank=True)
 	player1_score = models.IntegerField()
@@ -72,7 +72,7 @@ class MultiGameRecord(models.Model):
 	def __str__(self):
 		return f"multi-game-record at {self.created_at}"
 
-class SingleGameDetail(models.Model):
+class SingleGameDetail(ExportModelOperationsMixin("game_detail"), models.Model):
 	id = models.BigAutoField(primary_key=True)
 	game = models.ForeignKey(SingleGameRecord, on_delete=models.CASCADE, db_column="game")
 	goal_user_name = models.CharField(max_length=128)
