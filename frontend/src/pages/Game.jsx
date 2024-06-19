@@ -175,6 +175,13 @@ const GamePage = () => {
     context = canvas.getContext("2d");
     context.scale(1, 1);
 
+    document.querySelector(
+      ".pong-game-info > p.user1"
+    ).style.left = `calc(52% - ${canvas.width / 2}px)`;
+    document.querySelector(
+      ".pong-game-info > p.user2"
+    ).style.right = `calc(52% - ${canvas.width / 2}px)`;
+
     ratio = canvas.width / 1200;
     // } else
     update();
