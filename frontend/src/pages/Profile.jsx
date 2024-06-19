@@ -30,6 +30,7 @@ const ProfilePage = () => {
         if (!follow) setStat(2);
         else setStat(3);
       }
+      // console.log(user.data.user_info);
       setProfile(user.data.user_info);
     };
     fetchProfile();

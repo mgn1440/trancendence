@@ -153,6 +153,7 @@ const GamePage = () => {
           gotoPage(`/lobby/${data.room_id}`);
         } else if (data.type === "error") {
           alert(data.message);
+          console.log(data.message);
           gotoPage("/lobby");
         }
       };

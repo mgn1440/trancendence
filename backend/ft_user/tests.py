@@ -282,6 +282,7 @@ class UpdateUserProfileAPIView(APITestCase):
 		)
 		self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_token)
 		self.url = reverse('me')
+		print(self.url)
 	def test_update_user_info(self):
 		data = {
 			'otp_enabled': True,
