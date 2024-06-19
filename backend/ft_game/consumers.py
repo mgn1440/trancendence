@@ -11,6 +11,7 @@ from ft_lobby.consumers import LobbyConsumer
 from ft_user.models import CustomUser, SingleGameRecord, MultiGameRecord, SingleGameDetail
 from asgiref.sync import sync_to_async
 from pprint import pprint
+import math
 
 class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -163,19 +164,32 @@ class GameConsumer(AsyncWebsocketConsumer):
         self.game['player_bar']['right'] = min(720, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
         self.game['player_bar']['left'] = max(0, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
         self.game['player_bar']['right'] = max(0, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
+        if -19 < self.game['ball']['speedX'] < 19:
+            self.game['ball']['speedX'] *= 1.02
+            self.game['ball']['speedY'] *= 1.02
         self.game['ball']['x'] += self.game['ball']['speedX']
         self.game['ball']['y'] += self.game['ball']['speedY']
         # 위 야래 벽에 부딪히면 방향 바꾸기
         if self.game['ball']['y'] + self.game['ball']['radius'] > 900 or self.game['ball']['y'] - self.game['ball']['radius'] < 0:
             self.game['ball']['speedY'] = -self.game['ball']['speedY']
+        
+        if self.game['ball']['y'] + self.game['ball']['radius'] > 900:
+            self.game['ball']['y'] = 900 - self.game['ball']['radius']
+        elif self.game['ball']['y'] - self.game['ball']['radius'] < 0:
+            self.game['ball']['y'] = self.game['ball']['radius']
+        
         # 왼쪽 player bar에 부딪히면 방향 바꾸기
-        if self.game['ball']['x'] - self.game['ball']['radius'] < 40:
+        if 20 < self.game['ball']['x'] - self.game['ball']['radius'] < 40:
             if self.game['ball']['y'] > self.game['player_bar']['left'] and self.game['ball']['y'] < self.game['player_bar']['left'] + 180:
-                self.game['ball']['speedX'] = -self.game['ball']['speedX']
+                degree = (self.game['player_bar']['left'] + 90 - self.game['ball']['y']) * 8 / 9
+                self.game['ball']['speedY'] = math.tan(math.radians(-degree)) * 5
+                self.game['ball']['speedX'] = 5
         # 오른쪽 player bar에 부딪히면 방향 바꾸기
-        if self.game['ball']['x'] + self.game['ball']['radius'] > 1160:
+        if 1160 < self.game['ball']['x'] + self.game['ball']['radius'] < 1180:
             if self.game['ball']['y'] > self.game['player_bar']['right'] and self.game['ball']['y'] < self.game['player_bar']['right'] + 180:
-                self.game['ball']['speedX'] = -self.game['ball']['speedX']
+                degree = (self.game['player_bar']['right'] + 90 - self.game['ball']['y']) * 8 / 9
+                self.game['ball']['speedY'] = math.tan(math.radians(degree)) * (-5)
+                self.game['ball']['speedX'] = -5
         # 왼쪽, 오른쪽 벽에 부딪히면 점수 올리기
         if (self.game['ball']['x'] - self.game['ball']['radius'] < 0) or (self.game['ball']['x'] + self.game['ball']['radius'] > 1200):
             if self.game['ball']['x'] - self.game['ball']['radius'] < 0:
@@ -628,9 +642,6 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         elif data['type'] == 'disconnect':
             await self.close()
 
-
-
-
     async def start_ball_movement(self, match):
         self.ball_count = 0
         self.past_ball_position = []
@@ -655,19 +666,31 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         self.match['player_bar']['right'] = min(720, self.match['player_bar']['right'] + self.match['bar_move']['right'])  # Assuming bar height is 200
         self.match['player_bar']['left'] = max(0, self.match['player_bar']['left'] + self.match['bar_move']['left'])  # Assuming bar height is 200
         self.match['player_bar']['right'] = max(0, self.match['player_bar']['right'] + self.match['bar_move']['right'])  # Assuming bar height is 200
+        if -19 < self.match['ball']['speedX'] < 19:
+            self.match['ball']['speedX'] *= 1.02
+            self.match['ball']['speedY'] *= 1.02
         self.match['ball']['x'] += self.match['ball']['speedX']
         self.match['ball']['y'] += self.match['ball']['speedY']
         # 위 야래 벽에 부딪히면 방향 바꾸기
         if self.match['ball']['y'] + self.match['ball']['radius'] > 900 or self.match['ball']['y'] - self.match['ball']['radius'] < 0:
             self.match['ball']['speedY'] = -self.match['ball']['speedY']
+            
+        if self.match['ball']['y'] + self.match['ball']['radius'] > 900:
+            self.match['ball']['y'] = 900 - self.match['ball']['radius']
+        elif self.match['ball']['y'] - self.match['ball']['radius'] < 0:
+            self.match['ball']['y'] = self.match['ball']['radius']
         # 왼쪽 player bar에 부딪히면 방향 바꾸기
-        if self.match['ball']['x'] - self.match['ball']['radius'] < 40:
+        if 20 < self.match['ball']['x'] - self.match['ball']['radius'] < 40:
             if self.match['ball']['y'] > self.match['player_bar']['left'] and self.match['ball']['y'] < self.match['player_bar']['left'] + 180:
-                self.match['ball']['speedX'] = -self.match['ball']['speedX']
+                degree = (self.match['player_bar']['left'] + 90 - self.match['ball']['y']) * 8 / 9
+                self.match['ball']['speedY'] = math.tan(math.radians(-degree)) * 5
+                self.match['ball']['speedX'] = 5
         # 오른쪽 player bar에 부딪히면 방향 바꾸기
-        if self.match['ball']['x'] + self.match['ball']['radius'] > 1160:
+        if 1160 < self.match['ball']['x'] + self.match['ball']['radius'] < 1180:
             if self.match['ball']['y'] > self.match['player_bar']['right'] and self.match['ball']['y'] < self.match['player_bar']['right'] + 180:
-                self.match['ball']['speedX'] = -self.match['ball']['speedX']
+                degree = (self.match['player_bar']['right'] + 90 - self.match['ball']['y']) * 8 / 9
+                self.match['ball']['speedY'] = math.tan(math.radians(degree)) * (-5)
+                self.match['ball']['speedX'] = -5
         # 왼쪽, 오른쪽 벽에 부딪히면 점수 올리기
         if (self.match['ball']['x'] - self.match['ball']['radius'] < 0) or (self.match['ball']['x'] + self.match['ball']['radius'] > 1200):
             if self.match['ball']['x'] - self.match['ball']['radius'] < 0:
@@ -916,6 +939,9 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
         self.game['player_bar']['right'] = min(720, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
         self.game['player_bar']['left'] = max(0, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
         self.game['player_bar']['right'] = max(0, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
+        if -19 < self.game['ball']['speedX'] < 19:
+            self.game['ball']['speedX'] *= 1.02
+            self.game['ball']['speedY'] *= 1.02
         self.game['ball']['x'] += self.game['ball']['speedX']
         self.game['ball']['y'] += self.game['ball']['speedY']
 
@@ -923,14 +949,22 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
         if self.game['ball']['y'] + self.game['ball']['radius'] > 900 or self.game['ball']['y'] - self.game['ball']['radius'] < 0:
             self.game['ball']['speedY'] = -self.game['ball']['speedY']
 
+        if self.game['ball']['y'] + self.game['ball']['radius'] > 900:
+            self.game['ball']['y'] = 900 - self.game['ball']['radius']
+        elif self.game['ball']['y'] - self.game['ball']['radius'] < 0:
+            self.game['ball']['y'] = 0 + self.game['ball']['radius']
+        
         # Bounce off paddles
-        if self.game['ball']['x'] - self.game['ball']['radius'] < 40:
+        if 20 < self.game['ball']['x'] - self.game['ball']['radius'] < 40:
             if self.game['ball']['y'] > self.game['player_bar']['left'] and self.game['ball']['y'] < self.game['player_bar']['left'] + 180:
-                self.game['ball']['speedX'] = -self.game['ball']['speedX']
-        if self.game['ball']['x'] + self.game['ball']['radius'] > 1160:
+                degree = (self.game['player_bar']['left'] + 90 - self.game['ball']['y']) * 8 / 9
+                self.game['ball']['speedY'] = math.tan(math.radians(-degree)) * 5
+                self.game['ball']['speedX'] = 5
+        if 1160 < self.game['ball']['x'] + self.game['ball']['radius'] < 1180:
             if self.game['ball']['y'] > self.game['player_bar']['right'] and self.game['ball']['y'] < self.game['player_bar']['right'] + 180:
-                self.game['ball']['speedX'] = -self.game['ball']['speedX']
-
+                degree = (self.game['player_bar']['right'] + 90 - self.game['ball']['y']) * 8 / 9
+                self.game['ball']['speedY'] = math.tan(math.radians(degree)) * (-5)
+                self.game['ball']['speedX'] = -5
         # Score points
         if self.game['ball']['x'] - self.game['ball']['radius'] < 0 or self.game['ball']['x'] + self.game['ball']['radius'] > 1200:
             if self.game['ball']['x'] - self.game['ball']['radius'] < 0:

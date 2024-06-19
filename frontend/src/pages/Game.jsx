@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "@/lib/dom";
 import { gotoPage, isEmpty } from "@/lib/libft";
 import { history } from "@/lib/router";
 import { ws_gamelogic, connectGameLogicWebSocket } from "@/store/gameLogicWS";
+import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 
 let gameState;
 let canvas;
@@ -109,7 +110,7 @@ const GamePage = () => {
                 .socket.send(JSON.stringify({ type: "start_game" }));
             }
           }, 1000);
-          document.addEventListener("keydown", (e) => {
+          addEventArray(eventType.KEYDOWN, (e) => {
             if (
               // direction === dirStat.STOP &&
               e.key === "ArrowUp" ||
@@ -125,7 +126,7 @@ const GamePage = () => {
               );
             }
           });
-          document.addEventListener("keyup", (e) => {
+          addEventArray(eventType.KEYUP, (e) => {
             if (
               direction !== dirStat.STOP &&
               // (e.key === "ArrowUp" || e.key === "ArrowDown")
@@ -141,6 +142,7 @@ const GamePage = () => {
               );
             }
           });
+          addEventHandler();
         } else if (data.type === "update_game") {
           gameState = data.game;
           // setGameScore(data.game.scores);
@@ -151,6 +153,7 @@ const GamePage = () => {
           gotoPage(`/lobby/${data.room_id}`);
         } else if (data.type === "error") {
           alert(data.message);
+          console.log(data.message);
           gotoPage("/lobby");
         }
       };
@@ -171,6 +174,13 @@ const GamePage = () => {
     }
     context = canvas.getContext("2d");
     context.scale(1, 1);
+
+    document.querySelector(
+      ".pong-game-info > p.user1"
+    ).style.left = `calc(52% - ${canvas.width / 2}px)`;
+    document.querySelector(
+      ".pong-game-info > p.user2"
+    ).style.right = `calc(52% - ${canvas.width / 2}px)`;
 
     ratio = canvas.width / 1200;
     // } else

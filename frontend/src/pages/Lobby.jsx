@@ -63,6 +63,10 @@ const LobbyPage = () => {
       ws_gamelogic.getState().socket.send(JSON.stringify(roomData));
       console.log(roomData);
     } else {
+      console.log(
+        ws_gamelogic.getState().socket,
+        ws_gamelogic.getState().socket.readyState
+      );
       console.log("socket is not ready");
     }
   };

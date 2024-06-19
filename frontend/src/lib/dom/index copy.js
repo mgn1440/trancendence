@@ -32,9 +32,9 @@ const domRenderer = () => {
     options.stateHook = {};
     options.refs = {};
     options.refHook = {};
-    options.dependencies = {};
-    options.effectHook = {};
-    options.effectList = {};
+    options.dependencies = [];
+    options.effectHook = 0;
+    options.effectList = [];
   };
 
   const _render = frameRunner(() => {
@@ -51,12 +51,10 @@ const domRenderer = () => {
     renderInfo.currentVDOM = newVDOM;
     options.stateHook = {};
     options.refHook = {};
-    options.effectHook = {};
+    options.effectHook = 0;
 
-    for (let key in options.effectList) {
-      options.effectList[key].forEach((effect) => effect());
-    }
-    options.effectList = {};
+    options.effectList.forEach((effect) => effect());
+    options.effectList = [];
   });
 
   const render = (root, component) => {
@@ -129,30 +127,20 @@ const domRenderer = () => {
   };
 
   const useEffect = (callback, dependencies) => {
-    const component = currentComponent;
-    if (!options.effectHook[component]) {
-      options.effectHook[component] = 0;
-    }
-    if (!options.effectList[component]) {
-      options.effectList[component] = [];
-    }
-    if (!options.dependencies[component]) {
-      options.dependencies[component] = [];
-    }
-    const index = options.effectHook[component];
-    options.effectList[component][index] = () => {
+    const index = options.effectHook;
+    options.effectList[index] = () => {
       const hasNoDeps = !dependencies;
-      const prevDeps = options.dependencies[component][index];
+      const prevDeps = options.dependencies[index];
       const hasChangedDeps = prevDeps
         ? dependencies?.some((deps, i) => !shallowEqual(deps, prevDeps[i]))
         : true;
 
       if (hasNoDeps || hasChangedDeps) {
-        options.dependencies[component][index] = dependencies;
+        options.dependencies[index] = dependencies;
         callback();
       }
     };
-    options.effectHook[component] += 1;
+    options.effectHook += 1;
   };
 
   return { useState, useEffect, useRef, render };
