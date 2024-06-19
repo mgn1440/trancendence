@@ -14,6 +14,8 @@ from pathlib import Path
 import os
 from os.path import join
 from dotenv import load_dotenv
+from google.oauth2 import service_account
+import json
 
 PROJECT_PATH = os.path.abspath(os.path.dirname(__name__))
 if os.getenv('ENV') == 'local':
@@ -73,6 +75,7 @@ INSTALLED_APPS = [
 	'rest_framework',
 	'rest_framework_simplejwt',
     'django_prometheus',
+    'storages',
 ]
 
 ASGI_APPLICATION = 'backend.asgi.application'
@@ -247,8 +250,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-STORAGES = {
-    "default" : {
-        "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
-    }
-}
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME')
+SERVICE_ACCOUNT_FILE = '/config/transendence-426802-edf4fca5eaaf.json'
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE)

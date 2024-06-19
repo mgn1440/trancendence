@@ -1,0 +1,13 @@
+{
+	"type": "service_account",
+	"project_id": "transendence-426802",
+	"private_key_id": "edf4fca5eaaf8d486d340107f09464c5d661f8b3",
+	"private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCszN6fADDVl0jY\nt1Ib4pQXpb7U/8L3ovKrWXt/JLkRBd3W/ozTJEA5B/3nIeHqoSvq6gkvmWLDiyCy\nczIKy9wuFBr3Pi4szSo+R23TKODqvXVNRtNO3YkttXLFiMtAUB+7EZUWDVcTJrMr\n+Jv4CeILIhOANkciHWX+/BG2nT9WuwBfByyi8hSk7NVYcado+2yIbMhu9Id1se1u\ntvc9DHA/uDShYXUq83PT+K6zjVSYkM0h/Vs+aOCccKCEC4pwmkdy+LZ4GdN7kdVd\nZo+U3Ez7eGvbFuOejOPc6X5VTKt9yidg5uMdk+RYBL+GrEDvownvEm6LPEdZ4xbp\nPzEi7rd5AgMBAAECggEAAhWaSmOj7uT5NXHhuFbKI9smgK0cDeMNbtlMRlQ2rBNc\nkuJmXyL4rGqj3MAlWI5DAxcTFY74O7+b4X5gXZ8bXov9I4x8VQl7czuJEzS5S2yn\nfj40mcjv7CPCtbklofazU9FpRtYnbLwdTfi+8FskkBWMvmcLV4zOKo9/kVWMhArj\nzY8Ajnd00GcCMCXgIC5P8Am5ZVBX39/N7MAUzxe+l7KchVlpzViIqUhtwYyirjS1\ngB9VIg7+KVcfiSNKUSLWCh1rOfwqrUcnRhez3tQF2JzSmdoXJmFeB8Tw3M3y0Lia\nqwT82JuW36uBz3uNsMKgXjLu7YlHnb8gns7H+X/CYQKBgQDg51g3rAe01lwts5sI\nt+MPWv5Wy2izCZR53oilNthouvGorckcYU2Rqetn0aEHOJ3M6qOfWSY7z/c1x4Ql\nQa72l1WHQbbDHaAgJtkd5lmksopzyy74+gNHfvIB8R8WQz9soyNr3aB4eHb26Jjk\ngYCGBorBnfFU/7AepL81E1FB3QKBgQDEsUfazFaYKAAI2cvz5/YsDrZNVfRHuPIU\nb5+AiPBBjql15oiaTST++tnnja+xXFjooY6FsF7EeDUV2eGY27suRFiHGWU5b52X\niQH+DYkhqs//1N/G6XRHEZLDi0scKGEhoDZGgPcAFS/IFMLM5IL0P4sRKayWLmRg\nLIOpEbsITQKBgQCa70TatWxpq/K8mSqIiwWlIm5spJxwGn1qp19DUdEr9P1d0rrl\nDjM90e0WDFf+fYZYEJy/vc6VDeOj7NqgP+ukfQSytRaOu+3/uEOCUZoX19eBhcvK\nQZHYwx89LzrXP2SGFqzkNj3CQFrUJdCOOpiru/4C/CexAqP1uFDw42nrEQKBgHDU\nKR3PvZTGzU5GcYJWe5ZGUjkGp3xFEUi7x0laREe26GqjdZTdz+0cRMdZNYGOMcow\ncqspwxL8yabhN1ISKcuelRHadYB/EG2OwD/Vz+YqL+rXWA6oeHUUFZZqXwml+CHr\n33aOICJCBQjHL/+MzboCgWm0+DWmIxowLs5bR2i5AoGBAJP0UM0tovw2xyMvl2us\nLuzrq2/IRfpJcYio0WmEI+sixer3EeGOH1AM5axrk6Ne7axlsVAEQ/VtaJRabHUZ\nYQBV472x6dO23jErQpaSyJDGqpp76/CcZQ7e6PQo7guQjsWWtH+cMf0KWRzCl6XJ\nikfsteMm/+SAWrUs9TdXfeoX\n-----END PRIVATE KEY-----\n",
+	"client_email": "transendence-pingpong@transendence-426802.iam.gserviceaccount.com",
+	"client_id": "107599454594769155280",
+	"auth_uri": "https://accounts.google.com/o/oauth2/auth",
+	"token_uri": "https://oauth2.googleapis.com/token",
+	"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+	"client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/transendence-pingpong%40transendence-426802.iam.gserviceaccount.com",
+	"universe_domain": "googleapis.com"
+  }

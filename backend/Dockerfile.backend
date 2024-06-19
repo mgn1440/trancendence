@@ -6,6 +6,9 @@ FROM python:3.12.3-slim
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
 
+RUN mkdir /config
+COPY --chmod=755 transendence-426802-edf4fca5eaaf.json /config
+
 # Set the working directory
 WORKDIR /code
 
