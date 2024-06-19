@@ -16,6 +16,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q, Count, Case, When, IntegerField
 from datetime import datetime
 
+
 class OtpUpdateView(View):
 	def post(self, request):
 		otp_status = request.data.get('otp_status') #TODO: 이것도 아마 json loads를 써야할거같은데 테스트해야함.

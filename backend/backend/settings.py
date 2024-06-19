@@ -43,7 +43,10 @@ SECRET_KEY = 'django-insecure-(eg1%h@r8fyk-^i@id)x$a@yv@^d)anwc-bwbwowkz=@z&2rei
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "backend",
+    "localhost",
+]
 
 
 # Application definition
@@ -69,6 +72,7 @@ INSTALLED_APPS = [
 	'django_otp.plugins.otp_email',
 	'rest_framework',
 	'rest_framework_simplejwt',
+    'django_prometheus',
 ]
 
 ASGI_APPLICATION = 'backend.asgi.application'
@@ -127,6 +131,7 @@ SIMPLE_JWT = {
 AUTH_USER_MODEL = 'ft_user.CustomUser'
 
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -136,6 +141,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	'ft_auth.middleware.InsertJWT',
 	'ft_auth.middleware.CustomAuthentication',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -164,23 +170,23 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get('POSTGRES_DB'),
-#         'USER': os.environ.get('POSTGRES_USER'),
-#         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-#         'HOST': 'postgresql',
-#         'PORT': '5432',
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django_prometheus.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': 'postgresql',
+        'PORT': '5432',
+    }
+}
 
 
 # Password validation

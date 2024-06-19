@@ -9,17 +9,22 @@ SHELL 						:= /bin/bash
 # UNAME_S 					:= $(shell uname -s)
 
 SRC_FOLDER				:= .
-FE_FOLDER					:= frontend
-BE_FOLDER					:= backend
+FE_FOLDER				:= frontend
+BE_FOLDER				:= backend
 NGINX_FOLDER			:= nginx
 REDIS_FOLDER			:= redis
 CONFIG_FOLDER			:= config
+PROMETHEUS_FOLDER		:= prometheus
+GRAFANA_FOLDER			:= grafana
 
-FE_PATH						:= $(SRC_FOLDER)/$(FE_FOLDER)
-BE_PATH						:= $(SRC_FOLDER)/$(BE_FOLDER)
+FE_PATH					:= $(SRC_FOLDER)/$(FE_FOLDER)
+BE_PATH					:= $(SRC_FOLDER)/$(BE_FOLDER)
 NGINX_PATH				:= $(SRC_FOLDER)/$(NGINX_FOLDER)
 REDIS_PATH				:= $(SRC_FOLDER)/$(REDIS_FOLDER)
-export FE_PATH BE_PATH NGINX_PATH REDIS_PATH
+PROMETHEUS_PATH			:= $(SRC_FOLDER)/$(PROMETHEUS_FOLDER)
+GRAFANA_PATH			:= $(SRC_FOLDER)/$(GRAFANA_FOLDER)
+
+export FE_PATH BE_PATH NGINX_PATH REDIS_PATH PROMETHEUS_PATH GRAFANA_PATH
 
 ifeq ($(firstword $(MAKECMDGOALS)),local)
 	ENV_FILE				:= .env.local
@@ -83,7 +88,7 @@ backend:
 # @$(EXECTUE_BE_CMD)
 
 clean:
-	docker compose down --rmi all --volumes --remove-orphans
+	docker compose down --volumes --remove-orphans
 
 fclean:
 	make clean
@@ -113,7 +118,7 @@ status: ps images volume network top
 ps logs images top:
 	docker compose $@
 
-.PHONY: ps logs images top 
+.PHONY: ps logs images top
 
 network volume:
 	docker $@ ls
