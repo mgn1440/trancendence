@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django_prometheus.models import ExportModelOperationsMixin
 
 
-class CustomUser(AbstractUser):
+class CustomUser(ExportModelOperationsMixin("user"), AbstractUser):
 	uid = models.IntegerField(primary_key=True)
 	username = models.CharField(max_length=128, unique=True)
 	otp_enabled = models.BooleanField(default=False, null=True)
