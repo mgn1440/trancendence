@@ -6,15 +6,13 @@ from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
 from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer, SingleGameDetailSerializer, DayStatSerializer, UserUpdateSerializer
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_framework.exceptions import NotFound, ValidationError
 import json
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q, Count, Case, When, IntegerField
 from datetime import datetime
+from django.core.files.storage import default_storage
 
 
 class OtpUpdateView(View):
@@ -60,6 +58,16 @@ class UserMeView(RetrieveUpdateAPIView):
 		serializer = UserUpdateSerializer(user, data=request.data, partial=partial)
 		if serializer.is_valid(raise_exception=True):
 			serializer.save()
+			profile_image = request.FILES.get('profile_image')
+			if profile_image:
+				try:
+					target_path = 'profile_images/' + user.username + '/' + profile_image.name
+					path = default_storage.save(target_path, profile_image)
+					file_url = default_storage.url(path)
+					user.profile_image = file_url
+					user.save()
+				except Exception as e:
+					return JsonResponse({'status_code': '400', 'message': str(e)}, status=400)
 			return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 		return JsonResponse({'status_code': '400', 'message': serializer.error}, status=400)
 
