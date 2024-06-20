@@ -1,39 +1,17 @@
-import { useEffect, useState } from "@/lib/dom";
-import { isEmpty } from "@/lib/libft";
+import { useEffect, useState, useRef } from "@/lib/dom";
+import { gotoPage, isEmpty } from "@/lib/libft";
 import { history } from "@/lib/router";
-// game
-// :
-// ball
-// :
-// {x: 500, y: 500, radius: 10, speedX: 10, speedY: 10}
-// player_bar
-// :
-// {left: 400, right: 400}
-// players
-// :
-// (2) ['hyungjuk', 'surkim']
-// roles
-// :
-// {left: 'hyungjuk', right: 'surkim'}
-// scores
-// :
-// {left: 0, right: 0}
-// [[Prototype]]
-// :
-// Object
-// type
-// :
-// "game_start"
-// [[Prototype]]
-// :
-// Object
+import { ws_gamelogic, connectGameLogicWebSocket } from "@/store/gameLogicWS";
+import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
+
 let gameState;
 let canvas;
 let context;
+let ratio;
 
 const drawPaddle = (x, y) => {
   context.fillStyle = "#ffffff";
-  context.fillRect(x, (canvas.height * y) / 1000, 20, canvas.height / 5);
+  context.fillRect(x * ratio, y * ratio, 20 * ratio, canvas.height / 5);
 };
 
 const drawBall = (x, y) => {
@@ -41,9 +19,9 @@ const drawBall = (x, y) => {
   // context.fillRect(x, y, 20, 20);
   context.beginPath();
   context.arc(
-    (gameState.ball.x * canvas.width) / 1000,
-    (gameState.ball.y * canvas.height) / 1000,
-    gameState.ball.radius,
+    gameState.ball.x * ratio,
+    gameState.ball.y * ratio,
+    gameState.ball.radius * ratio,
     0,
     Math.PI * 2
   );
@@ -66,7 +44,7 @@ const draw = () => {
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.fillStyle = "#ffffff";
   drawPaddle(20, gameState.player_bar.left);
-  drawPaddle(canvas.width - 40, gameState.player_bar.right);
+  drawPaddle(1160, gameState.player_bar.right);
   drawBall(gameState.ball.x, gameState.ball.y);
   drawLine();
   // context.font = "20px Quantico";
@@ -74,7 +52,6 @@ const draw = () => {
 };
 
 const update = () => {
-  console.log("update");
   draw();
   requestAnimationFrame(() => update());
 };
@@ -84,51 +61,63 @@ const dirStat = {
   UP: 1,
   DOWN: 2,
 };
-
 const GamePage = () => {
-  const [gameUsers, setGameUsers] = useState({});
-  const [gameScore, setGameScore] = useState({});
+  const [gameStat, setGameStat] = useState([]);
+  // const [gameScore, setGameScore] = useState({});
   let direction = dirStat.STOP;
   let startFlag = false;
   useEffect(() => {
     const socketAsync = async () => {
-      const socket = new WebSocket(
-        "ws://" +
-          "localhost:8000" +
-          `/ws/game/${history.currentPath().split("/")[2]}/`
+      connectGameLogicWebSocket(
+        ws_gamelogic.dispatch,
+        `/ws/game/${history.currentPath().split("/")[2]}/`
       );
 
-      socket.onopen = (e) => {
-        console.log("Game Socket Connected");
+      ws_gamelogic.getState().socket.onopen = (e) => {
         const waitOpponent = async () => {
           await new Promise((resolve) => setTimeout(resolve, 10000));
           if (!startFlag) {
-            console.log("timeout");
-            socket.send(JSON.stringify({ type: "error", message: "timeout" }));
+            ws_gamelogic
+              .getState()
+              .socket.send(
+                JSON.stringify({ type: "error", message: "timeout" })
+              );
           }
         };
         waitOpponent();
       };
 
-      socket.onmessage = (e) => {
+      ws_gamelogic.getState().socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
         console.log(data);
         if (data.type === "game_start") {
           startFlag = true;
           gameState = data.game;
-          console.log(gameState);
-          setGameScore(data.game.scores);
-          setGameUsers(data.game.roles);
-          setInterval(() => {}, 1000);
-          socket.send(JSON.stringify({ type: "start_game" }));
-          document.addEventListener("keydown", (e) => {
+          // setGameScore(data.game.scores);
+          // setGameUsers(data.game.roles);
+          setGameStat([data.game.scores, data.game.roles]);
+          let timer = 3;
+          let interval = setInterval(() => {
+            console.log(timer);
+            timer--;
+            const counter = document.querySelector(".pong-game-info h1");
+            counter.innerText = timer;
+            if (timer <= 0) {
+              counter.style.display = "none";
+              clearInterval(interval);
+              ws_gamelogic
+                .getState()
+                .socket.send(JSON.stringify({ type: "start_game" }));
+            }
+          }, 1000);
+          addEventArray(eventType.KEYDOWN, (e) => {
             if (
               // direction === dirStat.STOP &&
               e.key === "ArrowUp" ||
               e.key === "ArrowDown"
             ) {
               direction = e.key === "ArrowUp" ? dirStat.UP : dirStat.DOWN;
-              socket.send(
+              ws_gamelogic.getState().socket.send(
                 JSON.stringify({
                   type: "move_bar",
                   direction: direction === dirStat.UP ? "up" : "down",
@@ -137,7 +126,7 @@ const GamePage = () => {
               );
             }
           });
-          document.addEventListener("keyup", (e) => {
+          addEventArray(eventType.KEYUP, (e) => {
             if (
               direction !== dirStat.STOP &&
               // (e.key === "ArrowUp" || e.key === "ArrowDown")
@@ -145,7 +134,7 @@ const GamePage = () => {
                 (e.key === "ArrowDown" && direction === dirStat.DOWN))
             ) {
               direction = dirStat.STOP;
-              socket.send(
+              ws_gamelogic.getState().socket.send(
                 JSON.stringify({
                   type: "stop_bar",
                   role: data.you,
@@ -153,17 +142,19 @@ const GamePage = () => {
               );
             }
           });
+          addEventHandler();
         } else if (data.type === "update_game") {
           gameState = data.game;
           // setGameScore(data.game.scores);
           // setGameUsers(data.game.roles);
+          setGameStat([data.game.scores, data.game.roles]);
         } else if (data.type === "game_over") {
           alert(data.winner + " win!");
-          console.log(data);
-          window.location.href = `/lobby/${data.host_username}`;
+          gotoPage(`/lobby/${data.room_id}`);
         } else if (data.type === "error") {
           alert(data.message);
-          window.location.href = "/lobby";
+          console.log(data.message);
+          gotoPage("/lobby");
         }
       };
     };
@@ -171,26 +162,41 @@ const GamePage = () => {
   }, []);
 
   useEffect(() => {
-    if (isEmpty(gameUsers) || isEmpty(gameScore)) return;
+    if (isEmpty(gameStat)) return;
+    document.getElementById("pong-game").style.display = "block";
     canvas = document.getElementById("pong-game");
-    console.log(window.innerHeight, window.innerWidth);
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    if (window.innerHeight / 3 > window.innerWidth / 4) {
+      canvas.width = window.innerWidth - 10;
+      canvas.height = (window.innerWidth * 3) / 4 - 10;
+    } else {
+      canvas.height = window.innerHeight - 10;
+      canvas.width = (window.innerHeight * 4) / 3 - 10;
+    }
     context = canvas.getContext("2d");
     context.scale(1, 1);
 
+    document.querySelector(
+      ".pong-game-info > p.user1"
+    ).style.left = `calc(52% - ${canvas.width / 2}px)`;
+    document.querySelector(
+      ".pong-game-info > p.user2"
+    ).style.right = `calc(52% - ${canvas.width / 2}px)`;
+
+    ratio = canvas.width / 1200;
+    // } else
     update();
-  }, [gameUsers, gameScore]);
+  }, [gameStat]);
   return (
     <div>
-      <div>
+      <div class="pong-game-main">
         <canvas id="pong-game"></canvas>
-        {isEmpty(gameUsers) || isEmpty(gameScore) ? null : (
+        {isEmpty(gameStat) ? null : (
           <div class="pong-game-info">
-            <p class="user1">{gameUsers.left}</p>
-            <p class="user2">{gameUsers.right}</p>
-            <h6 class="user1">{gameScore.left}</h6>
-            <h6 class="user2">{gameScore.right}</h6>
+            <p class="user1">{gameStat[1].left}</p>
+            <p class="user2">{gameStat[1].right}</p>
+            <h6 class="user1">{gameStat[0].left}</h6>
+            <h6 class="user2">{gameStat[0].right}</h6>
+            <h1>3</h1>
           </div>
         )}
       </div>

@@ -1,5 +1,7 @@
+import { gotoPage } from "./lib/libft";
+
 const NotFoundPage = () => {
-  window.location.href = "/lobby";
+  gotoPage("/lobby");
   // return (
   //   <div>not found!</div>
   // );

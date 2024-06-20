@@ -1,18 +1,19 @@
 from django.shortcuts import get_object_or_404
 from django.views import View
-from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord
+from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord, SingleGameDetail
 from django.http import JsonResponse
 from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
-from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView
+from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer, SingleGameDetailSerializer, DayStatSerializer, UserUpdateSerializer
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_framework.exceptions import NotFound, ValidationError
 import json
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.db.models import Q, Count, Case, When, IntegerField
+from datetime import datetime
+from django.core.files.storage import default_storage
+
 
 class OtpUpdateView(View):
 	def post(self, request):
@@ -45,41 +46,42 @@ class UserNameDetailView(RetrieveAPIView):
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 
-class UserMeView(RetrieveAPIView):
+class UserMeView(RetrieveUpdateAPIView):
 	serializer_class = CustomUserSerializer
 	def get(self, request, *args, **kwargs):
 		user = get_jwt_user(self.request)
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
-
-class UserWinUpdateView(View):
-	def post(self, request):
-		try:
-			user = get_jwt_user(request)
-			user.win += 1
-			user.save()
-			return JsonResponse({'status_code': '200', 'win': user.win}, status=200)
-		except CustomUser.DoesNotExist:
-			return JsonResponse({'status_code': '404', 'message': 'User not found'}, status=404)
-
-class UserLoseUpdateView(View):
-	def post(self, request):
-		try:
-			user = get_jwt_user(request)
-			user.lose += 1
-			user.save()
-			return JsonResponse({'status_code': '200', 'lose': user.lose}, status=200)
-		except CustomUser.DoesNotExist:
-			return JsonResponse({'status_code': '404', 'message': 'User not found'}, status=404)
+	def update(self, request, *args, **kwargs):
+		user = get_jwt_user(self.request)
+		partial = kwargs.pop('partial', False)
+		serializer = UserUpdateSerializer(user, data=request.data, partial=partial)
+		if serializer.is_valid(raise_exception=True):
+			serializer.save()
+			profile_image = request.FILES.get('profile_image')
+			if profile_image:
+				try:
+					target_path = 'profile_images/' + user.username + '/' + profile_image.name
+					path = default_storage.save(target_path, profile_image)
+					file_url = default_storage.url(path)
+					user.profile_image = file_url
+					user.save()
+				except Exception as e:
+					return JsonResponse({'status_code': '400', 'message': str(e)}, status=400)
+			return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
+		return JsonResponse({'status_code': '400', 'message': serializer.error}, status=400)
 
 class ProfileImageView(RetrieveUpdateDestroyAPIView):
-	queryset = CustomUser.objects.all()
 	serializer_class = ProfileImageSerializer
 	parser_classes = [MultiPartParser, FormParser]
 	def get_object(self):
 		username = self.kwargs['username']
 		user = get_object_or_404(CustomUser, username=username)
 		return user
+	def get(self, request, *args, **kwargs):
+		user = self.get_object()
+		serializer = self.get_serializer(user)
+		return JsonResponse({'status_code': '200', 'profile_image': serializer.data}, status=200)
 	def destroy(self, request, *args, **kwargs):
 		user = self.get_object()
 		if user.profile_image:
@@ -93,8 +95,8 @@ class SingleGameRecordListView(APIView):
 	def get(self, request, username):
 		try:
 			user = CustomUser.objects.get(username=username)
-			record_list = SingleGameRecord.objects.filter(user=user)
-			serializer = SingleGameRecordSerializer(record_list, many=True)
+			record_list = SingleGameRecord.objects.filter((Q(player1=user) | Q(player2=user)) & Q(is_tournament=False))
+			serializer = SingleGameRecordSerializer(record_list, many=True, context={'username': username})
 			return JsonResponse({'statusCode': '200', 'record_list': serializer.data}, status=200)
 		except CustomUser.DoesNotExist:
 			return JsonResponse({'statusCode': '404', 'message': 'User does not exist'}, status=404)
@@ -103,8 +105,8 @@ class MultiGameRecordListView(APIView):
 	def get(self, request, username):
 		try:
 			user = CustomUser.objects.get(username=username)
-			record_list = MultiGameRecord.objects.filter(user=user)
-			serializer = MultiGameRecordSerializer(record_list, many=True)
+			record_list = MultiGameRecord.objects.filter(Q(player1=user) | Q(player2=user) | Q(player3=user) | Q(player4=user))
+			serializer = MultiGameRecordSerializer(record_list, many=True, context={'username': username})
 			return JsonResponse({'statusCode': '200', 'record_list': serializer.data}, status=200)
 		except CustomUser.DoesNotExist:
 			return JsonResponse({'statusCode': '404', 'message': 'User does not exist'}, status=404)
@@ -140,6 +142,72 @@ class FollowDetailView(DestroyAPIView):
 			raise NotFound("follow user does not exist")
 	def perform_destroy(self, instance):
 		instance.delete()
+
+class SingleGameDetailListView(APIView):
+	def get(self, request, game_id):
+		try:
+			game = SingleGameRecord.objects.get(id=game_id)
+			goal_list = SingleGameDetail.objects.filter(game=game)
+			serializer = SingleGameDetailSerializer(goal_list, many=True)
+			return JsonResponse({'statusCode': '200', 'goal_list': serializer.data}, status=200)
+		except SingleGameRecord.DoesNotExist:
+			return JsonResponse({'statusCode': '404', 'message': 'Game record dose not exist'}, status=404)
+
+class DayStatAPIView(APIView):
+	def get(self, request, username):
+		if not CustomUser.objects.filter(username=username).exists():
+			return JsonResponse({'status_code': '404', 'message': 'User not found'}, status=404)
+		records = SingleGameRecord.objects.filter(
+			Q(player1__username=username) | Q(player2__username=username)
+		)
+		stats = records.extra(select={'day': 'DATE(created_at)'}).values('day').annotate(
+			count=Count('id'),
+			wins=Count(Case(When(winner=username, then=1), output_field=IntegerField()))
+		)
+
+		all_days = {day: {'count': 0, 'wins': 0} for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']}
+		for record in stats:
+			day_str = record['day']
+			day_date = datetime.strptime(day_str, '%Y-%m-%d')
+			day_abbr = day_date.strftime('%a') # Get 3-letter abbreviation for the day
+			all_days[day_abbr] = {
+				'count': record['count'],
+				'wins': record['wins'],
+			}
+		# Convert the dictionary to a list of dictionaries for serialization
+		day_count_stats = [{'day': day, 'count': data['count'], 'wins': data['wins']} for day, data in all_days.items()]
+
+		# Sort the list by day order (Mon-Sun)
+		day_order = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+		day_count_stats = sorted(day_count_stats, key=lambda x: day_order.index(x['day']))
+		serializer = DayStatSerializer(day_count_stats, many=True)
+		return JsonResponse({'status_code': '200', 'day_count_stats': serializer.data}, status=200)
+
+class RecentOpponentsAPIView(APIView):
+	def get(self, request, username):
+		if not CustomUser.objects.filter(username=username).exists():
+			return JsonResponse({'status_code': '404', 'message': 'User not found'}, status=404)
+		user = CustomUser.objects.get(username=username)
+		recent_games = SingleGameRecord.objects.filter(
+			Q(player1=user) | Q(player2=user)
+		).order_by('-created_at')[:20] # 최근 20개의 게임을 조회
+		opponent_records = {}
+		for game in recent_games:
+			opponent = game.player2 if game.player1 == user else game.player1
+			if opponent.username not in opponent_records:
+				opponent_records[opponent.username] = {
+					'profile_image': opponent.profile_image.url if opponent.profile_image else None,
+					'total': 0,
+					'wins': 0,
+					'loses': 0,
+				}
+			if game.winner == user.username:
+				opponent_records[opponent.username]['wins'] += 1
+			else:
+				opponent_records[opponent.username]['loses'] += 1
+			opponent_records[opponent.username]['total'] += 1
+		return JsonResponse({'status_code': '200', 'opponent_records': opponent_records}, status=200)
+
 
 def logout(request):
 	response = JsonResponse({'status': 'success'}, status=200)

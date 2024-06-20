@@ -1,4 +1,4 @@
-version: "3"
+# version: "3"
 services:
   frontend:
     build:
@@ -8,7 +8,7 @@ services:
     env_file:
       - ${FE_ENV_PATH}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      test: [ "CMD", "curl", "-f", "http://localhost:5173" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -16,6 +16,8 @@ services:
     ports:
       - "5173:5173"
     restart: on-failure:3
+    volumes:
+      - ${FE_PATH}:/app
     tty: true
     networks:
       - transcendence
@@ -46,10 +48,12 @@ services:
       postgresql:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8000" ]
       interval: 10s
       timeout: 5s
       retries: 5
+    volumes:
+      - ${BE_PATH}:/code
     init: true
     ports:
       - "8000:8000"
@@ -70,7 +74,7 @@ services:
       # POSTGRES_USER: ${DJANGO_DB_USER}
       # POSTGRES_PASSWORD: ${DJANGO_DB_PASSWORD}
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -82,21 +86,56 @@ services:
     tty: true
     networks:
       - transcendence
+
   nginx:
     container_name: nginx_gateway
+    build:
+      context: ${NGINX_PATH}
+      dockerfile: Dockerfile.nginx
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
+      test: [ "CMD", "curl", "-f", "http://localhost" ]
       interval: 10s
       timeout: 5s
       retries: 5
     init: true
-    image: nginx:latest
     ports:
       - "80:80"
+      - "443:443"
     restart: on-failure:3
     tty: true
     volumes:
       - "${NGINX_PATH}:/etc/nginx/conf.d"
+    networks:
+      - transcendence
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ${PROMETHEUS_PATH}/data:/prometheus
+      - ${PROMETHEUS_PATH}/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"
+    networks:
+      - transcendence
+
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    networks:
+      - transcendence
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    volumes:
+      - ${GRAFANA_PATH}/data:/var/lib/grafana
+    ports:
+      - "3000:3000"
     networks:
       - transcendence
   # redis:
@@ -118,3 +157,9 @@ networks:
   transcendence:
     name: transcendence
     driver: bridge
+
+volumes:
+  prometheus_data:
+    name: prometheus_data
+  grafana_data:
+    name: grafana_data

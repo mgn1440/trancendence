@@ -1,6 +1,8 @@
-import updateElement from "./diff";
+import { updateElement } from "./diff";
 import { shallowEqual } from "./utils/object";
 import { createElement } from "./client";
+import { currentComponent, setCurrentComponent } from "@/lib/jsx/jsx-runtime";
+import { disconnectGameLogicWebSocket } from "@/store/gameLogicWS";
 
 const frameRunner = (callback) => {
   let requestId;
@@ -9,11 +11,12 @@ const frameRunner = (callback) => {
     requestId = requestAnimationFrame(callback);
   };
 };
-
 const domRenderer = () => {
   const options = {
-    states: [],
-    stateHook: 0,
+    states: {},
+    stateHook: {},
+    refs: {},
+    refHook: {},
     dependencies: [],
     effectHook: 0,
     effectList: [],
@@ -25,35 +28,35 @@ const domRenderer = () => {
   };
 
   const resetOptions = () => {
-    options.states = [];
-    options.stateHook = 0;
-    options.dependencies = [];
-    options.effectHook = 0;
-    options.effectList = [];
+    options.states = {};
+    options.stateHook = {};
+    options.refs = {};
+    options.refHook = {};
+    options.dependencies = {};
+    options.effectHook = {};
+    options.effectList = {};
   };
 
   const _render = frameRunner(() => {
+    console.log("_render");
     const { $root, component, currentVDOM } = renderInfo;
     if (!$root || !component) return;
 
+    setCurrentComponent(component.name);
     const newVDOM = component();
-    while ($root.firstChild) $root.removeChild($root.firstChild);
-    $root.appendChild(createElement(newVDOM));
-    // if (!currentVDOM) {
-    //   $root.replaceWith(createElement(newVDOM));
-    //   // first render
-    // } else {
-    //   console.log(currentVDOM, newVDOM);
-    //   const patch = updateElement(currentVDOM, newVDOM);
-    //   console.log(patch);
-    //   patch($root);
-    // }
-    options.stateHook = 0;
-    options.effectHook = 0;
+    // 통째로 다 바꾸는 방법
+    // while ($root.firstChild) $root.removeChild($root.firstChild);
+    // $root.appendChild(createElement(newVDOM));
+    updateElement($root, newVDOM, currentVDOM);
     renderInfo.currentVDOM = newVDOM;
+    options.stateHook = {};
+    options.refHook = {};
+    options.effectHook = {};
 
-    options.effectList.forEach((effect) => effect());
-    options.effectList = [];
+    for (let key in options.effectList) {
+      options.effectList[key].forEach((effect) => effect());
+    }
+    options.effectList = {};
   });
 
   const render = (root, component) => {
@@ -61,42 +64,97 @@ const domRenderer = () => {
     resetOptions();
     renderInfo.$root = root;
     renderInfo.component = component;
+    disconnectGameLogicWebSocket();
     _render();
   };
 
   const useState = (initialState) => {
-    const { stateHook: index, states } = options;
-    if (states.length === index) states.push(initialState);
-    const state = states[index];
+    const { stateHook, states } = options;
+    const component = currentComponent;
+    if (!stateHook[component]) {
+      stateHook[component] = 0;
+    }
+    // console.log("states", states[component]); // debug
+    if (states[component] === undefined) {
+      states[component] = [];
+    }
+    const index = stateHook[component];
+    if (states[component].length === index)
+      states[component].push(initialState);
+    const state = states[component][index];
+    // console.log("useState", component, initialState, states[component], state); // debug
     const setState = (newState) => {
       // console.log(options.states); // debug
       // TODO: diff알고리즘과 shallowEqual 함수 객체일 때 제대로 확인이 안되는 문제 발생 => 재정비 필요
-      // if (shallowEqual(state, newState)) return;
-      states[index] = newState;
+      // 문제 발생 시 shallowEqual 함수를 주석처리하시오
+      if (shallowEqual(state, newState)) return;
+      // console.log("shallowEqual Passed"); // debug
+      states[component][index] = newState;
       // queueMicrotask(_render);
+      // console.log(
+      //   "setState",
+      //   component,
+      //   states[component],
+      //   states[component][index]
+      // );
       _render();
     };
-    options.stateHook += 1;
+    options.stateHook[component] += 1;
     return [state, setState];
   };
 
+  const useRef = (initialState) => {
+    const { refHook, refs } = options;
+    const component = currentComponent;
+    if (!refHook[component]) {
+      refHook[component] = 0;
+    }
+    if (!refs[component]) {
+      refs[component] = [];
+    }
+    const index = refHook[component];
+    if (refs.length === index) refs[component].push(initialState);
+    const getRef = () => refs[component][index];
+    const setRef = (newRef) => {
+      // TODO: Create Room 안되는 문제
+      // console.log("before shallowEqual", getRef(), newRef); // debug
+      if (shallowEqual(getRef(), newRef)) return;
+      // console.log("shallowEqual Passed"); // debug
+      refs[component][index] = newRef;
+    };
+    options.refHook[component] += 1;
+    // console.log(refs);
+    return [getRef, setRef];
+    // return { current: refs[index] };
+  };
+
   const useEffect = (callback, dependencies) => {
-    const index = options.effectHook;
-    options.effectList[index] = () => {
+    const component = currentComponent;
+    if (!options.effectHook[component]) {
+      options.effectHook[component] = 0;
+    }
+    if (!options.effectList[component]) {
+      options.effectList[component] = [];
+    }
+    if (!options.dependencies[component]) {
+      options.dependencies[component] = [];
+    }
+    const index = options.effectHook[component];
+    options.effectList[component][index] = () => {
       const hasNoDeps = !dependencies;
-      const prevDeps = options.dependencies[index];
+      const prevDeps = options.dependencies[component][index];
       const hasChangedDeps = prevDeps
         ? dependencies?.some((deps, i) => !shallowEqual(deps, prevDeps[i]))
         : true;
 
       if (hasNoDeps || hasChangedDeps) {
-        options.dependencies[index] = dependencies;
+        options.dependencies[component][index] = dependencies;
         callback();
       }
     };
-    options.effectHook += 1;
+    options.effectHook[component] += 1;
   };
 
-  return { useState, useEffect, render };
+  return { useState, useEffect, useRef, render };
 };
-export const { useState, useEffect, render } = domRenderer();
+export const { useState, useEffect, useRef, render } = domRenderer();

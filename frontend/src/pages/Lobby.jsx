@@ -3,32 +3,26 @@ import LobbyProfile from "./components/LobbyProfile";
 import LobbyRooms from "./components/LobbyRooms";
 import TopNavBar from "./components/TopNavBar";
 import { axiosUserMe } from "@/api/axios.custom";
-import { useState, useEffect } from "@/lib/dom";
+import { useState, useEffect, useRef } from "@/lib/dom";
 import { isEmpty, gotoPage } from "@/lib/libft";
+import { MainProfileState } from "./GameRoom";
+import { ws_gamelogic, connectGameLogicWebSocket } from "@/store/gameLogicWS";
 
 const LobbyPage = () => {
-  const [myProfile, setMyProfile] = useState({});
   const [roomList, setRoomList] = useState([]);
-  const [lobbySocket, setLobbySocket] = useState({});
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      const userMe = await axiosUserMe();
-      setMyProfile(userMe.data);
-    };
     const socketAsync = async () => {
-      const socket = new WebSocket("ws://" + "localhost:8000" + "/ws/lobby/");
-
-      socket.onopen = (e) => {
-        console.log("WebSocket Connected");
-      };
-
-      socket.onmessage = (e) => {
+      await connectGameLogicWebSocket(ws_gamelogic.dispatch, "/ws/lobby/");
+      console.log(ws_gamelogic.getState().socket); // debug
+      ws_gamelogic.getState().socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
+
+        // console.log(data); // debug
         if (data.type === "room_list") {
           setRoomList(data.rooms);
         } else if (data.type === "join_approved") {
-          window.location.href = `/lobby/${data.host}`;
+          gotoPage(`/lobby/${data.room_id}`);
         } else if (data.type === "join_denied") {
           alert(data.message);
         } else if (data.type === "password_required") {
@@ -36,48 +30,62 @@ const LobbyPage = () => {
             document.getElementById("PswdRoomModal")
           );
           enterModal.show();
+        } else if (data.type === "matchmaking_waiting") {
+          console.log("matchmaking_waiting"); //debug
+        } else if (data.type === "goto_matchmaking_game") {
+          const quickMatchModal = new bootstrap.Modal(
+            document.getElementById("QuickMatchModal")
+          );
+          setTimeout(() => {
+            if (quickMatchModal) {
+              quickMatchModal.hide();
+            }
+            const modalBackdrop = document.querySelector(".modal-backdrop");
+            if (modalBackdrop) {
+              modalBackdrop.remove();
+            }
+          }, 10);
+          console.log(quickMatchModal); //debug
+          gotoPage(`/game/${data.room_id}`);
+        } else if (data.type === "room_created") {
+          gotoPage(`/lobby/${data.room_id}`);
         }
       };
-
-      while (socket.readyState !== WebSocket.OPEN) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-      setLobbySocket(socket);
     };
-    fetchProfile();
     socketAsync();
   }, []);
 
   const sendLobbySocket = (roomData) => {
-    if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN) {
-      lobbySocket.send(JSON.stringify(roomData));
+    if (
+      ws_gamelogic.getState().socket &&
+      ws_gamelogic.getState().socket.readyState === WebSocket.OPEN
+    ) {
+      ws_gamelogic.getState().socket.send(JSON.stringify(roomData));
       console.log(roomData);
+    } else {
+      console.log(
+        ws_gamelogic.getState().socket,
+        ws_gamelogic.getState().socket.readyState
+      );
+      console.log("socket is not ready");
     }
   };
 
   return (
     <div>
-      {isEmpty(myProfile) ? null : (
-        <div>
-          <div id="top">
-            <TopNavBar />
-            <button onclick={() => gotoPage("/profile/hyungjuk")}>test</button>
-          </div>
-          <div id="middle">
-            <div class="main-section flex-column">
-              <LobbyProfile
-                data={myProfile}
-                sendLobbySocket={sendLobbySocket}
-              />
-              <LobbyRooms
-                roomList={roomList}
-                sendLobbySocket={sendLobbySocket}
-              />
-            </div>
-            <UserList />
-          </div>
+      <div id="top">
+        <TopNavBar />
+      </div>
+      <div id="middle">
+        <div class="main-section flex-column">
+          <LobbyProfile
+            sendLobbySocket={sendLobbySocket}
+            stat={MainProfileState.LOBBY}
+          />
+          <LobbyRooms roomList={roomList} sendLobbySocket={sendLobbySocket} />
         </div>
-      )}
+        <UserList />
+      </div>
     </div>
   );
 };

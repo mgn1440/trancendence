@@ -16,7 +16,7 @@ RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
 # Copy the project
-COPY --chmod=755 . .
+# COPY --chmod=755 . .
 
 # Run the application
 CMD ["./run.sh"]

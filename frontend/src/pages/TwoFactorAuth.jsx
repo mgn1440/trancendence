@@ -2,6 +2,7 @@ import { useEffect, useState } from "../lib/dom";
 import { createElement } from "../lib/createElement";
 import { axiosVerfiyOTP } from "@/api/axios.custom";
 import axios from "axios";
+import { gotoPage } from "../lib/libft";
 
 const isFull = (inputs) => {
   for (let i = 0; i < inputs.length; i++) {
@@ -164,7 +165,7 @@ const resendBtn = () => {
       // /api/auth/otp #get 요청
       axios({
         method: "get",
-        url: "http://localhost:8000/api/auth/otp/",
+        url: "https://localhost/api/auth/otp/",
         withCredentials: true,
       }).then(console.log("resend"));
       resendBtn();

@@ -35,7 +35,9 @@ class Callback(View): # TODO: POST otp check function
 			'code': code,
 			'redirect_uri': API_REDIRECT_URI,
 		}
+		print(API_CLIENT_SECRET)
 		response = requests.post('https://api.intra.42.fr/oauth/token', data=data)
+		print(response.json())
 		if response.status_code != 200:
 			return JsonResponse({'error': '42 API Access Token Error'}, status=400)
 		access_token = response.json()['access_token']
@@ -45,7 +47,6 @@ class Callback(View): # TODO: POST otp check function
 		if user_info.status_code != 200:
 			return JsonResponse({'error': '42 API /v2/me Error'}, status=400)
 		user_data = user_info.json()
-		print(user_data)
 		id = user_data['id']
 		username = user_data['login']
 		email = user_data['email']
@@ -62,9 +63,9 @@ class Callback(View): # TODO: POST otp check function
 				send_email(SENDER_EMAIL, user.email, APP_PASSWORD, "Your OTP Code for 2FA", "dfasd", html)
 			except Exception as e:
 				return JsonResponse({'error': f'Email Error: {e}'}, status=503)
-			return redirect('http://localhost:5173/2fa')
+			return redirect('https://localhost/2fa')
 		else:
-			response = redirect('http://localhost:5173/lobby')
+			response = redirect('https://localhost/lobby')
 			tokens = generate_jwt(user)
 			response.set_cookie('access_token', tokens['access_token'])
 			response.set_cookie('refresh_token', tokens['refresh_token'])

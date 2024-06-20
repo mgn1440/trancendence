@@ -4,25 +4,31 @@ import TitleSection from "./ModalSection";
 import { InputBox, RadioCheck } from "./Inputs";
 import { BottomSection } from "./ModalSection";
 
-let roomHostName = "";
+let roomID = 0;
 
 const LobbyRoom = ({ roomInfo, clickEvent }) => {
+  console.log(roomInfo);
   return (
-    <div class="lobby-room" onclick={() => clickEvent(roomInfo)}>
+    <div
+      class={`lobby-room ${
+        roomInfo.status === "room" ? "" : "bg-gray50 outline-gray50"
+      }`}
+      onclick={() => clickEvent(roomInfo)}
+    >
       <h6>{roomInfo.room_name}</h6>
       <p>
-        {roomInfo.players.length}/{roomInfo.mode}
+        {roomInfo.status === "game"
+          ? "Playing..."
+          : `${roomInfo.players.length}/${roomInfo.mode}`}
       </p>
     </div>
   );
 };
 
 const LobbyRooms = ({ roomList, sendLobbySocket }) => {
-  console.log(roomList);
   useEffect(() => {
     const modalElement = document.getElementById("PswdRoomModal");
     const handleModalHidden = () => {
-      console.log("Modal hidden");
       const inputs = modalElement.querySelectorAll("input[type=text]");
       inputs.forEach((input) => (input.value = ""));
     };
@@ -39,11 +45,10 @@ const LobbyRooms = ({ roomList, sendLobbySocket }) => {
       "PswdRoomModal"
     ).childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[1].innerText =
       roomInfo.room_name;
-    console.log(roomInfo);
-    roomHostName = roomInfo.host;
+    roomID = roomInfo.room_id;
     sendLobbySocket({
       type: "join_room",
-      host: roomInfo.host,
+      room_id: roomInfo.room_id,
     });
   };
 
@@ -55,7 +60,7 @@ const LobbyRooms = ({ roomList, sendLobbySocket }) => {
           TitleSection({ IconPath: "/icon/enter.svg", Title: "basic room" })
         }
         body={() => {
-          return <InputBox text="Password" />;
+          return <InputBox text="Password" defaultValue="" />;
         }}
         footer={() =>
           BottomSection({
@@ -63,7 +68,7 @@ const LobbyRooms = ({ roomList, sendLobbySocket }) => {
             ClickEvent: () => {
               sendLobbySocket({
                 type: "join_secret_room",
-                host: roomHostName,
+                room_id: roomID,
                 password: document.querySelector("#PswdRoomModal input").value,
               });
             },
@@ -76,18 +81,16 @@ const LobbyRooms = ({ roomList, sendLobbySocket }) => {
         </button>
       </div>
       <div class="lobby-rooms">
-        {roomList.map((room) => (
-          <LobbyRoom
-            roomInfo={room}
-            clickEvent={() => handleRoomClick(room, sendLobbySocket)}
-            sendLobbySocket={sendLobbySocket}
-          />
-        ))}
-        {/* <LobbyRoom roomName={roo} clickEvent={handleRoomClick} />
-        <LobbyRoom roomName="Game Room 2" clickEvent={handleRoomClick} />
-        <LobbyRoom roomName="Game Room 3" clickEvent={handleRoomClick} />
-        <LobbyRoom roomName="Game Room 4" clickEvent={handleRoomClick} />
-        <LobbyRoom roomName="Game Room 5" clickEvent={handleRoomClick} /> */}
+        {roomList.map((room) => {
+          if (room.mode === "matchmaking") return;
+          return (
+            <LobbyRoom
+              roomInfo={room}
+              clickEvent={() => handleRoomClick(room, sendLobbySocket)}
+              sendLobbySocket={sendLobbySocket}
+            />
+          );
+        })}
       </div>
     </div>
   );

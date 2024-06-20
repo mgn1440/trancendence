@@ -1,6 +1,33 @@
 @import "./reset.css";
 @import "./font.css";
 
+.game-room-main {
+  flex: 0.95;
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+.game-room-nav {
+  display: flex;
+  flex-flow: column nowrap;
+  margin-left: 1rem;
+}
+
+.game-room-nav > button {
+  width: 1.8rem;
+  height: 4rem;
+  border: 1px solid var(--white);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 1rem 0 0 0.2rem;
+}
+
+.game-room-nav > button.selected {
+  background-color: var(--white);
+  color: var(--primary-color);
+}
+
 .game-room {
   flex: 1;
   display: flex;
@@ -8,6 +35,9 @@
   justify-content: center;
   align-items: center;
   position: relative;
+  border-radius: 0 0 0 1rem;
+  border-left: 2px solid var(--white);
+  padding: 1rem;
 }
 
 .game-room > img {
@@ -17,6 +47,18 @@
 }
 
 .user-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 12rem);
+  /* grid-template-columns: repeat(8, 5rem); */
+  grid-auto-rows: 18rem;
+  grid-gap: 1rem;
+  place-items: center start;
+  place-content: center start;
+  width: 80%;
+  padding-bottom: 2rem;
+}
+
+/* .user-cards {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -24,7 +66,7 @@
   gap: 1.5625rem;
   margin-top: 1.25rem;
   margin-bottom: 7rem;
-}
+} */
 
 .user-cards .user-card {
   display: flex;

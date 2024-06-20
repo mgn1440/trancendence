@@ -8,13 +8,19 @@ import random
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
 from ft_lobby.consumers import LobbyConsumer
+from ft_user.models import CustomUser, SingleGameRecord, MultiGameRecord, SingleGameDetail
+from asgiref.sync import sync_to_async
+from pprint import pprint
+import math
 
 class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.host_username = self.scope['url_route']['kwargs']['host_username']
-        self.room_group_name = self.host_username
+        self.room_id_str = self.scope['url_route']['kwargs']['room_id']
+        self.room_group_name = self.room_id_str
+        self.room_id = int(self.room_id_str)
         self.status = 'waiting'
-        self.bar_move = False
+        self.ball_count = 0
+        self.past_ball_position = []
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -22,47 +28,53 @@ class GameConsumer(AsyncWebsocketConsumer):
         )
         await self.accept()
 
-        if self.host_username not in LobbyConsumer.rooms:
+        if self.room_id not in LobbyConsumer.rooms:
             await self.send_error_message('Room does not exist')
             await self.close()
             return
 
-        if LobbyConsumer.rooms[self.host_username]['status'] != 'game':
+        if LobbyConsumer.rooms[self.room_id]['status'] != 'game':
             await self.send_error_message('Room is not in game status')
             await self.close()
             return
 
-        if self.scope['user'].username not in LobbyConsumer.rooms[self.host_username]['in_game_players']:
+        if self.scope['user'].username not in LobbyConsumer.rooms[self.room_id]['in_game_players']:
             await self.send_error_message('You are not in game')
             await self.close()
             return
 
-        if 'game' not in LobbyConsumer.rooms[self.host_username]:
-            LobbyConsumer.rooms[self.host_username]['game'] = {
-                'ball': {'x': 500, 'y': 500, 'radius': 10, 'speedX': 10, 'speedY': 10},
-                'player_bar': {'left': 400, 'right': 400},
+        if LobbyConsumer.rooms[self.room_id]['mode'] != 'matchmaking' and \
+            LobbyConsumer.rooms[self.room_id]['mode'] != 2:
+            await self.send_error_message('Room is not in matchmaking mode')
+            await self.close()
+            return
+
+        if 'game' not in LobbyConsumer.rooms[self.room_id]:
+            LobbyConsumer.rooms[self.room_id]['game'] = {
+                'ball': {'x': 600, 'y': 450, 'radius': 10, 'speedX': 10, 'speedY': 10},
+                'player_bar': {'left': 360, 'right': 360},
                 'scores': {'left': 0, 'right': 0},
                 'players': [],
                 'roles': {},
                 'bar_move': {'left': 0, 'right': 0},
+                'record': [],
             }
 
-        LobbyConsumer.rooms[self.host_username]['game']['players'].append(self.scope['user'].username)
-
-        if len(LobbyConsumer.rooms[self.host_username]['game']['players']) == 2:
-            LobbyConsumer.rooms[self.host_username]['game']['roles'] = {
-                'left': LobbyConsumer.rooms[self.host_username]['in_game_players'][0],
-                'right': LobbyConsumer.rooms[self.host_username]['in_game_players'][1],
+        LobbyConsumer.rooms[self.room_id]['game']['players'].append(self.scope['user'].username)
+        if len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 2:
+            LobbyConsumer.rooms[self.room_id]['game']['roles'] = {
+                'left': LobbyConsumer.rooms[self.room_id]['in_game_players'][0],
+                'right': LobbyConsumer.rooms[self.room_id]['in_game_players'][1],
             }
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'game_start',
-                    'game': LobbyConsumer.rooms[self.host_username]['game']
+                    'game': LobbyConsumer.rooms[self.room_id]['game']
                 }
             )
-            LobbyConsumer.rooms[self.host_username]['status'] = 'playing'
-        self.game = LobbyConsumer.rooms[self.host_username]['game']
+            LobbyConsumer.rooms[self.room_id]['status'] = 'playing'
+        self.game = LobbyConsumer.rooms[self.room_id]['game']
 
     async def send_error_message(self, message):
         await self.send(text_data=json.dumps({
@@ -72,7 +84,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         self.status = 'connect error'
 
     async def disconnect(self, close_code):
-        if self.host_username not in LobbyConsumer.rooms:
+        if self.room_id not in LobbyConsumer.rooms:
             await self.channel_layer.group_discard(
                 self.room_group_name,
                 self.channel_name
@@ -95,9 +107,15 @@ class GameConsumer(AsyncWebsocketConsumer):
                     'message': 'user disconnected'
                 }
             )
-            LobbyConsumer.rooms[self.host_username]['game']['players'].remove(self.scope['user'].username)
-            if len(LobbyConsumer.rooms[self.host_username]['game']['players']) == 0:
-                del LobbyConsumer.rooms[self.host_username]
+            LobbyConsumer.rooms[self.room_id]['game']['players'].remove(self.scope['user'].username)
+            # 부전승 나는 경우 => 한 명이 일방적으로 나감
+            if len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 1:
+                winner_name = LobbyConsumer.rooms[self.room_id]['game']['players'][0]
+                loser_name = self.scope['user'].username
+                game_data = await get_game_data(winner_name, loser_name, 5, 0)
+                await create_game_records(game_data, is_tournament=False, game_record_details=LobbyConsumer.rooms[self.room_id]['game']['record'])
+            elif len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 0:
+                del LobbyConsumer.rooms[self.room_id]
             await self.update_room_list()
 
         await self.channel_layer.group_discard(
@@ -107,9 +125,8 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        print(data)
         if data['type'] == 'start_game':
-            if self.host_username in LobbyConsumer.rooms and len(LobbyConsumer.rooms[self.host_username]['game']['players']) != 2:
+            if self.room_id in LobbyConsumer.rooms and len(LobbyConsumer.rooms[self.room_id]['game']['players']) != 2:
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
@@ -119,61 +136,84 @@ class GameConsumer(AsyncWebsocketConsumer):
                 )
                 return
             self.status = 'playing'
-            if self.host_username in LobbyConsumer.rooms and self.scope['user'].username == LobbyConsumer.rooms[self.host_username]['game']['roles']['left']:
+            if self.room_id in LobbyConsumer.rooms and self.scope['user'].username == LobbyConsumer.rooms[self.room_id]['game']['roles']['left']:
                 asyncio.create_task(self.start_ball_movement())
         elif data['type'] == 'move_bar':
-            # asyncio.create_task(self.update_bar_position(data['direction'], data['role']))
             self.update_bar_position(data['direction'], data['role'])
         elif data['type'] == 'stop_bar':
-            print('stop')
             self.game['bar_move'][data['role']] = 0
-        elif data['type'] == 'error':
-            await self.send_error_message(data['message'])
-            del LobbyConsumer.rooms[self.host_username]
-            await self.update_room_list()
 
     async def start_ball_movement(self):
-        while self.status == 'playing' and self.host_username in LobbyConsumer.rooms and len(LobbyConsumer.rooms[self.host_username]['game']['players']) == 2:
+        while self.status == 'playing' and self.room_id in LobbyConsumer.rooms and len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 2:
             self.update_ball_position()
+            self.ball_count += 1
+            self.past_ball_position.append(self.game['ball'].copy()) 
+            if len(self.past_ball_position) > 33:
+                self.past_ball_position.pop(0)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'update_game',
-                    'game': LobbyConsumer.rooms[self.host_username]['game']
+                    'game': LobbyConsumer.rooms[self.room_id]['game']
                 }
             )
             await asyncio.sleep(0.03)
 
     def update_ball_position(self):
-        
+        self.game['player_bar']['left'] = min(720, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
+        self.game['player_bar']['right'] = min(720, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
         self.game['player_bar']['left'] = max(0, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
-        self.game['player_bar']['right'] = min(800, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
+        self.game['player_bar']['right'] = max(0, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
+        if -19 < self.game['ball']['speedX'] < 19:
+            self.game['ball']['speedX'] *= 1.02
+            self.game['ball']['speedY'] *= 1.02
         self.game['ball']['x'] += self.game['ball']['speedX']
         self.game['ball']['y'] += self.game['ball']['speedY']
-
-        if self.game['ball']['y'] + self.game['ball']['radius'] > 1000 or self.game['ball']['y'] - self.game['ball']['radius'] < 0:
+        # 위 야래 벽에 부딪히면 방향 바꾸기
+        if self.game['ball']['y'] + self.game['ball']['radius'] > 900 or self.game['ball']['y'] - self.game['ball']['radius'] < 0:
             self.game['ball']['speedY'] = -self.game['ball']['speedY']
-
-        if self.game['ball']['x'] - self.game['ball']['radius'] < 40:
-            if self.game['ball']['y'] > self.game['player_bar']['left'] and self.game['ball']['y'] < self.game['player_bar']['left'] + 200:
-                self.game['ball']['speedX'] = -self.game['ball']['speedX']
-
-        if self.game['ball']['x'] + self.game['ball']['radius'] > 960:
-            if self.game['ball']['y'] > self.game['player_bar']['right'] and self.game['ball']['y'] < self.game['player_bar']['right'] + 200:
-                self.game['ball']['speedX'] = -self.game['ball']['speedX']
-
-        if (self.game['ball']['x'] - self.game['ball']['radius'] < 0) or (self.game['ball']['x'] + self.game['ball']['radius'] > 1000):
+        
+        if self.game['ball']['y'] + self.game['ball']['radius'] > 900:
+            self.game['ball']['y'] = 900 - self.game['ball']['radius']
+        elif self.game['ball']['y'] - self.game['ball']['radius'] < 0:
+            self.game['ball']['y'] = self.game['ball']['radius']
+        
+        # 왼쪽 player bar에 부딪히면 방향 바꾸기
+        if 20 < self.game['ball']['x'] - self.game['ball']['radius'] < 40:
+            if self.game['ball']['y'] > self.game['player_bar']['left'] and self.game['ball']['y'] < self.game['player_bar']['left'] + 180:
+                degree = (self.game['player_bar']['left'] + 90 - self.game['ball']['y']) * 8 / 9
+                self.game['ball']['speedY'] = math.tan(math.radians(-degree)) * 5
+                self.game['ball']['speedX'] = 5
+        # 오른쪽 player bar에 부딪히면 방향 바꾸기
+        if 1160 < self.game['ball']['x'] + self.game['ball']['radius'] < 1180:
+            if self.game['ball']['y'] > self.game['player_bar']['right'] and self.game['ball']['y'] < self.game['player_bar']['right'] + 180:
+                degree = (self.game['player_bar']['right'] + 90 - self.game['ball']['y']) * 8 / 9
+                self.game['ball']['speedY'] = math.tan(math.radians(degree)) * (-5)
+                self.game['ball']['speedX'] = -5
+        # 왼쪽, 오른쪽 벽에 부딪히면 점수 올리기
+        if (self.game['ball']['x'] - self.game['ball']['radius'] < 0) or (self.game['ball']['x'] + self.game['ball']['radius'] > 1200):
             if self.game['ball']['x'] - self.game['ball']['radius'] < 0:
                 self.game['scores']['right'] += 1
+                self.record_goal('right')
             else:
                 self.game['scores']['left'] += 1
+                self.record_goal('left')
             asyncio.create_task(self.broadcast_scores())
             asyncio.create_task(self.check_game_over())
             self.reset_ball()
 
+    def record_goal(self, goal_user_position):
+        self.game['record'].append({
+            'goal_user_name': self.game['roles'][goal_user_position],
+            'goal_user_position': goal_user_position,
+            'ball_start_position': self.past_ball_position[0].copy(),
+            'ball_end_position': self.game['ball'].copy(),
+            'timestamp': self.ball_count
+        })
+
     def reset_ball(self):
-        self.game['ball']['x'] = 500
-        self.game['ball']['y'] = 500
+        self.game['ball']['x'] = 600
+        self.game['ball']['y'] = 450
         self.game['ball']['speedX'] = 10 * (1 if random.random() > 0.5 else -1)
         self.game['ball']['speedY'] = 10 * (1 if random.random() > 0.5 else -1)
 
@@ -194,11 +234,18 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     async def game_end(self, winner, loser):
         self.status = 'game_over'
-        LobbyConsumer.rooms[self.host_username]['status'] = 'room'
-        LobbyConsumer.rooms[self.host_username]['in_game_players'] = []
-        winner_username = LobbyConsumer.rooms[self.host_username]['game']['roles'][winner]
-        loser_username = LobbyConsumer.rooms[self.host_username]['game']['roles'][loser]
-        del LobbyConsumer.rooms[self.host_username]['game']
+        LobbyConsumer.rooms[self.room_id]['status'] = 'room'
+        LobbyConsumer.rooms[self.room_id]['in_game_players'] = []
+        winner_username = LobbyConsumer.rooms[self.room_id]['game']['roles'][winner]
+        loser_username = LobbyConsumer.rooms[self.room_id]['game']['roles'][loser]
+        winner_score = self.game['scores'][winner]
+        loser_score = self.game['scores'][loser]
+        game_data = await get_game_data(winner_username, loser_username, winner_score, loser_score)
+        await create_game_records(game_data, is_tournament=False, game_record_details=LobbyConsumer.rooms[self.room_id]['game']['record'])
+        del LobbyConsumer.rooms[self.room_id]['game']
+        if LobbyConsumer.rooms[self.room_id]['mode'] == 'matchmaking':
+            del LobbyConsumer.rooms[self.room_id]
+        
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -241,16 +288,711 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     async def game_over(self, event):
         self.status = 'game_over'
-        self.bar_move = False
         await self.send(text_data=json.dumps({
             'type': 'game_over',
             'winner': event['winner'],
             'loser': event['loser'],
-            'host_username': self.host_username
+            'room_id': self.room_id
         }))
-        
+
     async def error(self, event):
         await self.send(text_data=json.dumps({
             'type': 'error',
             'message': event['message']
+        }))
+
+async def create_game_records(game_data, is_tournament=False, game_record_details=None):
+    game_record = await sync_to_async(SingleGameRecord.objects.create)(
+        player1=game_data['player1'],
+        player1_score=game_data['player1_score'],
+        player2=game_data['player2'],
+        player2_score=game_data['player2_score'],
+        is_tournament=is_tournament
+    )
+    print(game_record.id)
+    for record_detail in game_record_details:
+        ball_start_position = json.dumps(record_detail['ball_start_position'])
+        ball_end_position = json.dumps(record_detail['ball_end_position'])
+        
+        SingleGameDetail.objects.create(
+            game=game_record,
+            goal_user_name=record_detail['goal_user_name'],
+            goal_user_position=record_detail['goal_user_position'],
+            ball_start_position=ball_start_position,
+            ball_end_position=ball_end_position,
+            timestamp=record_detail['timestamp'] * 0.03
+        )
+    return game_record.id
+
+
+async def get_game_data(player1_name, player2_name, player1_score, player2_score):
+    player1 = await sync_to_async(CustomUser.objects.get)(username=player1_name)
+    player2 = await sync_to_async(CustomUser.objects.get)(username=player2_name)
+    if (player1_score > player2_score):
+        await update_user_win_or_lose(player1, player2)
+    elif (player1_score < player2_score):
+        await update_user_win_or_lose(player2, player1)
+    game_data = {
+        'player1': player1,
+        'player2': player2,
+        'player1_score': player1_score,
+        'player2_score': player2_score,
+    }
+    return game_data
+
+    # 동기함수 호출을 비동기 함수로 변경
+@sync_to_async
+def update_user_win_or_lose(winner, loser):
+    winner.win += 1
+    winner.save()
+    loser.lose += 1
+    loser.save()
+
+
+
+class TournamentGameConsumer(AsyncWebsocketConsumer):
+    game_record_list = {}
+    game_player_list = {}
+    async def connect(self):
+        self.room_id_str = self.scope['url_route']['kwargs']['room_id']
+        self.room_group_name = self.room_id_str
+        self.room_id = int(self.room_id_str)
+        self.status = 'waiting'
+        self.ball_count = 0
+        self.past_ball_position = []
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+        if self.room_id not in LobbyConsumer.rooms:
+            await self.send_error_message('Room does not exist')
+            await self.close()
+            return
+
+        if LobbyConsumer.rooms[self.room_id]['status'] != 'game':
+            await self.send_error_message('Room is not in game status')
+            await self.close()
+            return
+
+        if self.scope['user'].username not in LobbyConsumer.rooms[self.room_id]['in_game_players']:
+            await self.send_error_message('You are not in game')
+            await self.close()
+            return
+        LobbyConsumer.rooms[self.room_id]['in_game_players'].remove(self.scope['user'].username)
+        if LobbyConsumer.rooms[self.room_id]['mode'] != 4:
+            await self.send_error_message('Room is not in tournament mode')
+            await self.close()
+            return
+        if self.room_id not in TournamentGameConsumer.game_record_list:
+            TournamentGameConsumer.game_record_list[self.room_id] = []
+            TournamentGameConsumer.game_player_list[self.room_id] = []
+        if 'game' not in LobbyConsumer.rooms[self.room_id]:
+            LobbyConsumer.rooms[self.room_id]['game'] = {
+                'a' : {
+                    'ball': {'x': 600, 'y': 450, 'radius': 10, 'speedX': 10, 'speedY': 10},
+                    'player_bar': {'left': 360, 'right': 360},
+                    'scores': {'left': 0, 'right': 0},
+                    'bar_move': {'left': 0, 'right': 0},
+                    'players' : [],
+                    'record' : [],
+                },
+                'b' : {
+                    'ball': {'x': 600, 'y': 450, 'radius': 10, 'speedX': 10, 'speedY': 10},
+                    'player_bar': {'left': 360, 'right': 360},
+                    'scores': {'left': 0, 'right': 0},
+                    'bar_move': {'left': 0, 'right': 0},
+                    'players' : [],
+                    'record': [],
+                },
+                'f' : {
+                    'ball': {'x': 600, 'y': 450, 'radius': 10, 'speedX': 10, 'speedY': 10},
+                    'player_bar': {'left': 360, 'right': 360},
+                    'scores': {'left': 0, 'right': 0},
+                    'bar_move': {'left': 0, 'right': 0},
+                    'players' : [],
+                    'waiting_players' : [],
+                    'record': [],
+                },
+                'players': [],
+                'roles' : {},
+                'match' : {},
+                'winner_a' : None,
+                'winner_b' : None,
+                'winner_f' : None,
+            }
+
+        LobbyConsumer.rooms[self.room_id]['game']['players'].append(self.scope['user'].username)
+        TournamentGameConsumer.game_player_list[self.room_id].append(self.scope['user'].username)
+
+        if len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 4:
+            LobbyConsumer.rooms[self.room_id]['game']['roles'] = {
+                LobbyConsumer.rooms[self.room_id]['game']['players'][0]: 'left',
+                LobbyConsumer.rooms[self.room_id]['game']['players'][1]: 'right',
+                LobbyConsumer.rooms[self.room_id]['game']['players'][2]: 'left',
+                LobbyConsumer.rooms[self.room_id]['game']['players'][3]: 'right',
+            }
+            LobbyConsumer.rooms[self.room_id]['game']['match'] = {
+                LobbyConsumer.rooms[self.room_id]['game']['players'][0]: 'a',
+                LobbyConsumer.rooms[self.room_id]['game']['players'][1]: 'a',
+                LobbyConsumer.rooms[self.room_id]['game']['players'][2]: 'b',
+                LobbyConsumer.rooms[self.room_id]['game']['players'][3]: 'b',
+            }
+            LobbyConsumer.rooms[self.room_id]['game']['a']['players'] = [LobbyConsumer.rooms[self.room_id]['game']['players'][0], LobbyConsumer.rooms[self.room_id]['game']['players'][1]]
+            LobbyConsumer.rooms[self.room_id]['game']['b']['players'] = [LobbyConsumer.rooms[self.room_id]['game']['players'][2], LobbyConsumer.rooms[self.room_id]['game']['players'][3]]
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'game_start',
+                    'game': LobbyConsumer.rooms[self.room_id]['game']
+                }
+            )
+            LobbyConsumer.rooms[self.room_id]['status'] = 'playing'
+        self.game = LobbyConsumer.rooms[self.room_id]['game']
+        await self.update_room_list()
+
+    async def send_error_message(self, message):
+        self.status = 'connect error'
+        await self.send(text_data=json.dumps({
+            'type': 'error',
+            'message': message
+        }))
+
+    async def disconnect(self, close_code):
+
+        if self.room_id not in LobbyConsumer.rooms:
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+            return
+
+
+        if 'game' not in LobbyConsumer.rooms[self.room_id]:
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+            return
+
+        if self.status == 'connect error':
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+            return
+
+        if self.status == 'waiting':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'error',
+                    'message': 'user disconnected'
+                }
+            )
+
+        if LobbyConsumer.rooms[self.room_id]['status'] == 'room':
+            del LobbyConsumer.rooms[self.room_id]['game']
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+            return
+
+        if self.scope['user'].username in LobbyConsumer.rooms[self.room_id]['game']['players']:
+            LobbyConsumer.rooms[self.room_id]['game']['players'].remove(self.scope['user'].username)
+
+        if self.status == 'error':
+            del LobbyConsumer.rooms[self.room_id]
+            await self.update_room_list()
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+            return
+
+        if len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 0:
+            del LobbyConsumer.rooms[self.room_id]['game']
+            await self.update_room_list()
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+            return
+
+
+        match = LobbyConsumer.rooms[self.room_id]['game']['match'][self.scope['user'].username]
+        role = LobbyConsumer.rooms[self.room_id]['game']['roles'][self.scope['user'].username]
+
+        if role == 'observer':
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+            return
+
+        # final 유저가 대기중에 나가는 경우 ex) a매치는 진행중인데 b매치의 승자가 나가는 경우
+        if match == 'f':
+            if self.scope['user'].username in LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players']:
+                LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players'].remove(self.scope['user'].username)
+                if len(LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players']) == 0:
+                    await self.channel_layer.group_discard(
+                        self.room_group_name,
+                        self.channel_name
+                    )
+                    return
+
+        # a, b, f매치중 나가는 경우 부전 패 처리
+        await self.handle_walkover(match)
+
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    # 부전 패 처리
+    async def handle_walkover(self, match):
+        LobbyConsumer.rooms[self.room_id]['game'][match]['players'].remove(self.scope['user'].username)
+        winner = LobbyConsumer.rooms[self.room_id]['game'][match]['players'][0]
+        if match != 'f':
+            LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players'].append(winner)
+        LobbyConsumer.rooms[self.room_id]['game'][match]['players'] = []
+        loser = self.scope['user'].username
+        winner_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][winner]
+        loser_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][loser]
+        game_data = await get_game_data(winner, loser, 3, 0)
+        game_record_id = await create_game_records(game_data, is_tournament=True, game_record_details=LobbyConsumer.rooms[self.room_id]['game'][match]['record'])
+        TournamentGameConsumer.game_record_list[self.room_id].append(game_record_id)
+        LobbyConsumer.rooms[self.room_id]['game'][match]['scores'][loser_role] = 0
+        LobbyConsumer.rooms[self.room_id]['game'][match]['scores'][winner_role] = 3
+        if match == 'a':
+            LobbyConsumer.rooms[self.room_id]['game']['winner_a'] = winner
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][winner] = 'left'
+            LobbyConsumer.rooms[self.room_id]['game']['match'][winner] = 'f'
+        elif match == 'b':
+            LobbyConsumer.rooms[self.room_id]['game']['winner_b'] = winner
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][winner] = 'right'
+            LobbyConsumer.rooms[self.room_id]['game']['match'][winner] = 'f'
+        elif match == 'f':
+            LobbyConsumer.rooms[self.room_id]['game']['winner_f'] = winner
+            await self.create_multi_game_records()
+        await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'game_over',
+                    'winner': winner,
+                    'loser': loser,
+                    'score': LobbyConsumer.rooms[self.room_id]['game'][match]['scores'],
+                    'match': match,
+                }
+            )
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        if data['type'] == 'start_game':
+            self.status = 'playing'
+            if self.room_id in LobbyConsumer.rooms and data['role'] == 'left' and data['match'] == 'a':
+                asyncio.create_task(self.start_ball_movement('a'))
+            if self.room_id in LobbyConsumer.rooms and data['role'] == 'left' and data['match'] == 'b':
+                asyncio.create_task(self.start_ball_movement('b'))
+        elif data['type'] == 'move_bar':
+            self.update_bar_position(data['direction'], data['role'], data['match'])
+        elif data['type'] == 'stop_bar':
+            self.game[data['match']]['bar_move'][data['role']] = 0
+        elif data['type'] == 'final_ready':
+            if self.scope['user'].username == self.game['winner_a'] or self.scope['user'].username == self.game['winner_b']:
+                LobbyConsumer.rooms[self.room_id]['game']['f']['players'].append(self.scope['user'].username)
+            if len(LobbyConsumer.rooms[self.room_id]['game']['f']['players']) == 2:
+                if len(LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players']) != 2:
+                    # 이때가 f 매치 부전승 처리
+                    winner = self.scope['user'].username
+                    loser = LobbyConsumer.rooms[self.room_id]['game']['f']['players'][0]
+                    game_data = await get_game_data(winner, loser, 3, 0)
+                    game_record_id = await create_game_records(game_data, is_tournament=True, game_record_details=LobbyConsumer.rooms[self.room_id]['game']['f']['record'])
+                    TournamentGameConsumer.game_record_list[self.room_id].append(game_record_id)
+                    winner_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][winner]
+                    loser_role = LobbyConsumer.rooms[self.room_id]['game']['roles'][loser]
+                    LobbyConsumer.rooms[self.room_id]['game']['f']['scores'][loser_role] = 0
+                    LobbyConsumer.rooms[self.room_id]['game']['f']['scores'][winner_role] = 3
+                    LobbyConsumer.rooms[self.room_id]['game']['winner_f'] = winner
+                    await self.create_multi_game_records()
+                    await self.channel_layer.group_send(
+                        self.room_group_name,
+                        {
+                            'type': 'game_over',
+                            'winner': winner,
+                            'loser': loser,
+                            'score': LobbyConsumer.rooms[self.room_id]['game']['f']['scores'],
+                            'match': 'f',
+                        }
+                    )
+                    return
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'final_game_start',
+                        'game': LobbyConsumer.rooms[self.room_id]['game']
+                    }
+                )
+        elif data['type'] == 'start_final_game':
+            self.status = 'playing'
+            if self.room_id in LobbyConsumer.rooms and data['role'] == 'left' and data['match'] == 'f':
+                asyncio.create_task(self.start_ball_movement('f'))
+        elif data['type'] == 'disconnect':
+            await self.close()
+
+    async def start_ball_movement(self, match):
+        self.ball_count = 0
+        self.past_ball_position = []
+        while self.status == 'playing' and self.room_id in LobbyConsumer.rooms and len(LobbyConsumer.rooms[self.room_id]['game'][match]['players']) == 2:
+            self.update_ball_position(match)
+            self.ball_count += 1
+            self.past_ball_position.append(self.game[match]['ball'].copy())
+            if len(self.past_ball_position) > 33:
+                self.past_ball_position.pop(0)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'update_game',
+                    'game': LobbyConsumer.rooms[self.room_id]['game']
+                }
+            )
+            await asyncio.sleep(0.03)
+
+    def update_ball_position(self, match):
+        self.match = self.game[match]
+        self.match['player_bar']['left'] = min(720, self.match['player_bar']['left'] + self.match['bar_move']['left'])  # Assuming bar height is 200
+        self.match['player_bar']['right'] = min(720, self.match['player_bar']['right'] + self.match['bar_move']['right'])  # Assuming bar height is 200
+        self.match['player_bar']['left'] = max(0, self.match['player_bar']['left'] + self.match['bar_move']['left'])  # Assuming bar height is 200
+        self.match['player_bar']['right'] = max(0, self.match['player_bar']['right'] + self.match['bar_move']['right'])  # Assuming bar height is 200
+        if -19 < self.match['ball']['speedX'] < 19:
+            self.match['ball']['speedX'] *= 1.02
+            self.match['ball']['speedY'] *= 1.02
+        self.match['ball']['x'] += self.match['ball']['speedX']
+        self.match['ball']['y'] += self.match['ball']['speedY']
+        # 위 야래 벽에 부딪히면 방향 바꾸기
+        if self.match['ball']['y'] + self.match['ball']['radius'] > 900 or self.match['ball']['y'] - self.match['ball']['radius'] < 0:
+            self.match['ball']['speedY'] = -self.match['ball']['speedY']
+            
+        if self.match['ball']['y'] + self.match['ball']['radius'] > 900:
+            self.match['ball']['y'] = 900 - self.match['ball']['radius']
+        elif self.match['ball']['y'] - self.match['ball']['radius'] < 0:
+            self.match['ball']['y'] = self.match['ball']['radius']
+        # 왼쪽 player bar에 부딪히면 방향 바꾸기
+        if 20 < self.match['ball']['x'] - self.match['ball']['radius'] < 40:
+            if self.match['ball']['y'] > self.match['player_bar']['left'] and self.match['ball']['y'] < self.match['player_bar']['left'] + 180:
+                degree = (self.match['player_bar']['left'] + 90 - self.match['ball']['y']) * 8 / 9
+                self.match['ball']['speedY'] = math.tan(math.radians(-degree)) * 5
+                self.match['ball']['speedX'] = 5
+        # 오른쪽 player bar에 부딪히면 방향 바꾸기
+        if 1160 < self.match['ball']['x'] + self.match['ball']['radius'] < 1180:
+            if self.match['ball']['y'] > self.match['player_bar']['right'] and self.match['ball']['y'] < self.match['player_bar']['right'] + 180:
+                degree = (self.match['player_bar']['right'] + 90 - self.match['ball']['y']) * 8 / 9
+                self.match['ball']['speedY'] = math.tan(math.radians(degree)) * (-5)
+                self.match['ball']['speedX'] = -5
+        # 왼쪽, 오른쪽 벽에 부딪히면 점수 올리기
+        if (self.match['ball']['x'] - self.match['ball']['radius'] < 0) or (self.match['ball']['x'] + self.match['ball']['radius'] > 1200):
+            if self.match['ball']['x'] - self.match['ball']['radius'] < 0:
+                self.match['scores']['right'] += 1
+                self.record_goal('right', match)
+            else:
+                self.match['scores']['left'] += 1
+                self.record_goal('left', match)
+            asyncio.create_task(self.broadcast_scores())
+            asyncio.create_task(self.check_game_over(match))
+            self.reset_ball(match)
+
+    def record_goal(self, goal_user_position, match):
+        match_player_1 = self.game[match]['players'][0]
+        match_player_2 = self.game[match]['players'][1]
+        goal_user_name = ''
+        if self.game['roles'][match_player_1] == goal_user_position:
+            goal_user_name = match_player_1
+        else:
+            goal_user_name = match_player_2
+        self.game[match]['record'].append({
+            'goal_user_name': goal_user_name,
+            'goal_user_position': goal_user_position,
+            'ball_start_position': self.past_ball_position[0].copy(),
+            'ball_end_position': self.game[match]['ball'].copy(),
+            'timestamp': self.ball_count
+        })
+
+    def reset_ball(self, match):
+        self.game[match]['ball']['x'] = 600
+        self.game[match]['ball']['y'] = 450
+        self.game[match]['ball']['speedX'] = 10 * (1 if random.random() > 0.5 else -1)
+        self.game[match]['ball']['speedY'] = 10 * (1 if random.random() > 0.5 else -1)
+
+    async def broadcast_scores(self):
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'update_game',
+                'game': self.game,
+            }
+        )
+
+    async def check_game_over(self, match):
+        if self.game[match]['scores']['left'] >= 3:
+            await self.game_end('left', 'right', match)
+        elif self.game[match]['scores']['right'] >= 3:
+            await self.game_end('right', 'left', match)
+
+    async def game_end(self, winner, loser, match):
+        player1 = self.game[match]['players'][0]
+        player2 = self.game[match]['players'][1]
+        winner_username = player1 if self.game['roles'][player1] == winner else player2
+        loser_username = player1 if self.game['roles'][player1] == loser else player2
+
+        LobbyConsumer.rooms[self.room_id]['game']['f']['waiting_players'].append(winner_username)
+        await self.game_over_match(winner_username, loser_username, match)
+
+    async def game_over_match(self, winner, loser, match):
+        LobbyConsumer.rooms[self.room_id]['game'][match]['players'] = []
+        left_score = self.game[match]['scores']['left']
+        right_score = self.game[match]['scores']['right']
+        if (left_score > right_score):
+            winner_score = left_score
+            loser_score = right_score
+        else:
+            winner_score = right_score
+            loser_score = left_score
+        game_data = await get_game_data(winner, loser, winner_score, loser_score)
+        game_record_id = await create_game_records(game_data, is_tournament=True, game_record_details=self.game[match]['record'])
+        print(game_record_id)
+        TournamentGameConsumer.game_record_list[self.room_id].append(game_record_id)
+        if match == 'a':
+            LobbyConsumer.rooms[self.room_id]['game']['winner_a'] = winner
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][winner] = 'left'
+        elif match == 'b':
+            LobbyConsumer.rooms[self.room_id]['game']['winner_b'] = winner
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][winner] = 'right'
+        elif match == 'f':
+            LobbyConsumer.rooms[self.room_id]['game']['winner_f'] = winner
+            await self.create_multi_game_records()
+        LobbyConsumer.rooms[self.room_id]['game']['roles'][loser] = 'observer'
+        LobbyConsumer.rooms[self.room_id]['game']['match'][winner] = 'f'
+        LobbyConsumer.rooms[self.room_id]['game']['match'][loser] = 'f'
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'game_over',
+                'winner': winner,
+                'loser': loser,
+                'score': self.game[match]['scores'],
+                'match': match,
+            }
+        )
+
+
+    async def update_room_list(self):
+        channel_layer = get_channel_layer()
+        await channel_layer.group_send(
+            "lobby",
+            {
+                'type': 'room_list_update',
+                'rooms': list(LobbyConsumer.rooms.values())
+            }
+        )
+
+    def update_bar_position(self, direction, role, match):
+        if direction == 'up':
+            self.game[match]['bar_move'][role] = -10
+        elif direction == 'down':
+            self.game[match]['bar_move'][role] = 10
+
+    async def game_start(self, event):
+        match = event['game']['match'][self.scope['user'].username]
+        role = event['game']['roles'][self.scope['user'].username]
+        self.status = 'game_waiting'
+
+        roles = {
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][event['game'][match]['players'][0]] : event['game'][match]['players'][0],
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][event['game'][match]['players'][1]] : event['game'][match]['players'][1],
+        } 
+        await self.send(text_data=json.dumps({
+            'type': 'game_start',
+            'game': event['game'][match],
+            'role': role,
+            'match': match,
+            'roles': roles,
+            'you': self.scope['user'].username,
+        }))
+
+    async def final_game_start(self, event):
+        match = 'f'
+        role = event['game']['roles'][self.scope['user'].username]
+        roles = {
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][event['game'][match]['players'][0]] : event['game'][match]['players'][0],
+            LobbyConsumer.rooms[self.room_id]['game']['roles'][event['game'][match]['players'][1]] : event['game'][match]['players'][1],
+        } 
+        await self.send(text_data=json.dumps({
+            'type': 'final_game_start',
+            'game': event['game'][match],
+            'role': role,
+            'match': match,
+            'roles': roles,
+        }))
+
+    async def update_game(self, event):
+        match = event['game']['match'][self.scope['user'].username]
+        role = event['game']['roles'][self.scope['user'].username]
+        await self.send(text_data=json.dumps({
+            'type': 'update_game',
+            'game': event['game'][match],
+            'role': role,
+            'match': match,
+            'you': self.scope['user'].username,
+        }))
+
+    async def game_over(self, event):
+        if event['winner'] == self.scope['user'].username or event['loser'] == self.scope['user'].username:
+            self.status = 'game_waiting'
+        if event['match'] == 'f':
+            LobbyConsumer.rooms[self.room_id]['status'] = 'room'
+        await self.send(text_data=json.dumps({
+            'type': 'game_over',
+            'winner': event['winner'],
+            'loser': event['loser'],
+            'score': event['score'],
+            'match': event['match'],
+            'you': self.scope['user'].username,
+        }))
+
+    async def error(self, event):
+        self.status = 'error'
+        await self.send(text_data=json.dumps({
+            'type': 'error',
+            'message': event['message']
+        }))
+
+    async def create_multi_game_records(self):
+        await sync_to_async(MultiGameRecord.objects.create)(
+            game1=await sync_to_async(SingleGameRecord.objects.get)(id=TournamentGameConsumer.game_record_list[self.room_id][0]),
+            game2=await sync_to_async(SingleGameRecord.objects.get)(id=TournamentGameConsumer.game_record_list[self.room_id][1]),
+            game3=await sync_to_async(SingleGameRecord.objects.get)(id=TournamentGameConsumer.game_record_list[self.room_id][2]),
+            player1=await sync_to_async(CustomUser.objects.get)(username=TournamentGameConsumer.game_player_list[self.room_id][0]),
+            player2=await sync_to_async(CustomUser.objects.get)(username=TournamentGameConsumer.game_player_list[self.room_id][1]),
+            player3=await sync_to_async(CustomUser.objects.get)(username=TournamentGameConsumer.game_player_list[self.room_id][2]),
+            player4=await sync_to_async(CustomUser.objects.get)(username=TournamentGameConsumer.game_player_list[self.room_id][3]),
+        )
+        del TournamentGameConsumer.game_record_list[self.room_id]
+        del TournamentGameConsumer.game_player_list[self.room_id]
+
+
+
+class LocalGameConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.host_username = self.scope['url_route']['kwargs']['host_username']
+        self.room_group_name = f"local_game_{self.host_username}"
+        self.game = {
+            'ball': {'x': 600, 'y': 450, 'radius': 10, 'speedX': 10, 'speedY': 10},
+            'player_bar': {'left': 360, 'right': 360},
+            'scores': {'left': 0, 'right': 0},
+            'bar_move': {'left': 0, 'right': 0},
+        }
+
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'game_start',
+                'game': self.game
+            }
+        )
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        if data['type'] == 'start_game':
+            asyncio.create_task(self.start_ball_movement())
+        elif data['type'] == 'move_bar':
+            self.update_bar_position(data['direction'], data['role'])
+        elif data['type'] == 'stop_bar':
+            self.game['bar_move'][data['role']] = 0
+
+    async def start_ball_movement(self):
+        while True:
+            self.update_ball_position()
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'update_game',
+                    'game': self.game
+                }
+            )
+            await asyncio.sleep(0.03)
+
+    def update_ball_position(self):
+        self.game['player_bar']['left'] = min(720, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
+        self.game['player_bar']['right'] = min(720, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
+        self.game['player_bar']['left'] = max(0, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
+        self.game['player_bar']['right'] = max(0, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
+        if -19 < self.game['ball']['speedX'] < 19:
+            self.game['ball']['speedX'] *= 1.02
+            self.game['ball']['speedY'] *= 1.02
+        self.game['ball']['x'] += self.game['ball']['speedX']
+        self.game['ball']['y'] += self.game['ball']['speedY']
+
+        # Bounce off top and bottom walls
+        if self.game['ball']['y'] + self.game['ball']['radius'] > 900 or self.game['ball']['y'] - self.game['ball']['radius'] < 0:
+            self.game['ball']['speedY'] = -self.game['ball']['speedY']
+
+        if self.game['ball']['y'] + self.game['ball']['radius'] > 900:
+            self.game['ball']['y'] = 900 - self.game['ball']['radius']
+        elif self.game['ball']['y'] - self.game['ball']['radius'] < 0:
+            self.game['ball']['y'] = 0 + self.game['ball']['radius']
+        
+        # Bounce off paddles
+        if 20 < self.game['ball']['x'] - self.game['ball']['radius'] < 40:
+            if self.game['ball']['y'] > self.game['player_bar']['left'] and self.game['ball']['y'] < self.game['player_bar']['left'] + 180:
+                degree = (self.game['player_bar']['left'] + 90 - self.game['ball']['y']) * 8 / 9
+                self.game['ball']['speedY'] = math.tan(math.radians(-degree)) * 5
+                self.game['ball']['speedX'] = 5
+        if 1160 < self.game['ball']['x'] + self.game['ball']['radius'] < 1180:
+            if self.game['ball']['y'] > self.game['player_bar']['right'] and self.game['ball']['y'] < self.game['player_bar']['right'] + 180:
+                degree = (self.game['player_bar']['right'] + 90 - self.game['ball']['y']) * 8 / 9
+                self.game['ball']['speedY'] = math.tan(math.radians(degree)) * (-5)
+                self.game['ball']['speedX'] = -5
+        # Score points
+        if self.game['ball']['x'] - self.game['ball']['radius'] < 0 or self.game['ball']['x'] + self.game['ball']['radius'] > 1200:
+            if self.game['ball']['x'] - self.game['ball']['radius'] < 0:
+                self.game['scores']['right'] += 1
+            else:
+                self.game['scores']['left'] += 1
+            self.reset_ball()
+
+    def reset_ball(self):
+        self.game['ball']['x'] = 600
+        self.game['ball']['y'] = 450
+        self.game['ball']['speedX'] = 10 * (1 if random.random() > 0.5 else -1)
+        self.game['ball']['speedY'] = 10 * (1 if random.random() > 0.5 else -1)
+
+    def update_bar_position(self, direction, role):
+        if direction == 'up':
+            self.game['bar_move'][role] = -10
+        elif direction == 'down':
+            self.game['bar_move'][role] = 10
+
+    async def game_start(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'game_start',
+            'game': event['game']
+        }))
+
+    async def update_game(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'update_game',
+            'game': event['game']
         }))

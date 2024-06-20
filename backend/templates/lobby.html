@@ -17,7 +17,7 @@
         h1 {
             margin-bottom: 20px;
         }
-        #createRoomButton {
+        #createRoomButton, #matchmakingButton {
             margin-bottom: 20px;
             padding: 10px 20px;
             font-size: 16px;
@@ -109,6 +109,7 @@
 <body>
     <h1>Lobby Page</h1>
     <button id="createRoomButton">방 만들기</button>
+    <button id="matchmakingButton">매치메이킹</button>
 
     <!-- 방 만들기 옵션 폼 -->
     <div id="createRoomForm">
@@ -118,8 +119,8 @@
 
         <label for="roomMode">모드 선택:</label>
         <select id="roomMode" name="roomMode">
-            <option value="1v1">1vs1</option>
-            <option value="tournament">Tournament</option>
+            <option value=2>1vs1</option>
+            <option value=4>Tournament</option>
         </select><br>
 
         <label for="isSecret">비밀방 여부:</label>
@@ -145,7 +146,7 @@
     </div>
 
     <script>
-        let selectedRoomHost = '';
+        let selectedRoomId = ''; // 수정된 부분: selectedRoomHost -> selectedRoomId
 
         const socket = new WebSocket('ws://' + window.location.host + '/ws/lobby/');
 
@@ -160,14 +161,18 @@
             if (data.type === 'room_list') {
                 updateRoomList(data.rooms);
             } else if (data.type === 'room_created') {
-                window.location.href = '/api/room/' + data.host;
+                window.location.href = '/api/room/' + data.room_id; // 수정된 부분: data.host -> data.room_id
             } else if (data.type === 'password_required') {
-                selectedRoomHost = data.host;
+                selectedRoomId = data.room_id; // 수정된 부분: data.host -> data.room_id
                 document.getElementById('passwordModal').style.display = 'block';
             } else if (data.type === 'join_approved') {
-                window.location.href = '/api/room/' + data.host;
+                window.location.href = '/api/room/' + data.room_id; // 수정된 부분: data.host -> data.room_id
             } else if (data.type === 'join_denied') {
                 alert(data.message);
+            } else if (data.type === 'matchmaking_waiting') {
+                alert("매치메이킹 대기 중...");
+            } else if (data.type === 'goto_matchmaking_game') {
+                window.location.href = '/api/game/' + data.room_id; // 수정된 부분: data.host -> data.room_id
             }
         };
 
@@ -194,6 +199,14 @@
             }
         });
 
+        document.getElementById('matchmakingButton').addEventListener('click', function() {
+            const matchmakingData = {
+                'type': 'matchmaking'
+            };
+            console.log("매치메이킹 요청 전송:", matchmakingData);
+            socket.send(JSON.stringify(matchmakingData));
+        });
+
         function createRoom() {
             const roomName = document.getElementById('roomName').value;
             const roomMode = document.getElementById('roomMode').value;
@@ -203,7 +216,7 @@
             const roomData = {
                 'type': 'create_room',
                 'room_name': roomName,
-                'mode': roomMode,
+                'mode': parseInt(roomMode),  // mode 값을 정수형으로 변환
                 'is_secret': isSecret,
                 'password': password
             };
@@ -222,15 +235,16 @@
                 roomDiv.onclick = () => {
                     const joinData = {
                         'type': 'join_room',
-                        'host': room.host
+                        'room_id': room.room_id // 수정된 부분: 'host': room.host -> 'room_id': room.room_id
                     };
                     socket.send(JSON.stringify(joinData));
                 };
-                const playerCount = room.mode === '1v1' ? `${room.players.length}/2` : `${room.players.length}/4`;
+                const playerCount = room.mode == 2 ? `${room.players.length}/2` : `${room.players.length}/4`; // mode에 따른 플레이어 수
+                const modeText = room.mode == 2 ? '1vs1' : 'Tournament'; // 모드 텍스트 변경
                 const roomInfo = `
                     <h3>${room.room_name}${room.is_secret ? ' (secret)' : ''}</h3>
-                    <p>Host: ${room.host}</p>
-                    <p>Mode: ${room.mode}</p>
+                    <p>Room ID: ${room.room_id}</p> <!-- 수정된 부분: Host: ${room.host} -> Room ID: ${room.room_id} -->
+                    <p>Mode: ${modeText}</p>
                     <p>Players: ${playerCount}</p>
                 `;
                 roomDiv.innerHTML = roomInfo;
@@ -247,7 +261,7 @@
             const password = document.getElementById('modalPassword').value;
             const joinData = {
                 'type': 'join_secret_room',
-                'host': selectedRoomHost,
+                'room_id': selectedRoomId, // 수정된 부분: 'host': selectedRoomHost -> 'room_id': selectedRoomId
                 'password': password
             };
             socket.send(JSON.stringify(joinData));
