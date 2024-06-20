@@ -47,14 +47,14 @@ const OTP = ({ len }) => {
               Array.from(inputs)
                 .map((input) => input.value)
                 .join("")
-            )
-              if (ret.status === 200) {
-                MoveToLobby();
-              } else {
-                setTimeout(() => {
-                  window.location.href = "/2fa";
-                }, 1500);
-              }
+            );
+            if (ret.status === 200) {
+              MoveToLobby();
+            } else {
+              setTimeout(() => {
+                window.location.href = "/2fa";
+              }, 1500);
+            }
           }
         }
       });
@@ -73,7 +73,7 @@ const OTP = ({ len }) => {
           }
         } else if (
           ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].includes(e.key) ||
-          (e) // temp
+          e // temp
         ) {
           backspacePressed = false;
         } else {
@@ -88,11 +88,13 @@ const OTP = ({ len }) => {
       input.addEventListener("paste", (e) => {
         console.log(e.clipboardData.getData("text"));
         let pastedData = e.clipboardData.getData("text");
-        for (let i = 0; i < 6; i++) {
+        let pastedDatalen = pastedData.length;
+        for (let i = index; i < pastedDatalen; i++) {
           inputs[i].removeEventListener("blur", blurEvent);
           inputs[i].value = pastedData[i];
         }
-        inputs[5].focus();
+        inputs[pastedDatalen - 1].addEventListener("blur", blurEvent);
+        inputs[pastedDatalen - 1].focus();
       });
     });
   }, []);
@@ -129,13 +131,13 @@ const resendBtn = () => {
   clearInputs();
   setTimeout(() => {
     const bottom = document.getElementsByClassName("bottom")[0];
-    const z = document.createElement("button");
-    z.className = "small-btn";
-    z.innerText = "resend";
-    z.addEventListener("mousedown", (e) => {
+    const resendBtn = document.createElement("button");
+    resendBtn.className = "small-btn";
+    resendBtn.innerText = "resend";
+    resendBtn.addEventListener("mousedown", (e) => {
       e.preventDefault();
     });
-    z.onclick = () => {
+    resendBtn.onclick = () => {
       isResendClicked = true;
       // /api/auth/otp #get 요청
       axios({
@@ -145,7 +147,7 @@ const resendBtn = () => {
       }).then(console.log("resend"));
       resendBtn();
     };
-    bottom.appendChild(z);
+    bottom.appendChild(resendBtn);
   }, 5000); // 5000 밀리초 = 5초
 };
 
