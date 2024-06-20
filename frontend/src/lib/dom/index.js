@@ -147,13 +147,13 @@ const domRenderer = () => {
         ? dependencies?.some((deps, i) => !shallowEqual(deps, prevDeps[i]))
         : true;
 
-      console.log(
-        "hasNoDeps",
-        hasNoDeps,
-        "hasChangedDeps",
-        hasChangedDeps,
-        dependencies
-      );
+      // console.log(
+      //   "hasNoDeps",
+      //   hasNoDeps,
+      //   "hasChangedDeps",
+      //   hasChangedDeps,
+      //   dependencies
+      // );
       if (hasNoDeps || hasChangedDeps) {
         options.dependencies[component][index] = dependencies;
         callback();

@@ -1,7 +1,151 @@
 import { useState, useEffect } from "@/lib/dom";
-import { axiosGameRecords } from "@/api/axios.custom";
-import { axiosUserDayStat } from "@/api/axios.custom";
+import {
+  axiosGameRecords,
+  axiosUserDayStat,
+  axiosUserRecentOpponent,
+  axiosGameDetail,
+} from "@/api/axios.custom";
 import { Chart } from "chart.js";
+import { isEmpty } from "@/lib/libft";
+
+let canvas;
+let routeInfo;
+let ctx;
+let ratio;
+let step = 0;
+let requestId;
+
+const drawLine = (stX, stY, edX, edY, color) => {
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(stX * ratio, stY * ratio);
+  ctx.lineTo(edX * ratio, edY * ratio);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.closePath();
+};
+
+const drawLineDash = (stX, stY, edX, edY, color) => {
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(stX * ratio, stY * ratio);
+  ctx.lineTo(edX * ratio, edY * ratio);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.closePath();
+};
+
+const drawBall = (x, y, radius) => {
+  // ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(x * ratio, y * ratio, Math.max(radius * ratio, 7), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.closePath();
+};
+
+const drawRoute = (start, end, stepX) => {
+  let slopeSt = start.speedY / start.speedX;
+  let dir = 1;
+  if (start.speedX < 0) {
+    dir = -1;
+  }
+
+  const calcY = (slope, x0, y0, x) => {
+    return slope * (x - x0) + y0;
+  };
+  let xDir = (0 - start.y) / slopeSt + start.x;
+  let xDir2 = (900 - start.y) / slopeSt + start.x;
+  let delta = Math.abs(xDir2 - xDir) * dir;
+  let x = start.x;
+  let y = start.y;
+  let ex = slopeSt * dir < 0 ? xDir : xDir2;
+  let ey = slopeSt * dir < 0 ? 0 : 900;
+  drawLineDash(
+    x,
+    y,
+    Math.abs(ex - x) < Math.abs(stepX - x) ? ex : stepX,
+    Math.abs(ex - x) < Math.abs(stepX - x) ? ey : calcY(slopeSt, x, y, stepX),
+    "#ffffff"
+  );
+  x = slopeSt * dir < 0 ? xDir : xDir2;
+  y = slopeSt * dir < 0 ? 0 : 900;
+  while (x * dir < stepX * dir) {
+    ex = x + delta;
+    ey = y === 900 ? 0 : 900;
+    slopeSt = -slopeSt;
+    drawLineDash(
+      x,
+      y,
+      Math.abs(ex - x) < Math.abs(stepX - x) ? ex : stepX,
+      Math.abs(ex - x) < Math.abs(stepX - x) ? ey : calcY(slopeSt, x, y, stepX),
+      "#ffffff"
+    );
+    x += delta;
+    y = start.y === 900 ? 0 : 900;
+  }
+};
+
+// const drawBallRoute = () => {
+//   console.log("drawBallRoute", routeInfo);
+//   ratio = canvas.width / 1200;
+//   ctx.fillStyle = "#181818";
+//   ctx.fillRect(0, 0, canvas.width, canvas.height);
+//   ctx.fillStyle = "#ffffff";
+//   drawLine(600, 0, 600, 900, "#ffffff");
+//   for (let info of routeInfo) {
+//     console.log(info);
+//     drawRoute(info.ball_start_position, info.ball_end_position);
+//     drawBall(
+//       info.ball_end_position.x,
+//       info.ball_end_position.y,
+//       info.ball_end_position.radius
+//     );
+//   }
+// };
+
+const drawBallRoute = (doneIdx) => {
+  step++;
+  if (doneIdx >= routeInfo.length) {
+    return;
+  }
+  ratio = canvas.width / 1200;
+  ctx.fillStyle = "#181818";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#ffffff";
+  drawLine(600, 0, 600, 900, "#ffffff");
+  for (let idx = 0; idx < doneIdx; idx++) {
+    const info = routeInfo[idx];
+    drawRoute(
+      info.ball_start_position,
+      info.ball_end_position,
+      info.ball_end_position.x
+    );
+    drawBall(
+      info.ball_end_position.x,
+      info.ball_end_position.y,
+      info.ball_end_position.radius
+    );
+  }
+  const info = routeInfo[doneIdx];
+  const stepX =
+    info.ball_start_position.x +
+    ((info.ball_end_position.x - info.ball_start_position.x) / 50) * step;
+  // console.log(info.ball_start_position.x, step, stepX);
+  drawRoute(info.ball_start_position, info.ball_end_position, stepX);
+  if (step >= 50) {
+    step = 0;
+    drawBall(
+      info.ball_end_position.x,
+      info.ball_end_position.y,
+      info.ball_end_position.radius
+    );
+    requestId = requestAnimationFrame(() => drawBallRoute(doneIdx + 1));
+    return;
+  }
+  requestId = requestAnimationFrame(() => drawBallRoute(doneIdx));
+};
 
 function convertOrdinalNumber(n) {
   n = parseInt(n, 10);
@@ -34,9 +178,15 @@ function convertDate(date) {
   return date_text;
 }
 
-const LogSingleItem = ({ record }) => {
+const LogSingleItem = ({ record, setLogStat, gameRecords, setGameRecords }) => {
+  const handleGameDetail = async (id) => {
+    const gameDetail = await axiosGameDetail({ gameId: id });
+    console.log("handleGameDetail", gameDetail.data);
+    routeInfo = gameDetail.data.goal_list;
+    setLogStat(PlayStat.DETAIL);
+  };
   return (
-    <div class="log-single-item">
+    <div class="log-single-item" onclick={() => handleGameDetail(record.id)}>
       <div>
         <img src="/img/minji_2.jpg"></img>
         <h4>{record.opponent_name}</h4>
@@ -92,49 +242,57 @@ const PlayStat = {
   SINGLE: "single",
   MULTI: "multi",
   DASHBOARD: "dashboard",
+  DETAIL: "detail",
 };
 
 const LobbyProfile = ({ profile }) => {
   const [logStat, setLogStat] = useState(PlayStat.SINGLE);
-  const [gameRecords, setGameRecords] = useState([]);
+  const [gameRecords, setGameRecords] = useState({});
 
   console.log(logStat);
 
-  useEffect(() => {}, []);
-
   useEffect(() => {
-    // axios
-    if (logStat === PlayStat.DASHBOARD) {
-      const getDayStat = async () => {
-        const dayStatApi = await axiosUserDayStat({
-          username: profile.username,
-        });
-        console.log(dayStatApi.data);
-        setGameRecords(dayStatApi.data.day_count_stats);
-      };
-      getDayStat();
-    } else {
-      const getGameHistory = async () => {
-        const gameRecordsApi = await axiosGameRecords({
-          username: profile.username,
-          isSingle: logStat === PlayStat.SINGLE ? "SINGLE" : "MULTI",
-        });
-        console.log(gameRecordsApi.data);
-        setGameRecords(gameRecordsApi.data.record_list);
-      };
-      getGameHistory();
-    }
-  }, [logStat]);
+    const getGameRecords = async () => {
+      const dayStatApi = await axiosUserDayStat({
+        username: profile.username,
+      });
+
+      const recentOpponentApi = await axiosUserRecentOpponent({
+        username: profile.username,
+      });
+
+      const singleRecordsApi = await axiosGameRecords({
+        username: profile.username,
+        isSingle: "SINGLE",
+      });
+
+      const multiRecordsApi = await axiosGameRecords({
+        username: profile.username,
+        isSingle: "MULTI",
+      });
+
+      console.log("recentOpponentApi", recentOpponentApi.data);
+      setGameRecords({
+        playOfWeek: dayStatApi.data.day_count_stats,
+        recentOpponent: recentOpponentApi.data.opponent_records,
+        singleRecords: singleRecordsApi.data.record_list,
+        multiRecords: multiRecordsApi.data.record_list,
+      });
+    };
+    getGameRecords();
+  }, []);
 
   console.log("gameRecords", gameRecords);
   useEffect(() => {
     console.log("gameRecords useEffect", gameRecords);
     if (logStat === PlayStat.DASHBOARD) {
-      const labels = gameRecords.map((data) => data.day);
-      const numOfRound = gameRecords.map((data) => data.count);
-      const numOfWins = gameRecords.map((data) => data.wins);
-      const numOfLoses = gameRecords.map((data) => data.count - data.wins);
-      const rateOfWins = gameRecords.map((data) =>
+      const labels = gameRecords.playOfWeek.map((data) => data.day);
+      const numOfRound = gameRecords.playOfWeek.map((data) => data.count);
+      const numOfWins = gameRecords.playOfWeek.map((data) => data.wins);
+      const numOfLoses = gameRecords.playOfWeek.map(
+        (data) => data.count - data.wins
+      );
+      const rateOfWins = gameRecords.playOfWeek.map((data) =>
         data.count ? (data.wins / data.count) * 100 : 0
       );
       let ctx = document.getElementById("myChartCnt");
@@ -219,12 +377,26 @@ const LobbyProfile = ({ profile }) => {
           },
         },
       });
+    } else if (logStat === PlayStat.DETAIL) {
+      canvas = document.querySelector("#gameDetail > canvas");
+      ctx = canvas.getContext("2d");
+
+      ctx.scale(1, 1);
+      canvas.width = document.querySelector("#gameDetail").clientWidth;
+      canvas.height = document.querySelector("#gameDetail").clientHeight;
+      routeInfo.forEach((info) => {
+        info.ball_start_position = JSON.parse(info.ball_start_position);
+        info.ball_end_position = JSON.parse(info.ball_end_position);
+      });
+      drawBallRoute(0);
     }
-  }, [gameRecords]);
+  }, [logStat]);
 
   const matchNum = profile.win + profile.lose;
-  const multiName = "Hyungjuk_multi";
   const handleLogStat = (stat) => {
+    if (logStat === PlayStat.DETAIL) {
+      cancelAnimationFrame(requestId);
+    }
     if (stat !== logStat) setLogStat(stat);
   };
   return (
@@ -263,29 +435,60 @@ const LobbyProfile = ({ profile }) => {
             <span class="vertical-text">DashBoard</span>
           </button>
         </div>
-        {gameRecords ? (
+        {!isEmpty(gameRecords) ? (
           logStat === PlayStat.SINGLE ? (
             <div class="log-container">
-              {gameRecords.map((record) => (
-                <LogSingleItem record={record} />
+              {gameRecords.singleRecords.map((record) => (
+                <LogSingleItem
+                  record={record}
+                  setLogStat={setLogStat}
+                  gameRecords={gameRecords}
+                  setGameRecords={setGameRecords}
+                />
               ))}
             </div>
           ) : logStat === PlayStat.MULTI ? (
             <div class="log-container">
-              {gameRecords.map(
+              {gameRecords.multiRecords.map(
                 (record) => (
                   console.log(record),
                   (<LogMultiItem name={profile.username} record={record} />)
                 )
               )}
             </div>
-          ) : (
-            <div class="log-container">
-              <h3>Dashboard</h3>
-              <h5>Play of Week</h5>
+          ) : logStat === PlayStat.DASHBOARD ? (
+            <div class="log-container forward">
+              <h4>Play of Week</h4>
               <canvas id="myChartCnt"></canvas>
-              <h5>Winning Rate of Week</h5>
+              <h4>Winning Rate of Week</h4>
               <canvas id="myChartRate"></canvas>
+              {/* <h4>Recent Opponents</h4>
+              {Object.keys(gameRecords.recentOpponent).map((key) => {
+                console.log(key);
+                return (
+                  <RecentOpponentItem
+                    name={key}
+                    info={gameRecords.recentOpponent[key]}
+                  />
+                );
+              })} */}
+            </div>
+          ) : (
+            <div class="log-container forward">
+              <div id="gameDetail">
+                <canvas></canvas>
+              </div>
+              <h4>Game Details</h4>
+              <div class="goal-info-item main">
+                <h5>Username</h5>
+                <h5>Time</h5>
+              </div>
+              {routeInfo.map((goal) => (
+                <div class="goal-info-item">
+                  <h5>{goal.goal_user_name}</h5>
+                  <h5>{goal.timestamp.toFixed(2)}</h5>
+                </div>
+              ))}
             </div>
           )
         ) : null}
