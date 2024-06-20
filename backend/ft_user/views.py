@@ -164,15 +164,22 @@ class DayStatAPIView(APIView):
 			count=Count('id'),
 			wins=Count(Case(When(winner=username, then=1), output_field=IntegerField()))
 		)
-		day_count_stats = []
+
+		all_days = {day: {'count': 0, 'wins': 0} for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']}
 		for record in stats:
 			day_str = record['day']
 			day_date = datetime.strptime(day_str, '%Y-%m-%d')
-			day_count_stats.append({
-				'day': day_date.strftime('%A'),
+			day_abbr = day_date.strftime('%a') # Get 3-letter abbreviation for the day
+			all_days[day_abbr] = {
 				'count': record['count'],
 				'wins': record['wins'],
-			})
+			}
+		# Convert the dictionary to a list of dictionaries for serialization
+		day_count_stats = [{'day': day, 'count': data['count'], 'wins': data['wins']} for day, data in all_days.items()]
+
+		# Sort the list by day order (Mon-Sun)
+		day_order = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+		day_count_stats = sorted(day_count_stats, key=lambda x: day_order.index(x['day']))
 		serializer = DayStatSerializer(day_count_stats, many=True)
 		return JsonResponse({'status_code': '200', 'day_count_stats': serializer.data}, status=200)
 
