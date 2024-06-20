@@ -131,7 +131,9 @@ services:
 
   grafana:
     container_name: grafana
-    image: grafana/grafana:latest
+    build:
+      context: ${GRAFANA_PATH}
+      dockerfile: Dockerfile.grafana
     volumes:
       - ${GRAFANA_PATH}/data:/var/lib/grafana
     ports:
