@@ -50,6 +50,18 @@ export const axiosUserMeConfig = async (config2Change) => {
   }
 };
 
+export const axiosUserDayStat = async ({ username }) => {
+  try {
+    const response = await instance.get(
+      `${axiosUserURL}/${username}/user-day-stat`
+    );
+    return response;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
+
 export const axiosGameRecords = async ({ username, isSingle }) => {
   try {
     console.log(username);

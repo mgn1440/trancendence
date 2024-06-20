@@ -1,5 +1,7 @@
 import { useState, useEffect } from "@/lib/dom";
 import { axiosGameRecords } from "@/api/axios.custom";
+import { axiosUserDayStat } from "@/api/axios.custom";
+import { Chart } from "chart.js";
 
 function convertOrdinalNumber(n) {
   n = parseInt(n, 10);
@@ -87,8 +89,9 @@ const LogMultiItem = ({ name, record }) => {
 };
 
 const PlayStat = {
-  SINGLE: true,
-  MULTI: false,
+  SINGLE: "single",
+  MULTI: "multi",
+  DASHBOARD: "dashboard",
 };
 
 const LobbyProfile = ({ profile }) => {
@@ -97,17 +100,127 @@ const LobbyProfile = ({ profile }) => {
 
   console.log(logStat);
 
+  useEffect(() => {}, []);
+
   useEffect(() => {
     // axios
-    const getGameHistory = async () => {
-      const gameRecordsApi = await axiosGameRecords({
-        username: profile.username,
-        isSingle: logStat ? "SINGLE" : "MULTI",
-      });
-      setGameRecords(gameRecordsApi.data.record_list);
-    };
-    getGameHistory();
+    if (logStat === PlayStat.DASHBOARD) {
+      const getDayStat = async () => {
+        const dayStatApi = await axiosUserDayStat({
+          username: profile.username,
+        });
+        console.log(dayStatApi.data);
+        setGameRecords(dayStatApi.data.day_count_stats);
+      };
+      getDayStat();
+    } else {
+      const getGameHistory = async () => {
+        const gameRecordsApi = await axiosGameRecords({
+          username: profile.username,
+          isSingle: logStat === PlayStat.SINGLE ? "SINGLE" : "MULTI",
+        });
+        console.log(gameRecordsApi.data);
+        setGameRecords(gameRecordsApi.data.record_list);
+      };
+      getGameHistory();
+    }
   }, [logStat]);
+
+  console.log("gameRecords", gameRecords);
+  useEffect(() => {
+    console.log("gameRecords useEffect", gameRecords);
+    if (logStat === PlayStat.DASHBOARD) {
+      const labels = gameRecords.map((data) => data.day);
+      const numOfRound = gameRecords.map((data) => data.count);
+      const numOfWins = gameRecords.map((data) => data.wins);
+      const numOfLoses = gameRecords.map((data) => data.count - data.wins);
+      const rateOfWins = gameRecords.map((data) =>
+        data.count ? (data.wins / data.count) * 100 : 0
+      );
+      let ctx = document.getElementById("myChartCnt");
+      new Chart(ctx, {
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              type: "bar",
+              label: "Rounds",
+              data: numOfRound,
+              borderWidth: 1,
+            },
+            {
+              type: "bar",
+              label: "Win",
+              data: numOfWins,
+              borderWidth: 1,
+            },
+            {
+              type: "bar",
+              label: "Loses",
+              data: numOfLoses,
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              grid: {
+                color: (context) => {
+                  return "rgba(255,255,255,0.4)";
+                },
+              },
+              ticks: {
+                stepSize: (context) => {
+                  return Math.max(Math.max(...numOfRound) / 5, 1);
+                },
+              },
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+
+      ctx = document.getElementById("myChartRate");
+      new Chart(ctx, {
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              type: "line",
+              tension: 0.3,
+              label: "# of Votes",
+              data: rateOfWins,
+              borderWidth: 1,
+              fill: true,
+              backgroundColor: "rgba(255,255,255,0.3)",
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              grid: {
+                color: (context) => {
+                  // if (context.tick.value % 20 === 0) {
+                  //   return "rgba(255,255,255,0.8)";
+                  // }
+                  return "rgba(255,255,255,0.4)";
+                },
+                lineWidth: (context) => {
+                  return 1;
+                },
+              },
+              ticks: {
+                stepSize: 20,
+              },
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+    }
+  }, [gameRecords]);
 
   const matchNum = profile.win + profile.lose;
   const multiName = "Hyungjuk_multi";
@@ -131,25 +244,33 @@ const LobbyProfile = ({ profile }) => {
         <div class="select-bar">
           <button
             onclick={() => handleLogStat(PlayStat.SINGLE)}
-            class={logStat ? "selected" : ""}
+            class={logStat === PlayStat.SINGLE ? "selected" : ""}
           >
             <span class="vertical-text">Single</span>
           </button>
           <button
             onclick={() => handleLogStat(PlayStat.MULTI)}
-            class={!logStat ? "selected" : ""}
+            class={logStat === PlayStat.MULTI ? "selected" : ""}
           >
             <span class="vertical-text">Multi</span>
           </button>
+          <button
+            onclick={() => handleLogStat(PlayStat.DASHBOARD)}
+            class={`dashboardBtn ${
+              logStat === PlayStat.DASHBOARD ? "selected" : ""
+            }`}
+          >
+            <span class="vertical-text">DashBoard</span>
+          </button>
         </div>
         {gameRecords ? (
-          logStat ? (
+          logStat === PlayStat.SINGLE ? (
             <div class="log-container">
               {gameRecords.map((record) => (
                 <LogSingleItem record={record} />
               ))}
             </div>
-          ) : (
+          ) : logStat === PlayStat.MULTI ? (
             <div class="log-container">
               {gameRecords.map(
                 (record) => (
@@ -157,6 +278,14 @@ const LobbyProfile = ({ profile }) => {
                   (<LogMultiItem name={profile.username} record={record} />)
                 )
               )}
+            </div>
+          ) : (
+            <div class="log-container">
+              <h3>Dashboard</h3>
+              <h5>Play of Week</h5>
+              <canvas id="myChartCnt"></canvas>
+              <h5>Winning Rate of Week</h5>
+              <canvas id="myChartRate"></canvas>
             </div>
           )
         ) : null}
