@@ -110,12 +110,13 @@ services:
 
   prometheus:
     container_name: prometheus
-    image: prom/prometheus:latest
+    build:
+      context: ${PROMETHEUS_PATH}
+      dockerfile: Dockerfile.prometheus
     volumes:
       - ${PROMETHEUS_PATH}/data:/prometheus
-      - ${PROMETHEUS_PATH}/prometheus.yml:/etc/prometheus/prometheus.yml
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      # - ${PROMETHEUS_PATH}/prometheus.yml:/etc/prometheus/prometheus.yml
+      # - ${PROMETHEUS_PATH}/web.yml:/etc/prometheus/web.yml
     ports:
       - "9090:9090"
     networks:
