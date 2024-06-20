@@ -37,7 +37,7 @@ export const connectGameLogicWebSocket = (dispatch, path) => {
     ws_gamelogic.getState().socket.readyState === WebSocket.CLOSED ||
     ws_gamelogic.getState().socket.readyState === WebSocket.CLOSING
   ) {
-    const socket = new WebSocket("wss://" + "localhost:8000" + path);
+    const socket = new WebSocket("wss://" + "localhost" + path);
     dispatch(webSocketConnect(socket));
   } else {
     console.log("WebSocket is already connected");
