@@ -9,7 +9,7 @@ scrape_configs:
     tls_config:
       ca_file: /etc/ssl/certs/prometheus-selfsigned.crt
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['prometheus:9090']
 
   - job_name: 'node-exporter'
     static_configs:

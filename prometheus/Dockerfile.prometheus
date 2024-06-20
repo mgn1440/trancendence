@@ -18,10 +18,16 @@ RUN wget https://github.com/prometheus/prometheus/releases/download/v2.35.0/prom
 
 # OpenSSL을 사용하여 SSL 인증서 생성
 RUN mkdir -p /etc/ssl/certs
-RUN openssl req -x509 -newkey rsa:2048 -nodes \
-    -keyout /etc/ssl/certs/prometheus-selfsigned.key \
-    -out /etc/ssl/certs/prometheus-selfsigned.crt \
-    -subj "/C=KR/ST=GEYOUNG-GI-DO/L=SEOUL/O=42SEOUL/OU=CARDET/CN=localhost"
+RUN echo "[SAN]\nsubjectAltName=DNS:prometheus" > /tmp/san_config.cnf \
+    && cat /etc/ssl/openssl.cnf /tmp/san_config.cnf > /tmp/openssl.cnf \
+    && openssl req -x509 -newkey rsa:2048 -nodes \
+       -keyout /etc/ssl/certs/prometheus-selfsigned.key \
+       -out /etc/ssl/certs/prometheus-selfsigned.crt \
+       -subj "/C=KR/ST=GEYOUNG-GI-DO/L=SEOUL/O=42SEOUL/OU=CARDET/CN=prometheus" \
+       -reqexts SAN \
+       -config /tmp/openssl.cnf \
+       -extensions SAN
+
 
 # Prometheus 설정 파일 복사
 COPY prometheus.yml /opt/prometheus/prometheus.yml

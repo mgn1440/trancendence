@@ -469,4 +469,7 @@ fabric.properties
 .transcendence
 
 # prometheus/data
-prometheus/data/
+prometheus/data
+
+# grafana/data
+grafana/data
