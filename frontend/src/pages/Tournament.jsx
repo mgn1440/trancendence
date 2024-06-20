@@ -12,6 +12,8 @@ let ratio;
 let role;
 let match;
 
+let users;
+
 const drawPaddle = (x, y) => {
   context.fillStyle = "#ffffff";
   context.fillRect(x * ratio, y * ratio, 20 * ratio, canvas.height / 5);
@@ -34,7 +36,7 @@ const drawBall = (x, y) => {
 
 const drawLine = () => {
   context.beginPath();
-  context.moveTo(canvas.width / 2);
+  context.moveTo(canvas.width / 2, 0);
   context.lineTo(canvas.width / 2, canvas.height);
   context.strokeStyle = "#ffffff";
   context.lineWidth = 2;
@@ -65,6 +67,7 @@ const dirStat = {
   DOWN: 2,
 };
 const GamePage = () => {
+  // wind;
   const [gameStat, setGameStat] = useState([]);
   const [userStat, setUserStat] = useState([]);
   let direction = dirStat.STOP;
@@ -97,15 +100,16 @@ const GamePage = () => {
           startFlag = true;
           gameState = data.game;
           setGameStat([data.game.scores, data.roles]);
-          setUserStat([
-            data.match_a_player.left,
-            data.match_a_player.right,
-            data.match_b_player.left,
-            data.match_b_player.right,
+          users = [
+            data.match_a_player[0],
+            data.match_a_player[1],
+            data.match_b_player[0],
+            data.match_b_player[1],
             "tbd",
             "tbd",
             "tbd",
-          ]);
+          ];
+          setUserStat(users);
           role = data.role;
           match = data.match;
           let timer = 3;
@@ -160,15 +164,19 @@ const GamePage = () => {
           gameState = data.game;
           setGameStat([data.game.scores, data.roles]);
         } else if (data.type === "game_over") {
+          const newUsers = [...users];
           if (data.match === "f") {
-            let temp = userStat;
-            temp.array.forEach((element) => {
-              if (element === data.winner) temp[6] = data.winner;
-              element = "";
-            });
+            for (let i = 0; i < 7; i++) {
+              if (newUsers[i] === data.winner) {
+                newUsers[6] = data.winner;
+                newUsers[i] = "";
+                break;
+              }
+            }
+            users = newUsers;
+            setUserStat(newUsers);
             alert(data.winner);
-            console.log(data.winner);
-            gotoPage(`/lobby/${data.room_id}`);
+            // gotoPage(`/lobby/${data.room_id}`);
           } else {
             if (data.winner === data.you) {
               ws_gamelogic.getState().socket.send(
@@ -178,17 +186,27 @@ const GamePage = () => {
               );
             }
             if (data.match === "a") {
-              let temp = userStat;
-              temp.array.forEach((element) => {
-                if (element === data.winner) temp[4] = data.winner;
-                element = "";
-              });
+              const newUsers = [...users];
+              for (let i = 0; i < 7; i++) {
+                if (newUsers[i] === data.winner) {
+                  newUsers[4] = data.winner;
+                  newUsers[i] = "";
+                  break;
+                }
+              }
+              users = newUsers;
+              setUserStat(newUsers);
             } else {
-              let temp = userStat;
-              temp.array.forEach((element) => {
-                if (element === data.winner) temp[5] = data.winner;
-                element = "";
-              });
+              const newUsers = [...users];
+              for (let i = 0; i < 7; i++) {
+                if (newUsers[i] === data.winner) {
+                  newUsers[5] = data.winner;
+                  newUsers[i] = "";
+                  break;
+                }
+              }
+              users = newUsers;
+              setUserStat(newUsers);
             }
           }
         } else if (data.type === "error") {
@@ -226,7 +244,6 @@ const GamePage = () => {
 
   useEffect(() => {
     if (isEmpty(gameStat)) return;
-    console.log(gameStat);
     document.getElementById("pong-game").style.display = "block";
     canvas = document.getElementById("pong-game");
     if (window.innerHeight / 3 > window.innerWidth / 4) {
@@ -248,22 +265,21 @@ const GamePage = () => {
 
     ratio = canvas.width / 1200;
     update();
-  }, [gameStat]);
+  }, [gameStat, userStat]);
   return (
-    <div>
+    <div class="tournament">
       <div class="pong-game-main">
-        {isEmpty(userStat) ? null : <Bracket users={userStat} />}
-        <canvas id="pong-game">
-          {isEmpty(gameStat) ? null : (
-            <div class="pong-game-info">
-              <p class="user1">{gameStat[1].left}</p>
-              <p class="user2">{gameStat[1].right}</p>
-              <h6 class="user1">{gameStat[0].left}</h6>
-              <h6 class="user2">{gameStat[0].right}</h6>
-              <h1>3</h1>
-            </div>
-          )}
-        </canvas>
+        <Bracket users={userStat} />
+        <canvas id="pong-game"> </canvas>
+        {isEmpty(gameStat) ? null : (
+          <div class="pong-game-info">
+            <p class="user1">{gameStat[1].left}</p>
+            <p class="user2">{gameStat[1].right}</p>
+            <h6 class="user1">{gameStat[0].left}</h6>
+            <h6 class="user2">{gameStat[0].right}</h6>
+            <h1>3</h1>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -6,12 +6,15 @@ let drawBorder = (ctx, player, pos) => {
   ctx.font = "16px Arial";
   ctx.fillStyle = "white";
   ctx.textAlign = "center";
-  ctx.fillText(player, pos.x, pos.y + 25);
+  if (!player) {
+    ctx.fillText("", pos.x, pos.y + 25);
+  } else {
+    ctx.fillText(player, pos.x, pos.y + 25);
+  }
   ctx.strokeRect(pos.x - 50, pos.y, 100, 40); // 네모 테두리
 };
 
 const Bracket = (users) => {
-  console.log(users.users);
   const drawBracket = (canvas, p_width) => {
     const ctx = canvas.getContext("2d");
 
@@ -40,9 +43,9 @@ const Bracket = (users) => {
     ];
 
     // 플레이어 이름 및 테두리 그리기
-    users.users.forEach((player, index) => {
-      drawBorder(ctx, player, positions[index]);
-    });
+    for (let i = 0; i < 7; i++) {
+      drawBorder(ctx, users.users[i], positions[i]);
+    }
 
     // 대진표 선 그리기
     // 1차전 (Player 1 vs Player 2)
@@ -80,18 +83,22 @@ const Bracket = (users) => {
     ctx.lineTo(basex + 350, basey + 120);
     ctx.stroke();
   };
+  // useEffect(() => {
+  //   const canvas = document.getElementById("Bracket");
+  //   const handleResize = () => {
+  //     drawBracket(canvas, window.innerWidth);
+  //   };
+  //   drawBracket(canvas, window.innerWidth);
+
+  //   window.addEventListener("resize", handleResize);
+  //   return () => {
+  //     window.removeEventListener("resize", handleResize);
+  //   };
+  // }, []);
   useEffect(() => {
     const canvas = document.getElementById("Bracket");
-    const handleResize = () => {
-      drawBracket(canvas, window.innerWidth);
-    };
     drawBracket(canvas, window.innerWidth);
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+  }, [users]);
 
   return <canvas id="Bracket"></canvas>;
 };

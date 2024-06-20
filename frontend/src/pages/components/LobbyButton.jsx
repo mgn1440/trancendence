@@ -209,7 +209,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
               <InputBox text="Password" defaultValue="" />
               <div class="radio-check body-element robby-game-btn">
                 <RadioCheck text="1 vs 1" name="battle" id="1vs1" />
-                <RadioCheck text="Tournament" name="battle" id="tornament" />
+                <RadioCheck text="Tournament" name="battle" id="tournament" />
               </div>
             </div>
           );
