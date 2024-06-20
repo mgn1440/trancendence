@@ -4,7 +4,7 @@ import { createElement } from "../lib/createElement";
 const MainPage = () => {
   const MoveTo2FA = () => {
     // gotoPage("http://localhost:8000/api/auth/login");
-    window.location.href = "http://localhost:8000/api/auth/login";
+    window.location.href = "https://localhost/api/auth/login";
   };
   return (
     <div class="main-page">

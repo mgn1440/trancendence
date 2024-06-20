@@ -127,7 +127,7 @@ const resendBtn = () => {
       // /api/auth/otp #get 요청
       axios({
         method: "get",
-        url: "http://localhost:8000/api/auth/otp/",
+        url: "https://localhost/api/auth/otp/",
         withCredentials: true,
       }).then(console.log("resend"));
       resendBtn();
