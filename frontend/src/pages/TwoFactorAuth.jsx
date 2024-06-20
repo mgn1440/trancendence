@@ -14,9 +14,39 @@ const isFull = (inputs) => {
 };
 
 const OTP = ({ len }) => {
+  const VerifyOTP = async (inputs) => {
+    inputs.forEach((input) => {
+      input.classList.toggle("bg-gray30"); // css toggle
+    });
+    let ret = await axiosVerfiyOTP(
+      Array.from(inputs)
+        .map((input) => input.value)
+        .join("")
+    );
+    if (ret.status === 200) {
+      MoveToLobby();
+    } else {
+      setTimeout(() => {
+        window.location.href = "/2fa";
+      }, 1500);
+    }
+  };
+  const MoveToLobby = () => {
+    window.location.href = "/lobby";
+  };
   useEffect(() => {
     const inputs = document.querySelectorAll(".otp .input");
     let backspacePressed = false;
+    const blurEvent = (e) => {
+      if ((e.target.value === "" && !backspacePressed) || isFull(inputs)) {
+        if (!isResendClicked) {
+          e.preventDefault();
+          e.target.focus();
+        }
+        isResendClicked = false;
+      }
+      backspacePressed = false;
+    };
     inputs[0].focus();
     inputs.forEach((input, index) => {
       input.addEventListener("input", async (e) => {
@@ -28,21 +58,7 @@ const OTP = ({ len }) => {
           } else if (index !== len - 1) {
             inputs[index + 1].focus();
           } else if (isFull(inputs)) {
-            inputs.forEach((input) => {
-              input.classList.toggle("bg-gray30"); // css toggle
-            });
-            let ret = await axiosVerfiyOTP(
-              Array.from(inputs)
-                .map((input) => input.value)
-                .join("")
-            );
-            if (ret.status === 200) {
-              gotoPage("/lobby");
-            } else {
-              setTimeout(() => {
-                gotoPage("/2fa");
-              }, 1500);
-            }
+            VerifyOTP(inputs);
           }
         }
       });
@@ -60,7 +76,8 @@ const OTP = ({ len }) => {
             backspacePressed = false;
           }
         } else if (
-          ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].includes(e.key)
+          ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].includes(e.key) ||
+          e // temp
         ) {
           backspacePressed = false;
         } else {
@@ -68,18 +85,39 @@ const OTP = ({ len }) => {
           backspacePressed = false;
         }
       });
-      input.addEventListener("blur", (e) => {
-        if ((e.target.value === "" && !backspacePressed) || isFull(inputs)) {
-          if (!isResendClicked) {
-            e.preventDefault();
-            e.target.focus();
-          }
-          isResendClicked = false;
-        }
-        backspacePressed = false;
-      });
+      input.addEventListener("blur", blurEvent);
       input.addEventListener("mousedown", (e) => {
         e.preventDefault();
+      });
+      input.addEventListener("paste", (e) => {
+        console.log(e.clipboardData.getData("text"));
+        let pastedData = e.clipboardData.getData("text");
+        let pastedDatalen = pastedData.length;
+        if (pastedData.match(/[^0-9]/g)) {
+          e.preventDefault();
+          console.log("not number");
+          return;
+        }
+        console.log(index);
+        for (let i = 0; i < Math.min(pastedDatalen, 6); i++) {
+          if (index + i >= 6) {
+            break;
+          }
+          if (index + i !== 5) {
+            inputs[index + i].removeEventListener("blur", blurEvent);
+          }
+          inputs[index + i].value = pastedData[i];
+        }
+        let foucusIndex = index + pastedDatalen;
+        if (foucusIndex > 6) {
+          console.log("foucusIndex", foucusIndex);
+          foucusIndex = 6;
+          VerifyOTP(inputs);
+          return;
+        }
+        inputs[index + pastedDatalen - 1].addEventListener("blur", blurEvent);
+        inputs[index + pastedDatalen - 1].focus();
+        console.log(pastedDatalen, pastedData);
       });
     });
   }, []);
@@ -116,13 +154,13 @@ const resendBtn = () => {
   clearInputs();
   setTimeout(() => {
     const bottom = document.getElementsByClassName("bottom")[0];
-    const z = document.createElement("button");
-    z.className = "small-btn";
-    z.innerText = "resend";
-    z.addEventListener("mousedown", (e) => {
+    const resendBtn = document.createElement("button");
+    resendBtn.className = "small-btn";
+    resendBtn.innerText = "resend";
+    resendBtn.addEventListener("mousedown", (e) => {
       e.preventDefault();
     });
-    z.onclick = () => {
+    resendBtn.onclick = () => {
       isResendClicked = true;
       // /api/auth/otp #get 요청
       axios({
@@ -132,7 +170,7 @@ const resendBtn = () => {
       }).then(console.log("resend"));
       resendBtn();
     };
-    bottom.appendChild(z);
+    bottom.appendChild(resendBtn);
   }, 5000); // 5000 밀리초 = 5초
 };
 
