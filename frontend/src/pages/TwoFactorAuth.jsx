@@ -13,6 +13,23 @@ const isFull = (inputs) => {
 };
 
 const OTP = ({ len }) => {
+  const VerifyOTP = async (inputs) => {
+    inputs.forEach((input) => {
+      input.classList.toggle("bg-gray30"); // css toggle
+    });
+    let ret = await axiosVerfiyOTP(
+      Array.from(inputs)
+        .map((input) => input.value)
+        .join("")
+    );
+    if (ret.status === 200) {
+      MoveToLobby();
+    } else {
+      setTimeout(() => {
+        window.location.href = "/2fa";
+      }, 1500);
+    }
+  };
   const MoveToLobby = () => {
     window.location.href = "/lobby";
   };
@@ -40,21 +57,7 @@ const OTP = ({ len }) => {
           } else if (index !== len - 1) {
             inputs[index + 1].focus();
           } else if (isFull(inputs)) {
-            inputs.forEach((input) => {
-              input.classList.toggle("bg-gray30"); // css toggle
-            });
-            let ret = await axiosVerfiyOTP(
-              Array.from(inputs)
-                .map((input) => input.value)
-                .join("")
-            );
-            if (ret.status === 200) {
-              MoveToLobby();
-            } else {
-              setTimeout(() => {
-                window.location.href = "/2fa";
-              }, 1500);
-            }
+            VerifyOTP(inputs);
           }
         }
       });
@@ -89,12 +92,31 @@ const OTP = ({ len }) => {
         console.log(e.clipboardData.getData("text"));
         let pastedData = e.clipboardData.getData("text");
         let pastedDatalen = pastedData.length;
-        for (let i = index; i < pastedDatalen; i++) {
-          inputs[i].removeEventListener("blur", blurEvent);
-          inputs[i].value = pastedData[i];
+        if (pastedData.match(/[^0-9]/g)) {
+          e.preventDefault();
+          console.log("not number");
+          return;
         }
-        inputs[pastedDatalen - 1].addEventListener("blur", blurEvent);
-        inputs[pastedDatalen - 1].focus();
+        console.log(index);
+        for (let i = 0; i < Math.min(pastedDatalen, 6); i++) {
+          if (index + i >= 6) {
+            break;
+          }
+          if (index + i !== 5) {
+            inputs[index + i].removeEventListener("blur", blurEvent);
+          }
+          inputs[index + i].value = pastedData[i];
+        }
+        let foucusIndex = index + pastedDatalen;
+        if (foucusIndex > 6) {
+          console.log("foucusIndex", foucusIndex);
+          foucusIndex = 6;
+          VerifyOTP(inputs);
+          return;
+        }
+        inputs[index + pastedDatalen - 1].addEventListener("blur", blurEvent);
+        inputs[index + pastedDatalen - 1].focus();
+        console.log(pastedDatalen, pastedData);
       });
     });
   }, []);
