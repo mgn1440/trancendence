@@ -1,5 +1,5 @@
 import LobbyButton from "./LobbyButton";
-import { isEmpty } from "@/lib/libft";
+import { gotoPage, isEmpty } from "@/lib/libft";
 import { MainProfileState } from "../GameRoom";
 import { useState, useEffect } from "@/lib/dom";
 import { axiosUserMe } from "@/api/axios.custom";
@@ -56,7 +56,12 @@ const LobbyProfile = ({ data, sendLobbySocket, stat }) => {
         )}
         {stat === MainProfileState.LOBBY ? (
           <div class="lobby-buttons">
-            <button class="lobby-game-btn">
+            <button class="lobby-game-btn"
+            onclick={() => {
+              console.log("offline game");
+              console.log(myProfile.username);
+              gotoPage(`/local/${myProfile.username}`);
+            }}>
               <img src="/icon/user.svg"></img>
               Offline Game
             </button>

@@ -8,7 +8,7 @@ services:
     env_file:
       - ${FE_ENV_PATH}
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:5173" ]
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,7 +48,7 @@ services:
       postgresql:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000" ]
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -74,7 +74,7 @@ services:
       # POSTGRES_USER: ${DJANGO_DB_USER}
       # POSTGRES_PASSWORD: ${DJANGO_DB_PASSWORD}
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -93,7 +93,7 @@ services:
       context: ${NGINX_PATH}
       dockerfile: Dockerfile.nginx
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost" ]
+      test: ["CMD", "curl", "-f", "http://localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -103,6 +103,8 @@ services:
       - "443:443"
     restart: on-failure:3
     tty: true
+    depends_on:
+      - backend
     volumes:
       - "${NGINX_PATH}:/etc/nginx/conf.d"
     networks:
@@ -161,6 +163,3 @@ networks:
     name: transcendence
     driver: bridge
 
-volumes:
-  share-cert:
-    driver: local

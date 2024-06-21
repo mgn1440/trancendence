@@ -4,6 +4,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
 }
 #pong-game {
   display: none;
@@ -12,7 +13,7 @@
 }
 
 .pong-game-info {
-  position: absolute;
+  /* position: absolute; */
   width: 100%;
   height: 100%;
   z-index: 999;
