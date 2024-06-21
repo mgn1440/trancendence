@@ -52,7 +52,8 @@ const RoomPage = () => {
             setStartBtn(true);
           }
         } else if (data.type === "goto_game") {
-          if (data.mode === 2) gotoPage(`/game/${data.room_id}`);
+          if (data.is_custom === true) gotoPage(`/custom/${data.room_id}`);
+          else if (data.mode === 2) gotoPage(`/game/${data.room_id}`);
           else if (data.mode === 4) gotoPage(`/tournament/${data.room_id}`);
         }
       };
