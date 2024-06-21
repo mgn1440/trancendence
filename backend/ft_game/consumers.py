@@ -887,9 +887,11 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.host_username = self.scope['url_route']['kwargs']['host_username']
         self.room_group_name = f"local_game_{self.host_username}"
+        self.game_status = 'waiting'
         self.game = {
             'ball': {'x': 600, 'y': 450, 'radius': 10, 'speedX': 10, 'speedY': 10},
             'player_bar': {'left': 360, 'right': 360},
+            'roles': {'left': 'left', 'right': 'right'},
             'scores': {'left': 0, 'right': 0},
             'bar_move': {'left': 0, 'right': 0},
         }
@@ -916,14 +918,13 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         if data['type'] == 'start_game':
+            self.game_status = 'playing'
             asyncio.create_task(self.start_ball_movement())
         elif data['type'] == 'move_bar':
             self.update_bar_position(data['direction'], data['role'])
-        elif data['type'] == 'stop_bar':
-            self.game['bar_move'][data['role']] = 0
 
     async def start_ball_movement(self):
-        while True:
+        while self.game_status == 'playing':
             self.update_ball_position()
             await self.channel_layer.group_send(
                 self.room_group_name,
@@ -971,7 +972,42 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
                 self.game['scores']['right'] += 1
             else:
                 self.game['scores']['left'] += 1
+            asyncio.create_task(self.broadcast_scores())
+            asyncio.create_task(self.check_game_over())
             self.reset_ball()
+    
+    async def broadcast_scores(self):
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'update_game',
+                'game': self.game
+            }
+        )
+    
+    async def check_game_over(self):
+        if self.game['scores']['left'] >= 3:
+            await self.game_end('left', 'right')
+        elif self.game['scores']['right'] >= 3:
+            await self.game_end('right', 'left')
+    
+    async def game_end(self, winner, loser):
+        self.game_status = 'game_over'
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'game_over',
+                'winner': winner,
+                'loser': loser
+            }
+        )
+        
+    async def game_over(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'game_over',
+            'winner': event['winner'],
+            'loser': event['loser']
+        }))
 
     def reset_ball(self):
         self.game['ball']['x'] = 600
@@ -984,6 +1020,9 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
             self.game['bar_move'][role] = -10
         elif direction == 'down':
             self.game['bar_move'][role] = 10
+        elif direction == 'stop':
+            self.game['bar_move'][role] = 0
+        
 
     async def game_start(self, event):
         await self.send(text_data=json.dumps({
