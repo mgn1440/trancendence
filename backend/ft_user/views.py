@@ -167,8 +167,9 @@ class DayStatAPIView(APIView):
 
 		all_days = {day: {'count': 0, 'wins': 0} for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']}
 		for record in stats:
-			day_str = record['day']
-			day_date = datetime.strptime(day_str, '%Y-%m-%d')
+			day_date = record['day']
+			if isinstance(day_date, str):
+					day_date = datetime.strptime(day_date, '%Y-%m-%d')
 			day_abbr = day_date.strftime('%a') # Get 3-letter abbreviation for the day
 			all_days[day_abbr] = {
 				'count': record['count'],
