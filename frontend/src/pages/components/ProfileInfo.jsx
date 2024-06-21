@@ -105,7 +105,7 @@ const drawRoute = (start, end, stepX) => {
 //   }
 // };
 
-const drawBallRoute = (doneIdx) => {
+const drawBallRoute = (doneIdx, gameRecords, setGameRecords) => {
   step++;
   if (doneIdx >= routeInfo.length) {
     return;
@@ -141,10 +141,18 @@ const drawBallRoute = (doneIdx) => {
       info.ball_end_position.y,
       info.ball_end_position.radius
     );
-    requestId = requestAnimationFrame(() => drawBallRoute(doneIdx + 1));
+    setGameRecords({
+      ...gameRecords,
+      gameDetail: routeInfo.slice(0, doneIdx + 1),
+    });
+    requestId = requestAnimationFrame(() =>
+      drawBallRoute(doneIdx + 1, gameRecords, setGameRecords)
+    );
     return;
   }
-  requestId = requestAnimationFrame(() => drawBallRoute(doneIdx));
+  requestId = requestAnimationFrame(() =>
+    drawBallRoute(doneIdx, gameRecords, setGameRecords)
+  );
 };
 
 function convertOrdinalNumber(n) {
@@ -183,6 +191,23 @@ const LogSingleItem = ({ record, setLogStat, gameRecords, setGameRecords }) => {
     const gameDetail = await axiosGameDetail({ gameId: id });
     console.log("handleGameDetail", gameDetail.data);
     routeInfo = gameDetail.data.goal_list;
+
+    routeInfo.forEach((info, idx) => {
+      info.left = routeInfo
+        .slice(0, idx + 1)
+        .reduce(
+          (accu, value) =>
+            value.goal_user_position === "left" ? accu + 1 : accu,
+          0
+        );
+      info.right = routeInfo
+        .slice(0, idx + 1)
+        .reduce(
+          (accu, value) =>
+            value.goal_user_position === "right" ? accu + 1 : accu,
+          0
+        );
+    });
     setLogStat(PlayStat.DETAIL);
   };
   return (
@@ -388,13 +413,17 @@ const LobbyProfile = ({ profile }) => {
         info.ball_start_position = JSON.parse(info.ball_start_position);
         info.ball_end_position = JSON.parse(info.ball_end_position);
       });
-      drawBallRoute(0);
+      drawBallRoute(0, gameRecords, setGameRecords);
     }
   }, [logStat]);
 
   const matchNum = profile.win + profile.lose;
   const handleLogStat = (stat) => {
     if (logStat === PlayStat.DETAIL) {
+      setGameRecords({
+        ...gameRecords,
+        gameDetail: [],
+      });
       cancelAnimationFrame(requestId);
     }
     if (stat !== logStat) setLogStat(stat);
@@ -480,15 +509,22 @@ const LobbyProfile = ({ profile }) => {
               </div>
               <h4>Game Details</h4>
               <div class="goal-info-item main">
+                <h5 class="no">no.</h5>
                 <h5>Username</h5>
+                <h5>Score</h5>
                 <h5>Time</h5>
               </div>
-              {routeInfo.map((goal) => (
-                <div class="goal-info-item">
-                  <h5>{goal.goal_user_name}</h5>
-                  <h5>{goal.timestamp.toFixed(2)}</h5>
-                </div>
-              ))}
+              {gameRecords.gameDetail &&
+                gameRecords.gameDetail.map((goal, idx) => (
+                  <div class="goal-info-item">
+                    <h5 class="no">{idx + 1}</h5>
+                    <h5>{goal.goal_user_name}</h5>
+                    <h5>
+                      {goal.left}:{goal.right}
+                    </h5>
+                    <h5>{goal.timestamp.toFixed(2)}</h5>
+                  </div>
+                ))}
             </div>
           )
         ) : null}
