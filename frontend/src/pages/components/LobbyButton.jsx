@@ -8,10 +8,33 @@ import { isEmpty } from "@/lib/libft";
 import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 
 export const UserFind = ({ userData }) => {
-  const randNum = Math.ceil(Math.random() * 5);
-  const imgSrc = `/img/minji_${randNum}.jpg`;
+  console.log(userData);
+  const imgSrc = `/img/minji_${
+    (userData.username[0].charCodeAt(0) % 5) + 1
+  }.jpg`;
+  if (userData.profile_image !== null) {
+    imgSrc = userData.profile_image;
+  }
   return (
-    <div class="user-item" onclick={() => moveToProfile(userData.username)}>
+    <div
+      class="user-item"
+      onclick={() => {
+        const findModalElement = document.getElementById("FindUserModal");
+        setTimeout(() => {
+          setTimeout(() => {
+            const findModal = new bootstrap.Modal(findModalElement);
+            if (findModal) {
+              findModal.hide();
+            }
+            const modalBackdrop = document.querySelector(".modal-backdrop");
+            if (modalBackdrop) {
+              modalBackdrop.remove();
+            }
+          }, 10);
+        }, 10);
+        moveToProfile(userData.username);
+      }}
+    >
       <div class="profile">
         <img src={imgSrc} />
       </div>
@@ -23,7 +46,10 @@ export const UserFind = ({ userData }) => {
               win: {userData.win} lose: {userData.lose} rate:
               {userData.win + userData.lose === 0
                 ? 0
-                : (userData.win / (userData.win + userData.lose)) * 100}
+                : (
+                    (userData.win / (userData.win + userData.lose)) *
+                    100
+                  ).toFixed(2)}
               %
             </p>
           </div>
@@ -44,10 +70,8 @@ const getModalInput = (data) => {
     return false;
   }
   let mode = 0;
-  if (radios[2].checked || radios[4].checked)
-    mode = 2;
-  else
-    mode = 4;
+  if (radios[2].checked || radios[4].checked) mode = 2;
+  else mode = 4;
   const retRoomData = {
     type: "create_room",
     room_name:
@@ -106,6 +130,18 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
           ".user-item .user-info h6"
         );
         if (findName !== null) {
+          setTimeout(() => {
+            const findModal = new bootstrap.Modal(findModalElement);
+            if (findModal) {
+              findModal.hide();
+            }
+            console.log(findName.innerText); // debug
+            const modalBackdrop = document.querySelector(".modal-backdrop");
+            if (modalBackdrop) {
+              modalBackdrop.remove();
+            }
+            console.log(modalBackdrop); // debug
+          }, 10);
           moveToProfile(findName.innerText);
         }
       } else if (!isalpha && !isnumpad) {
