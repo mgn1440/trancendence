@@ -8,7 +8,9 @@ import ProfilePage from "../pages/Profile";
 import ProfileConfigPage from "../pages/ProfileConfig";
 import TournamentPage from "../pages/Tournament";
 import CustomGamePage from "../pages/CustomGamePage";
+import LocalGamePage from "../pages/LocalGamePage";
 import TestPage from "@/pages/TPage";
+
 
 export const routes = [
   {
@@ -78,6 +80,15 @@ export const routes = [
           {
             path: ":id",
             element: CustomGamePage,
+          }
+        ]
+      },
+      {
+        path: "local",
+        children: [
+          {
+            path: ":id",
+            element: LocalGamePage,
           }
         ]
       }
