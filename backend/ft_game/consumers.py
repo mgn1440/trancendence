@@ -1104,8 +1104,6 @@ class CustomGameConsumer(AsyncWebsocketConsumer):
                 'bar_size' : {'left': 5, 'right': 5},
             }
             
-            
-
         LobbyConsumer.rooms[self.room_id]['game']['players'].append(self.scope['user'].username)
         if len(LobbyConsumer.rooms[self.room_id]['game']['players']) == 2:
             LobbyConsumer.rooms[self.room_id]['game']['roles'] = {
@@ -1183,6 +1181,10 @@ class CustomGameConsumer(AsyncWebsocketConsumer):
                 return
             self.status = 'playing'
             if self.room_id in LobbyConsumer.rooms and self.scope['user'].username == LobbyConsumer.rooms[self.room_id]['game']['roles']['left']:
+                if "goal_score" not in LobbyConsumer.rooms[self.room_id]:
+                    LobbyConsumer.rooms[self.room_id]['goal_score'] = 3
+                if "items" not in LobbyConsumer.rooms[self.room_id]: #이건 고치면 없애기
+                    LobbyConsumer.rooms[self.room_id]['items'] = ["bar_up", "bar_down", "speed_up", "speed_down"]
                 asyncio.create_task(self.start_ball_movement())
         elif data['type'] == 'move_bar':
             self.update_bar_position(data['direction'], data['role'])
@@ -1260,7 +1262,8 @@ class CustomGameConsumer(AsyncWebsocketConsumer):
         if len(self.game['items']) < 2:
             x = random.randint(200, 1000)
             y = 0
-            item_type = random.choice(['speed_up', 'speed_down', 'bar_up', 'bar_down'])
+            # item_type = random.choice(['speed_up', 'speed_down', 'bar_up', 'bar_down'])
+            item_type = random.choice(LobbyConsumer.rooms[self.room_id]['items'])
             self.game['items'].append({'x': x, 'y': y, 'type': item_type})
         
     def move_item(self):
@@ -1321,9 +1324,9 @@ class CustomGameConsumer(AsyncWebsocketConsumer):
         )
 
     async def check_game_over(self):
-        if self.game['scores']['left'] >= 3:
+        if self.game['scores']['left'] >= LobbyConsumer.rooms[self.room_id]['goal_score']:
             await self.game_end('left', 'right')
-        elif self.game['scores']['right'] >= 3:
+        elif self.game['scores']['right'] >= LobbyConsumer.rooms[self.room_id]['goal_score']:
             await self.game_end('right', 'left')
 
     async def game_end(self, winner, loser):
