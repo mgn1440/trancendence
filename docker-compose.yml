@@ -119,14 +119,18 @@ services:
       - "9090:9090"
     networks:
       - transcendence
+    restart: always
 
   node-exporter:
     container_name: node-exporter
-    image: prom/node-exporter:latest
+    build:
+      context: ${PROMETHEUS_PATH}
+      dockerfile: Dockerfile.node-exporter
     ports:
       - "9100:9100"
     networks:
       - transcendence
+    restart: always
 
   grafana:
     container_name: grafana
@@ -145,3 +149,6 @@ networks:
     name: transcendence
     driver: bridge
 
+volumes:
+  share-cert:
+    driver: local
