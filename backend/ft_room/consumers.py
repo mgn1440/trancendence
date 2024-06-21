@@ -52,6 +52,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
             'room_name': LobbyConsumer.rooms[self.room_id]['room_name'],
             'room_id': self.room_id,
             'mode': LobbyConsumer.rooms[self.room_id]['mode'],
+            'is_custom': LobbyConsumer.rooms[self.room_id]['is_custom'],
             'user_list': LobbyConsumer.rooms[self.room_id]['players'],
         }))
 
@@ -205,4 +206,5 @@ class RoomConsumer(AsyncWebsocketConsumer):
             'type': 'goto_game',
             'mode': LobbyConsumer.rooms[room_id]['mode'],
             'room_id': room_id,
+            'is_custom': LobbyConsumer.rooms[room_id]['is_custom'],
         }))
