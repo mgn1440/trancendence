@@ -13,7 +13,7 @@
 }
 
 .pong-game-info {
-  position: absolute;
+  /* position: absolute; */
   width: 100%;
   height: 100%;
   z-index: 999;

@@ -45,6 +45,7 @@ const drawLine = () => {
 };
 
 const draw = () => {
+  context.clearRect(0, 0, canvas.width, canvas.height);
   context.fillStyle = "#181818";
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.fillStyle = "#ffffff";
@@ -58,7 +59,7 @@ const draw = () => {
 
 const update = () => {
   draw();
-  requestAnimationFrame(() => update());
+  // requestAnimationFrame(() => update());
 };
 
 const dirStat = {
@@ -67,7 +68,6 @@ const dirStat = {
   DOWN: 2,
 };
 const GamePage = () => {
-  // wind;
   const [gameStat, setGameStat] = useState([]);
   const [userStat, setUserStat] = useState([]);
   let direction = dirStat.STOP;
@@ -95,7 +95,7 @@ const GamePage = () => {
 
       ws_gamelogic.getState().socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
+        // console.log(data);
         if (data.type === "game_start") {
           startFlag = true;
           gameState = data.game;
@@ -176,7 +176,9 @@ const GamePage = () => {
             users = newUsers;
             setUserStat(newUsers);
             alert(data.winner);
-            // gotoPage(`/lobby/${data.room_id}`);
+            setTimeout(() => {
+              gotoPage(`/lobby/${data.room_id}`);
+            }, 1500);
           } else {
             if (data.winner === data.you) {
               ws_gamelogic.getState().socket.send(
@@ -270,7 +272,7 @@ const GamePage = () => {
     <div class="tournament">
       <div class="pong-game-main">
         <Bracket users={userStat} />
-        <canvas id="pong-game"> </canvas>
+        <canvas id="pong-game"></canvas>
         {isEmpty(gameStat) ? null : (
           <div class="pong-game-info">
             <p class="user1">{gameStat[1].left}</p>
