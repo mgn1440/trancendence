@@ -2,6 +2,8 @@ import { useState } from "@/lib/dom/index.js";
 
 import UserCard from "@/pages/components/UserCard";
 import UserList from "./UserList";
+import { ItemInput, ItemToggle } from "./Items";
+import { InputBox, NumberStepper, RadioCheck, ToggleBtn } from "./Inputs";
 
 const GameRoom = ({ gameData, isStart, sendRoomSocket }) => {
   const handleStartBtn = () => {
@@ -15,7 +17,19 @@ const GameRoom = ({ gameData, isStart, sendRoomSocket }) => {
         </button>
       </div>
       <div class="game-room">
-        {/* <img src="/img/left_arrow.svg"></img> */}
+        <div class="room-setting">
+          <NumberStepper
+            text="set score"
+            type="input-goal"
+            defaultValue={Number(3)}
+          />
+          <div class="item-buttons">
+            <ToggleBtn text="item1" />
+            <ToggleBtn text="item2" />
+            <ToggleBtn text="item3" />
+            <ToggleBtn text="item4" />
+          </div>
+        </div>
         <div class="user-cards">
           {/* js 코드 생각해서 component 변경하기 */}
           {gameData.user_list &&

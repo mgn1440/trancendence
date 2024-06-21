@@ -1,16 +1,16 @@
-import { useEffect } from "@/lib/dom";
+import { useState, useEffect, useRef } from "@/lib/dom";
 
 export const InputBox = (props) => {
   return (
     <div class="input body-element">
       <h6>{props.text}</h6>
-      <input type="text" placeholder={props.defaultValue} />
+      <input type={props.type} placeholder={props.defaultValue} />
     </div>
   );
 };
 
 export const RadioCheck = (props) => {
-  useEffect (() => {
+  useEffect(() => {
     const modalElement = document.getElementById("CreateRoomModal");
     const radios = modalElement.querySelectorAll("input[type=radio]");
     radios[0].checked = true;
@@ -40,6 +40,92 @@ export const RadioCheck = (props) => {
       <label class="form-check-label" for={props.id}>
         {props.text}
       </label>
+    </div>
+  );
+};
+
+export const ToggleBtn = (props) => {
+  return (
+    <label class="toggle-button">
+      <input type="checkbox" />
+      <div class="toggle-text">{props.text}</div>
+    </label>
+  );
+};
+
+export const NumberStepper = (props) => {
+  let isHolding = false;
+  let modifier = 0;
+  let cnt = 0;
+  let delay = 100;
+  const updateNumber = () => {
+    const numberDisplay = document.getElementById("Number");
+    console.log(numberDisplay);
+    if (isHolding) {
+      numberDisplay.innerText = parseInt(numberDisplay.innerText) + modifier;
+      cnt++;
+      if (cnt > 10) {
+        delay = 50;
+      } else if (cnt > 100) {
+        delay = 10;
+      }
+      if (parseInt(numberDisplay.innerText) < 1) numberDisplay.innerText = 1;
+      setTimeout(() => {
+        if (isHolding) requestAnimationFrame(updateNumber);
+      }, delay);
+    }
+  };
+
+  const startHolding = (mod) => {
+    if (!isHolding) {
+      isHolding = true;
+      modifier = mod;
+      requestAnimationFrame(updateNumber);
+    }
+  };
+
+  const stopHolding = () => {
+    isHolding = false;
+    delay = 100;
+    cnt = 0;
+  };
+  const [num, setNum] = useState(props.defaultValue);
+  const decreaseValue = () => {
+    if (num <= 1) return;
+    setNum(num - 1);
+    console.log("clicked!");
+  };
+  const increaseValue = () => {
+    setNum(num + 1);
+    console.log("clicked!");
+  };
+  useEffect(() => {
+    const increaseButton = document.getElementById("Increase");
+    const decreaseButton = document.getElementById("Decrease");
+    increaseButton.addEventListener("mousedown", () => startHolding(1));
+    increaseButton.addEventListener("mouseup", stopHolding);
+    increaseButton.addEventListener("mouseleave", stopHolding);
+    increaseButton.addEventListener("touchstart", () => startHolding(1));
+    increaseButton.addEventListener("touchend", stopHolding);
+
+    decreaseButton.addEventListener("mousedown", () => startHolding(-1));
+    decreaseButton.addEventListener("mouseup", stopHolding);
+    decreaseButton.addEventListener("mouseleave", stopHolding);
+    decreaseButton.addEventListener("touchstart", () => startHolding(-1));
+    decreaseButton.addEventListener("touchend", stopHolding);
+  }, []);
+  return (
+    <div>
+      <div class="stepper-text">{props.text}</div>
+      <div class={props.type}>
+        <button class="mod-btn" id="Decrease">
+          -
+        </button>
+        <div id="Number">{num}</div>
+        <button class="mod-btn" id="Increase">
+          +
+        </button>
+      </div>
     </div>
   );
 };
