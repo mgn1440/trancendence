@@ -2,6 +2,17 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+rule_files:
+  - /opt/prometheus/alerts.yml
+
+alerting:
+  alertmanagers:
+    - scheme: 'https'
+      tls_config:
+        ca_file: /etc/ssl/certs/alertmanager-selfsigned.crt
+      static_configs:
+        - targets: ['alertmanager:9093']
+
 
 scrape_configs:
   - job_name: 'prometheus'

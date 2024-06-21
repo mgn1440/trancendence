@@ -21,12 +21,14 @@ RUN mkdir -p /etc/ssl/certs
 RUN mkdir -p /opt/prometheus
 COPY prometheus.yml /opt/prometheus/prometheus.yml
 COPY web_prometheus.yml /opt/prometheus/web.yml
+COPY alerts.yml /opt/prometheus/alerts.yml
+RUN chmod 755 /opt/prometheus/alerts.yml
 COPY prometheus-selfsigned.crt /etc/ssl/certs/prometheus-selfsigned.crt
 COPY prometheus-selfsigned.key /etc/ssl/certs/prometheus-selfsigned.key
 COPY node-exporter-selfsigned.crt /etc/ssl/certs/node-exporter-selfsigned.crt
 COPY node-exporter-selfsigned.key /etc/ssl/certs/node-exporter-selfsigned.key
-
-
+COPY alertmanager-selfsigned.crt /etc/ssl/certs/alertmanager-selfsigned.crt
+COPY alertmanager-selfsigned.key /etc/ssl/certs/alertmanager-selfsigned.key
 # 포트 열기
 EXPOSE 9090
 

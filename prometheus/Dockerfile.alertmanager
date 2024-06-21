@@ -1,0 +1,33 @@
+# 기반 이미지로부터 시작합니다.
+FROM ubuntu:latest
+
+# 필요한 패키지 설치 및 설정
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       ca-certificates \
+       wget \
+       tar \
+       procps \
+       systemd \
+       curl
+
+# Alertmanager 다운로드 및 설치
+RUN wget https://github.com/prometheus/alertmanager/releases/download/v0.23.0/alertmanager-0.23.0.linux-amd64.tar.gz \
+    && tar xvf alertmanager-0.23.0.linux-amd64.tar.gz \
+    && mv alertmanager-0.23.0.linux-amd64/alertmanager /usr/local/bin/ \
+    && mv alertmanager-0.23.0.linux-amd64/amtool /usr/local/bin/ \
+    && rm -rf alertmanager-0.23.0.linux-amd64.tar.gz alertmanager-0.23.0.linux-amd64
+
+# SSL 인증서 복사
+RUN mkdir -p /etc/ssl/certs
+COPY alertmanager-selfsigned.crt /etc/ssl/certs/alertmanager-selfsigned.crt
+COPY alertmanager-selfsigned.key /etc/ssl/certs/alertmanager-selfsigned.key
+
+# Alertmanager 설정 파일 복사
+COPY alertmanager.yml /etc/alertmanager/alertmanager.yml
+COPY web_alertmanager.yml /opt/alertmanager/web.yml
+# Alertmanager의 HTTP 포트 노출
+EXPOSE 9093
+
+# 컨테이너 실행 명령어
+CMD ["/usr/local/bin/alertmanager", "--config.file=/etc/alertmanager/alertmanager.yml", "--storage.path=/alertmanager", "--web.config.file=/opt/alertmanager/web.yml"]
