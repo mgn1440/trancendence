@@ -7,6 +7,7 @@ import TwoFactorAuthPage from "../pages/TwoFactorAuth";
 import ProfilePage from "../pages/Profile";
 import ProfileConfigPage from "../pages/ProfileConfig";
 import TournamentPage from "../pages/Tournament";
+import CustomGamePage from "../pages/CustomGamePage";
 import TestPage from "@/pages/TPage";
 
 export const routes = [
@@ -71,6 +72,15 @@ export const routes = [
           },
         ],
       },
+      {
+        path: "custom",
+        children: [
+          {
+            path: ":id",
+            element: CustomGamePage,
+          }
+        ]
+      }
     ],
   },
 ];
