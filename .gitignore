@@ -467,3 +467,9 @@ fabric.properties
 
 # Custom file for Makefile
 .transcendence
+
+# prometheus/data
+prometheus/data
+
+# grafana/data
+grafana/data

@@ -86,6 +86,7 @@ services:
     tty: true
     networks:
       - transcendence
+
   nginx:
     container_name: nginx_gateway
     build:
@@ -106,22 +107,41 @@ services:
       - "${NGINX_PATH}:/etc/nginx/conf.d"
     networks:
       - transcendence
-  # redis:
-  #   image: redis:latest
-  #   networks:
-  #     - transcendence
-  #   restart: always
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - "${REDIS_PATH}/data/:/data/"
-  #     - "${REDIS_PATH}/config/:/user/local/etc/redis/"
-  #   command: redis-server /user/local/etc/redis/redis.conf
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "ping"]
-  #     timeout: 20s
-  #     retries: 5
+
+  prometheus:
+    container_name: prometheus
+    build:
+      context: ${PROMETHEUS_PATH}
+      dockerfile: Dockerfile.prometheus
+    volumes:
+      - ${PROMETHEUS_PATH}/data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - transcendence
+
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    networks:
+      - transcendence
+
+  grafana:
+    container_name: grafana
+    build:
+      context: ${GRAFANA_PATH}
+      dockerfile: Dockerfile.grafana
+    volumes:
+      - ${GRAFANA_PATH}/data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - transcendence
+
 networks:
   transcendence:
     name: transcendence
     driver: bridge
+

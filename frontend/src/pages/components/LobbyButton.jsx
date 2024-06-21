@@ -43,11 +43,17 @@ const getModalInput = (data) => {
     alert("Please enter the password");
     return false;
   }
+  let mode = 0;
+  if (radios[2].checked || radios[4].checked)
+    mode = 2;
+  else
+    mode = 4;
   const retRoomData = {
     type: "create_room",
     room_name:
       inputs[0].value === "" ? `${data.username}'s Room` : inputs[0].value,
-    mode: radios[2].checked ? 2 : 4,
+    mode: mode,
+    is_custom: radios[4].checked ? true : false,
     is_secret: radios[1].checked ? true : false,
     password: radios[1].checked ? inputs[1].value : "",
   };
@@ -210,6 +216,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
               <div class="radio-check body-element robby-game-btn">
                 <RadioCheck text="1 vs 1" name="battle" id="1vs1" />
                 <RadioCheck text="Tournament" name="battle" id="tornament" />
+                <RadioCheck text="Custom" name="battle" id="custom" />
               </div>
             </div>
           );

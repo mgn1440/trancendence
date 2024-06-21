@@ -14,6 +14,8 @@ from pathlib import Path
 import os
 from os.path import join
 from dotenv import load_dotenv
+from google.oauth2 import service_account
+import json
 
 PROJECT_PATH = os.path.abspath(os.path.dirname(__name__))
 if os.getenv('ENV') == 'local':
@@ -43,7 +45,10 @@ SECRET_KEY = 'django-insecure-(eg1%h@r8fyk-^i@id)x$a@yv@^d)anwc-bwbwowkz=@z&2rei
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "backend",
+    "localhost",
+]
 
 
 # Application definition
@@ -69,6 +74,8 @@ INSTALLED_APPS = [
 	'django_otp.plugins.otp_email',
 	'rest_framework',
 	'rest_framework_simplejwt',
+    'django_prometheus',
+    'storages',
 ]
 
 ASGI_APPLICATION = 'backend.asgi.application'
@@ -127,6 +134,7 @@ SIMPLE_JWT = {
 AUTH_USER_MODEL = 'ft_user.CustomUser'
 
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -136,6 +144,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	'ft_auth.middleware.InsertJWT',
 	'ft_auth.middleware.CustomAuthentication',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -164,23 +173,23 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get('POSTGRES_DB'),
-#         'USER': os.environ.get('POSTGRES_USER'),
-#         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-#         'HOST': 'postgresql',
-#         'PORT': '5432',
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django_prometheus.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': 'postgresql',
+        'PORT': '5432',
+    }
+}
 
 
 # Password validation
@@ -240,3 +249,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME')
+SERVICE_ACCOUNT_INFO = {
+    "type": os.getenv('TYPE'),
+    "project_id": os.getenv('PROJECT_ID'),
+    "private_key_id": os.getenv('PRIVATE_KEY_ID'),
+    "private_key": os.getenv('PRIVATE_KEY').replace('\\n', '\n'),
+    "client_email": os.getenv('CLIENT_EMAIL'),
+    "client_id": os.getenv('CLIENT_ID'),
+    "auth_uri": os.getenv('AUTH_URI'),
+    "token_uri": os.getenv('TOKEN_URI'),
+    "auth_provider_x509_cert_url": os.getenv('AUTH_PROVIDER_X509_CERT_URL'),
+    "client_x509_cert_url": os.getenv('CLIENT_X509_CERT_URL'),
+    "universe_domain": os.getenv('UNIVERSE_DOMAIN'),
+}
+
+GS_CREDENTIALS = service_account.Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO)
