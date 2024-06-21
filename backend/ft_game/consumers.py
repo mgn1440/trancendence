@@ -395,6 +395,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                     'player_bar': {'left': 360, 'right': 360},
                     'scores': {'left': 0, 'right': 0},
                     'bar_move': {'left': 0, 'right': 0},
+                    'roles' : {},
                     'players' : [],
                     'record' : [],
                 },
@@ -403,6 +404,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                     'player_bar': {'left': 360, 'right': 360},
                     'scores': {'left': 0, 'right': 0},
                     'bar_move': {'left': 0, 'right': 0},
+                    'roles' : {},
                     'players' : [],
                     'record': [],
                 },
@@ -411,6 +413,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                     'player_bar': {'left': 360, 'right': 360},
                     'scores': {'left': 0, 'right': 0},
                     'bar_move': {'left': 0, 'right': 0},
+                    'roles' : {},
                     'players' : [],
                     'waiting_players' : [],
                     'record': [],
@@ -441,6 +444,14 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             }
             LobbyConsumer.rooms[self.room_id]['game']['a']['players'] = [LobbyConsumer.rooms[self.room_id]['game']['players'][0], LobbyConsumer.rooms[self.room_id]['game']['players'][1]]
             LobbyConsumer.rooms[self.room_id]['game']['b']['players'] = [LobbyConsumer.rooms[self.room_id]['game']['players'][2], LobbyConsumer.rooms[self.room_id]['game']['players'][3]]
+            LobbyConsumer.rooms[self.room_id]['game']['a']['roles'] = {
+                'left': LobbyConsumer.rooms[self.room_id]['game']['players'][0],
+                'right': LobbyConsumer.rooms[self.room_id]['game']['players'][1],
+            }
+            LobbyConsumer.rooms[self.room_id]['game']['b']['roles'] = {
+                'left': LobbyConsumer.rooms[self.room_id]['game']['players'][2],
+                'right': LobbyConsumer.rooms[self.room_id]['game']['players'][3],
+            }
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -590,6 +601,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
+        print (data)
         if data['type'] == 'start_game':
             self.status = 'playing'
             if self.room_id in LobbyConsumer.rooms and data['role'] == 'left' and data['match'] == 'a':
@@ -628,6 +640,10 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
                         }
                     )
                     return
+                LobbyConsumer.rooms[self.room_id]['game']['f']['roles'] = {
+                    'left' : LobbyConsumer.rooms[self.room_id]['game']['winner_a'],
+                    'right' : LobbyConsumer.rooms[self.room_id]['game']['winner_b'],
+                }
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
@@ -807,18 +823,17 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         match = event['game']['match'][self.scope['user'].username]
         role = event['game']['roles'][self.scope['user'].username]
         self.status = 'game_waiting'
-
-        roles = {
-            LobbyConsumer.rooms[self.room_id]['game']['roles'][event['game'][match]['players'][0]] : event['game'][match]['players'][0],
-            LobbyConsumer.rooms[self.room_id]['game']['roles'][event['game'][match]['players'][1]] : event['game'][match]['players'][1],
-        } 
+        match_a_player = event['game']['a']['players']
+        match_b_player = event['game']['b']['players'] 
         await self.send(text_data=json.dumps({
             'type': 'game_start',
             'game': event['game'][match],
             'role': role,
             'match': match,
-            'roles': roles,
+            'roles': event['game'][match]['roles'],
             'you': self.scope['user'].username,
+            'match_a_player': match_a_player,
+            'match_b_player': match_b_player,
         }))
 
     async def final_game_start(self, event):
@@ -844,6 +859,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             'game': event['game'][match],
             'role': role,
             'match': match,
+            'roles': event['game'][match]['roles'],
             'you': self.scope['user'].username,
         }))
 
@@ -859,6 +875,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             'score': event['score'],
             'match': event['match'],
             'you': self.scope['user'].username,
+            'room_id': self.room_id,
         }))
 
     async def error(self, event):

@@ -1,121 +1,290 @@
-import { axiosUserProfile } from "@/api/axios.custom";
-import { useEffect } from "@/lib/dom";
+import { useEffect, useState, useRef } from "@/lib/dom";
+import { gotoPage, isEmpty } from "@/lib/libft";
+import { history } from "@/lib/router";
+import { ws_gamelogic, connectGameLogicWebSocket } from "@/store/gameLogicWS";
+import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
+import Bracket from "./components/Bracket";
 
-const dataURItoBlob = (dataURI) => {
-  const binary = atob(dataURI.split(",")[1]);
-  const array = [];
+let gameState;
+let canvas;
+let context;
+let ratio;
+let role;
+let match;
 
-  for (let i = 0; i < binary.length; i++) {
-    array.push(binary.charCodeAt(i));
-  }
-  return new Blob([new Uint8Array(array)], { type: "image/jpeg" });
+let users;
+
+const drawPaddle = (x, y) => {
+  context.fillStyle = "#ffffff";
+  context.fillRect(x * ratio, y * ratio, 20 * ratio, canvas.height / 5);
 };
 
-const cropImage = async (img, width, height) => {
-  const cropSize = width > height ? height : width;
-
-  const canvas = document.querySelector(".canvas");
-  canvas.width = cropSize;
-  canvas.height = cropSize;
-  console.log(canvas.width, canvas.height);
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(img, 0, 0, cropSize, cropSize, 0, 0, cropSize, cropSize);
-
-  let file = dataURItoBlob(
-    await new Promise((resolve) => {
-      resolve(canvas.toDataURL("image/jpeg"));
-    })
+const drawBall = (x, y) => {
+  context.fillStyle = "#ffffff";
+  // context.fillRect(x, y, 20, 20);
+  context.beginPath();
+  context.arc(
+    gameState.ball.x * ratio,
+    gameState.ball.y * ratio,
+    gameState.ball.radius * ratio,
+    0,
+    Math.PI * 2
   );
-
-  const baseSize = 512000;
-  const compSize = 25600;
-
-  if (file.size >= baseSize) {
-    const ratio = Math.ceil(Math.sqrt(file.size / compSize, 2));
-    canvas.width /= ratio;
-    canvas.height /= ratio;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(
-      img,
-      0,
-      0,
-      cropSize,
-      cropSize,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
-    file = dataURItoBlob(
-      await new Promise((resolve) => {
-        resolve(canvas.toDataURL("image/jpeg"));
-      })
-    );
-  }
-
-  console.log(file);
-  const url = URL.createObjectURL(file);
-  console.log(url);
-
-  return url;
+  context.fill();
+  context.closePath();
 };
 
-const TestPage = () => {
+const drawLine = () => {
+  context.beginPath();
+  context.moveTo(canvas.width / 2, 0);
+  context.lineTo(canvas.width / 2, canvas.height);
+  context.strokeStyle = "#ffffff";
+  context.lineWidth = 2;
+  context.stroke();
+  context.closePath();
+};
+
+const draw = () => {
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = "#181818";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = "#ffffff";
+  drawPaddle(20, gameState.player_bar.left);
+  drawPaddle(1160, gameState.player_bar.right);
+  drawBall(gameState.ball.x, gameState.ball.y);
+  drawLine();
+  // context.font = "20px Quantico";
+  // context.fillText("User1", 10, 20);
+};
+
+const update = () => {
+  draw();
+  // requestAnimationFrame(() => update());
+};
+
+const dirStat = {
+  STOP: 0,
+  UP: 1,
+  DOWN: 2,
+};
+const GamePage = () => {
+  const [gameStat, setGameStat] = useState([]);
+  const [userStat, setUserStat] = useState([]);
+  let direction = dirStat.STOP;
+  let startFlag = false;
   useEffect(() => {
-    const fetchUserProfile = async (username) => {
-      const profileImg = await axiosUserProfile(username);
-      console.log(profileImg);
-    };
+    const socketAsync = async () => {
+      connectGameLogicWebSocket(
+        ws_gamelogic.dispatch,
+        `/ws/tournament/${history.currentPath().split("/")[2]}/`
+      );
 
-    fetchUserProfile("hyungjuk");
-  }, []);
-
-  useEffect(() => {
-    const realUpload = document.querySelector(".real-upload");
-    realUpload.addEventListener("change", (e) => {
-      const file = e.currentTarget.files[0];
-
-      if (!file) {
-        return;
-      }
-      if (!file.type.match("image/*")) {
-        alert("Only Image file can be uploaded.");
-        return;
-      }
-      const img = document.createElement("img");
-      const cropImg = document.createElement("img");
-      img.src = URL.createObjectURL(file);
-      img.onload = async () => {
-        const { width, height } = img;
-        cropImg.src = await cropImage(img, width, height);
-        const frame = document.querySelector(".frame");
-        frame.appendChild(cropImg);
+      ws_gamelogic.getState().socket.onopen = (e) => {
+        const waitOpponent = async () => {
+          await new Promise((resolve) => setTimeout(resolve, 10000));
+          if (!startFlag) {
+            ws_gamelogic
+              .getState()
+              .socket.send(
+                JSON.stringify({ type: "error", message: "timeout" })
+              );
+          }
+        };
+        waitOpponent();
       };
-      // console.log(typeof file, file);
-    });
+
+      ws_gamelogic.getState().socket.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        // console.log(data);
+        if (data.type === "game_start") {
+          startFlag = true;
+          gameState = data.game;
+          setGameStat([data.game.scores, data.roles]);
+          users = [
+            data.match_a_player[0],
+            data.match_a_player[1],
+            data.match_b_player[0],
+            data.match_b_player[1],
+            "tbd",
+            "tbd",
+            "tbd",
+          ];
+          setUserStat(users);
+          role = data.role;
+          match = data.match;
+          let timer = 3;
+          let interval = setInterval(() => {
+            console.log(timer);
+            timer--;
+            const counter = document.querySelector(".pong-game-info h1");
+            counter.innerText = timer;
+            if (timer <= 0) {
+              counter.style.display = "none";
+              clearInterval(interval);
+              ws_gamelogic.getState().socket.send(
+                JSON.stringify({
+                  type: "start_game",
+                  role: role,
+                  match: match,
+                })
+              );
+            }
+          }, 1000);
+          addEventArray(eventType.KEYDOWN, (e) => {
+            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+              direction = e.key === "ArrowUp" ? dirStat.UP : dirStat.DOWN;
+              ws_gamelogic.getState().socket.send(
+                JSON.stringify({
+                  type: "move_bar",
+                  direction: direction === dirStat.UP ? "up" : "down",
+                  role: role,
+                  match: match,
+                })
+              );
+            }
+          });
+          addEventArray(eventType.KEYUP, (e) => {
+            if (
+              direction !== dirStat.STOP &&
+              ((e.key === "ArrowUp" && direction === dirStat.UP) ||
+                (e.key === "ArrowDown" && direction === dirStat.DOWN))
+            ) {
+              direction = dirStat.STOP;
+              ws_gamelogic.getState().socket.send(
+                JSON.stringify({
+                  type: "stop_bar",
+                  role: role,
+                  match: match,
+                })
+              );
+            }
+          });
+          addEventHandler();
+        } else if (data.type === "update_game") {
+          gameState = data.game;
+          setGameStat([data.game.scores, data.roles]);
+        } else if (data.type === "game_over") {
+          const newUsers = [...users];
+          if (data.match === "f") {
+            for (let i = 0; i < 7; i++) {
+              if (newUsers[i] === data.winner) {
+                newUsers[6] = data.winner;
+                newUsers[i] = "";
+                break;
+              }
+            }
+            users = newUsers;
+            setUserStat(newUsers);
+            alert(data.winner);
+            setTimeout(() => {
+              gotoPage(`/lobby/${data.room_id}`);
+            }, 1500);
+          } else {
+            if (data.winner === data.you) {
+              ws_gamelogic.getState().socket.send(
+                JSON.stringify({
+                  type: "final_ready",
+                })
+              );
+            }
+            if (data.match === "a") {
+              const newUsers = [...users];
+              for (let i = 0; i < 7; i++) {
+                if (newUsers[i] === data.winner) {
+                  newUsers[4] = data.winner;
+                  newUsers[i] = "";
+                  break;
+                }
+              }
+              users = newUsers;
+              setUserStat(newUsers);
+            } else {
+              const newUsers = [...users];
+              for (let i = 0; i < 7; i++) {
+                if (newUsers[i] === data.winner) {
+                  newUsers[5] = data.winner;
+                  newUsers[i] = "";
+                  break;
+                }
+              }
+              users = newUsers;
+              setUserStat(newUsers);
+            }
+          }
+        } else if (data.type === "error") {
+          alert(data.message);
+          console.log(data.message);
+          gotoPage("/lobby");
+        } else if (data.type === "final_game_start") {
+          gameState = data.game;
+          setGameStat([data.game.scores, data.roles]);
+          role = data.role;
+          match = data.match;
+          let timer = 3;
+          let interval = setInterval(() => {
+            timer--;
+            const counter = document.querySelector(".pong-game-info h1");
+            counter.innerText = timer;
+            if (timer <= 0) {
+              counter.style.display = "none";
+              clearInterval(interval);
+              console.log(role, match);
+              ws_gamelogic.getState().socket.send(
+                JSON.stringify({
+                  type: "start_final_game",
+                  role: role,
+                  match: match,
+                })
+              );
+            }
+          }, 1000);
+        }
+      };
+    };
+    socketAsync();
   }, []);
 
-  const uploadHandler = () => {
-    const realUpload = document.querySelector(".real-upload");
-    realUpload.click();
-  };
+  useEffect(() => {
+    if (isEmpty(gameStat)) return;
+    document.getElementById("pong-game").style.display = "block";
+    canvas = document.getElementById("pong-game");
+    if (window.innerHeight / 3 > window.innerWidth / 4) {
+      canvas.width = window.innerWidth - 10;
+      canvas.height = (window.innerWidth * 3) / 4 - 10;
+    } else {
+      canvas.height = window.innerHeight - 10;
+      canvas.width = (window.innerHeight * 4) / 3 - 10;
+    }
+    context = canvas.getContext("2d");
+    context.scale(1, 1);
+
+    document.querySelector(
+      ".pong-game-info > p.user1"
+    ).style.left = `calc(52% - ${canvas.width / 2}px)`;
+    document.querySelector(
+      ".pong-game-info > p.user2"
+    ).style.right = `calc(52% - ${canvas.width / 2}px)`;
+
+    ratio = canvas.width / 1200;
+    update();
+  }, [gameStat, userStat]);
   return (
-    <div>
-      <input
-        type="file"
-        class="real-upload"
-        accept="image/*"
-        required
-        style="display: none"
-      />
-      <button class="config-btn bg-red" onclick={uploadHandler}>
-        Upload
-      </button>
-      <div class="frame"></div>
-      <canvas class="canvas"></canvas>
+    <div class="tournament">
+      <div class="pong-game-main">
+        <Bracket users={userStat} />
+        <canvas id="pong-game"></canvas>
+        {isEmpty(gameStat) ? null : (
+          <div class="pong-game-info">
+            <p class="user1">{gameStat[1].left}</p>
+            <p class="user2">{gameStat[1].right}</p>
+            <h6 class="user1">{gameStat[0].left}</h6>
+            <h6 class="user2">{gameStat[0].right}</h6>
+            <h1>3</h1>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default TestPage;
+export default GamePage;
