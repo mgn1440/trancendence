@@ -248,12 +248,16 @@ const GamePage = () => {
     if (isEmpty(gameStat)) return;
     document.getElementById("pong-game").style.display = "block";
     canvas = document.getElementById("pong-game");
-    if (window.innerHeight / 3 > window.innerWidth / 4) {
+    let windowH = window.innerHeight;
+    if (window.innerHeight > 800) {
+      windowH = window.innerHeight - 400;
+    }
+    if (windowH / 3 > window.innerWidth / 4) {
       canvas.width = window.innerWidth - 10;
       canvas.height = (window.innerWidth * 3) / 4 - 10;
     } else {
-      canvas.height = window.innerHeight - 10;
-      canvas.width = (window.innerHeight * 4) / 3 - 10;
+      canvas.height = windowH - 10;
+      canvas.width = (windowH * 4) / 3 - 10;
     }
     context = canvas.getContext("2d");
     context.scale(1, 1);
