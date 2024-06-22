@@ -682,7 +682,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         self.match['player_bar']['right'] = min(720, self.match['player_bar']['right'] + self.match['bar_move']['right'])  # Assuming bar height is 200
         self.match['player_bar']['left'] = max(0, self.match['player_bar']['left'] + self.match['bar_move']['left'])  # Assuming bar height is 200
         self.match['player_bar']['right'] = max(0, self.match['player_bar']['right'] + self.match['bar_move']['right'])  # Assuming bar height is 200
-        if -19 < self.match['ball']['speedX'] < 19  and -39 < self.game['ball']['speedY'] < 39:
+        if -19 < self.match['ball']['speedX'] < 19  and -39 < self.match['ball']['speedY'] < 39:
             self.match['ball']['speedX'] *= 1.02
             self.match['ball']['speedY'] *= 1.02
         self.match['ball']['x'] += self.match['ball']['speedX']
