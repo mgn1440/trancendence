@@ -30,18 +30,18 @@ const drawBall = (x, y) => {
 };
 
 const drawItems = (items) => {
-  items.forEach(item => {
-    switch(item.type) {
-      case 'speed_up':
+  items.forEach((item) => {
+    switch (item.type) {
+      case "speed_up":
         context.fillStyle = "green";
         break;
-      case 'speed_down':
+      case "speed_down":
         context.fillStyle = "yellow";
         break;
-      case 'bar_up':
+      case "bar_up":
         context.fillStyle = "purple";
         break;
-      case 'bar_down':
+      case "bar_down":
         context.fillStyle = "orange";
         break;
       default:

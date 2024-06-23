@@ -60,16 +60,18 @@ export const NumberStepper = (props) => {
   let delay = 100;
   const updateNumber = () => {
     const numberDisplay = document.getElementById("Number");
-    console.log(numberDisplay);
     if (isHolding) {
       numberDisplay.innerText = parseInt(numberDisplay.innerText) + modifier;
       cnt++;
       if (cnt > 10) {
         delay = 50;
-      } else if (cnt > 100) {
-        delay = 10;
       }
-      if (parseInt(numberDisplay.innerText) < 1) numberDisplay.innerText = 1;
+      if (parseInt(numberDisplay.innerText) < 1) {
+        numberDisplay.innerText = 1;
+      }
+      if (parseInt(numberDisplay.innerText) > 30) {
+        numberDisplay.innerText = 30;
+      }
       setTimeout(() => {
         if (isHolding) requestAnimationFrame(updateNumber);
       }, delay);
@@ -89,16 +91,7 @@ export const NumberStepper = (props) => {
     delay = 100;
     cnt = 0;
   };
-  const [num, setNum] = useState(props.defaultValue);
-  const decreaseValue = () => {
-    if (num <= 1) return;
-    setNum(num - 1);
-    console.log("clicked!");
-  };
-  const increaseValue = () => {
-    setNum(num + 1);
-    console.log("clicked!");
-  };
+
   useEffect(() => {
     const increaseButton = document.getElementById("Increase");
     const decreaseButton = document.getElementById("Decrease");
@@ -121,7 +114,7 @@ export const NumberStepper = (props) => {
         <button class="mod-btn" id="Decrease">
           -
         </button>
-        <div id="Number">{num}</div>
+        <div id="Number">{props.defaultValue}</div>
         <button class="mod-btn" id="Increase">
           +
         </button>
