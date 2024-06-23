@@ -241,6 +241,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
           return (
             <div>
               <InputBox
+                type="text"
                 text="Group Name"
                 defaultValue={`${data.username}'s Room`}
               />
@@ -248,7 +249,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
                 <RadioCheck text="Open Room" name="lock" id="open" />
                 <RadioCheck text="Private" name="lock" id="private" />
               </div>
-              <InputBox text="Password" defaultValue="" />
+              <InputBox type="text" text="Password" defaultValue="" />
               <div class="radio-check body-element robby-game-btn">
                 <RadioCheck text="1 vs 1" name="battle" id="1vs1" />
                 <RadioCheck text="Tournament" name="battle" id="tornament" />
