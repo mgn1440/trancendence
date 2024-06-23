@@ -62,7 +62,6 @@ const updateElement = (parent, newVDOM, currentVDOM, index = 0) => {
     newVDOM.type !== currentVDOM.type
     // newVDOM.type !== parent.childNodes[index].tagName.toLowerCase()
   ) {
-    console.log("parent childNodes type", parent.childNodes[index].tagName);
     parent.replaceChild(createElement(newVDOM), parent.childNodes[index]);
     return;
   }

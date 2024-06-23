@@ -10,6 +10,7 @@ const GameRoom = ({ gameData, isStart, isCustom, sendRoomSocket }) => {
   console.log(gameData);
   console.log(gameData.user_list);
   console.log(clientUserStore.getState().client);
+
   const handleStartBtn = () => {
     let find_items = [];
     if (gameData.is_custom) {
@@ -29,6 +30,7 @@ const GameRoom = ({ gameData, isStart, isCustom, sendRoomSocket }) => {
     }
     sendRoomSocket({ type: "start_game" });
   };
+  console.log(gameData);
   const roomSetting =
     gameData.is_custom &&
     gameData.user_list[0] === clientUserStore.getState().client.username ? (

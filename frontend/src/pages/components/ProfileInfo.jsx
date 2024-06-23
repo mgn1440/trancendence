@@ -5,7 +5,7 @@ import {
   axiosUserRecentOpponent,
   axiosGameDetail,
 } from "@/api/axios.custom";
-import { Chart } from "chart.js";
+import { Chart, registerables } from "chart.js";
 import { isEmpty } from "@/lib/libft";
 import { eventType, addEventArray, addEventHandler } from "@/lib/libft";
 
@@ -17,6 +17,8 @@ let step = 0;
 let gameMaxIdx = 0;
 let requestId;
 let canvasDone = false;
+
+Chart.register(...registerables);
 
 const drawLine = (stX, stY, edX, edY, color, gameIdx) => {
   ctx[gameIdx].setLineDash([]);
@@ -485,7 +487,12 @@ const LobbyProfile = ({ profile }) => {
       }
 
       canvas.forEach((cvsComponent) => {
-        cvsComponent.width = document.querySelector(".game-detail").clientWidth;
+        let rate = 1;
+        if (document.querySelector(".game-detail").clientWidth > 600) {
+          rate = document.querySelector(".game-detail").clientWidth / 600;
+        }
+        cvsComponent.width =
+          document.querySelector(".game-detail").clientWidth / rate;
         cvsComponent.height = cvsComponent.width * 0.75;
       });
       // routeInfo.forEach((info) => {
@@ -503,7 +510,12 @@ const LobbyProfile = ({ profile }) => {
       canvas = document.querySelectorAll(".game-detail > canvas");
       if (canvas.length === 0) return;
       canvas.forEach((cvsComponent) => {
-        cvsComponent.width = document.querySelector(".game-detail").clientWidth;
+        let rate = 1;
+        if (document.querySelector(".game-detail").clientWidth > 600) {
+          rate = document.querySelector(".game-detail").clientWidth / 600;
+        }
+        cvsComponent.width =
+          document.querySelector(".game-detail").clientWidth / rate;
         cvsComponent.height = cvsComponent.width * 0.75;
       });
       if (canvasDone) {

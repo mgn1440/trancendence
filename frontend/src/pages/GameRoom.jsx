@@ -8,6 +8,8 @@ import { isEmpty, gotoPage } from "@/lib/libft";
 import GameRoom from "./components/GameRoom";
 import { history } from "@/lib/router";
 import { ws_gamelogic, connectGameLogicWebSocket } from "@/store/gameLogicWS";
+import { windowSizeStore, setWindowSize } from "@/store/windowSizeStore";
+import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 
 export const MainProfileState = {
   LOBBY: 1,
@@ -18,6 +20,7 @@ const RoomPage = () => {
   const [myProfile, setMyProfile] = useState({});
   const [gameData, setGameData] = useState([]);
   const [startBtn, setStartBtn] = useState(false);
+  const [winSize, setWinSize] = useState(windowSizeStore.getState().winSize);
   useEffect(() => {
     const fetchProfile = async () => {
       const userMe = await axiosUserMe();
@@ -60,6 +63,15 @@ const RoomPage = () => {
     };
     fetchProfile();
     socketAsync();
+  }, []);
+
+  useEffect(() => {
+    setWindowSize(windowSizeStore.dispatch, setWinSize);
+    addEventArray(eventType.RESIZE, () => {
+      console.log("resize");
+      setWindowSize(windowSizeStore.dispatch, setWinSize);
+    });
+    addEventHandler();
   }, []);
 
   const sendRoomSocket = (roomData) => {
