@@ -15,7 +15,13 @@ const LobbyRoom = ({ roomInfo, clickEvent }) => {
       }`}
       onclick={() => clickEvent(roomInfo)}
     >
-      <h6>{roomInfo.room_name}</h6>
+      <div class="first-row">
+        <h6>{roomInfo.room_name}</h6>
+        <div>
+          {roomInfo.is_secret ? <img src="/icon/lock.svg" /> : <div />}
+          {roomInfo.is_custom ? <img src="/icon/spanner.svg" /> : <div />}
+        </div>
+      </div>
       <p>
         {roomInfo.status === "game"
           ? "Playing..."

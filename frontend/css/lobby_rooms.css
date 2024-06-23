@@ -53,3 +53,9 @@
   z-index: 1;
   transform: scale(1.03);
 }
+
+.lobby-room .first-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
