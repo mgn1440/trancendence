@@ -1,9 +1,11 @@
 .room-setting {
+  width: 100%;
   display: flex;
+  flex-flow: row nowrap;
   justify-content: center;
   align-items: center;
   margin-bottom: 7rem;
-  gap: 3rem;
+  gap: 1.5rem;
 }
 
 .mod-btn {
@@ -57,8 +59,10 @@
 
 .item-buttons {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  /* grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr; */
+  grid-template-columns: repeat(2, minmax(4rem, 1fr));
+  grid-template-rows: auto;
   gap: 1rem;
 }
 
