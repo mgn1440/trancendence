@@ -132,14 +132,17 @@
   padding-left: 1rem;
   flex: 1;
   flex-flow: column nowrap;
+  display: flex;
   align-items: center;
-  text-align: center;
 }
 
 .game-detail-page > h4 {
   padding-bottom: 1rem;
 }
 
+.game-detail-page > div.goal-info-item:last-child {
+  margin-bottom: 5rem;
+}
 .log-container.forward > canvas {
   padding-bottom: 4rem;
 }
@@ -213,6 +216,15 @@
   margin-left: 1rem;
 }
 
+.goal-info-empty {
+  width: 80%;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--gray70);
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+}
+
 .goal-info-item {
   width: 80%;
   padding: 0.5rem 2rem;
@@ -220,15 +232,15 @@
   display: flex;
   flex-flow: row nowrap;
   justify-content: space-between;
+}
+
+.goal-info-item > p {
+  width: 30%;
+  text-align: center;
   animation: slideDown 0.5s ease-out forwards;
 }
 
-.goal-info-item > h5 {
-  width: 30%;
-  text-align: center;
-}
-
-.goal-info-item > h5.no {
+.goal-info-item > p.no {
   width: 10%;
 }
 
@@ -245,16 +257,21 @@
 
 .goal-info-item.main {
   border-bottom: 2px solid var(--white);
+}
+
+.goal-info-item.main > p {
   animation: none;
 }
 
-.gameDetail {
+.game-detail {
   width: 90%;
-  margin-top: 5rem;
   margin-bottom: 3rem;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
 }
 
-.gameDetail > canvas {
+.game-detail > canvas {
   border: 2px solid var(--white);
   border-radius: 0.4rem;
 }
