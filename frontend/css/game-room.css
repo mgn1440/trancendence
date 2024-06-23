@@ -5,6 +5,7 @@
   flex: 0.95;
   display: flex;
   flex-flow: row nowrap;
+  padding-bottom: 2rem;
 }
 
 .game-room-nav {
@@ -32,7 +33,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: start;
   align-items: center;
   position: relative;
   border-radius: 0 0 0 1rem;
@@ -40,11 +41,9 @@
   padding: 1rem;
 }
 
-/* .game-room > img {
-  position: absolute;
-  top: 0.9375rem;
-  left: 1.125rem;
-} */
+.game-room > h5 {
+  padding-bottom: 7rem;
+}
 
 .user-cards {
   display: grid;
@@ -106,4 +105,16 @@
 
 .user-cards .clients {
   border-color: #dbff00;
+}
+
+.align-end {
+  display: flex;
+  width: 100%;
+  flex-flow: row nowrap;
+  justify-content: end;
+  align-items: center;
+}
+
+.align-end > button {
+  margin-left: 1rem;
 }

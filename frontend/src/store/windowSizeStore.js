@@ -32,7 +32,6 @@ export const setWindowSize = (dispatch, setWinSize) => {
     windowSize.width = "medium";
   } else {
     windowSize.width = "large";
-    dispatch(set_windowSize("large"));
   }
   if (windowHeight < 480) {
     windowSize.height = "small";

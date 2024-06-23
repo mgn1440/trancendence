@@ -1,5 +1,6 @@
 @import "./reset.css";
 @import "./font.css";
+@import "./color.css";
 
 /* body {
 	-webkit-user-select: none;
@@ -67,7 +68,6 @@
 }
 
 .timer {
-  font-family: "Ropa sans";
   font-size: 1.25rem;
 }
 
@@ -75,8 +75,7 @@
   background-color: var(--gray70);
   border-radius: 10px;
   text-align: center;
-  font-family: "Ropa sans";
-  width: 7rem;
+  width: 7.5rem;
   height: 2.25rem;
   font-size: 1.25rem;
 }

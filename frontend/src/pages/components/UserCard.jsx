@@ -15,14 +15,9 @@ const UserCard = ({ user_name }) => {
     };
     fetchProfile();
   }, []);
-  console.log(windowSizeStore.getState().winSize);
   return (
     <div class="user-card border-user-select">
-      {windowSizeStore.getState().winSize.height !== "small" ? (
-        <img src={myProfile.profile_image ?? defaultImg}></img>
-      ) : (
-        <img class="hide"></img>
-      )}
+      <img src={myProfile.profile_image ?? defaultImg}></img>
       {windowSizeStore.getState().winSize.width === "large" ? (
         <h3>{user_name}</h3>
       ) : windowSizeStore.getState().winSize.width === "medium" ? (

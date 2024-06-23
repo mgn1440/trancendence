@@ -36,7 +36,6 @@ const RoomPage = () => {
 
       ws_gamelogic.getState().socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
         if (data.type === "room_info" || data.type === "connect_user") {
           setGameData(data);
         } else if (data.type === "disconnect_user") {
