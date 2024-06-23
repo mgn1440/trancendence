@@ -209,6 +209,43 @@ class RecentOpponentsAPIView(APIView):
 			opponent_records[opponent.username]['total'] += 1
 		return JsonResponse({'status_code': '200', 'opponent_records': opponent_records}, status=200)
 
+class AverageLineAPIView(APIView):
+	def get(self, request, username):
+		if not CustomUser.objects.filter(username=username).exists():
+			return JsonResponse({'status_code': '404', 'message': 'User not found'}, status=404)
+		user = CustomUser.objects.get(username=username)
+		records = SingleGameRecord.objects.filter(
+			Q(player1=user) | Q(player2=user)
+		).order_by('created_at')
+
+		overall_win_rate = self.calculate_win_rate(records, username)
+
+		# Calculate win rate 3 games
+		recent_3_games = records[-3:]
+		recent_3_win_rate = self.calculate_win_rate(recent_3_games, username)
+
+		recent_5_games = records[-5:]
+		recent_5_win_rate = self.calculate_win_rate(recent_5_games, username)
+
+		win_rates = [1 if record.winner == username else 0 for record in records]
+		moving_average_3 = self.moving_average(win_rates, 3)
+		moving_average_5 = self.moving_average(win_rates, 5)
+
+
+	def calculate_win_rate(self, games, username):
+		wins = games.filter(winner=username).count()
+		total = games.count()
+		return wins / total if total > 0 else 0
+
+	def moving_average(self, data, window_size):
+		if len(data) < window_size:
+			return []
+
+		return [sum(data[i:i+window_size]) / window_size for i in range(len(data) - window_size + 1)]
+
+
+
+
 
 def logout(request):
 	response = JsonResponse({'status': 'success'}, status=200)

@@ -18,4 +18,5 @@ urlpatterns = [
 	path('<str:username>/', UserNameDetailView.as_view(), name='user_detail_by_username'),
 	# TODO: delete this url
 	path('<str:username>/profile-image/', ProfileImageView.as_view(), name='profile_image'),
+	# path ('<str:username>/average-line/',),
 ]
