@@ -34,16 +34,12 @@ export const startWebSocketConnection = (dispatch, setUserList) => {
     const socket = new WebSocket("wss://" + "localhost" + "/ws/online/");
 
     dispatch(webSocketConnect(socket, [], []));
-    socket.onopen = (e) => {
-      console.log("Socket Connected");
-    };
   } else {
     console.log("Socket Already connected");
   }
   // socket.onmessage = (e) => {
   ws_userlist.getState().socket.onmessage = (e) => {
     const data = JSON.parse(e.data);
-    console.log(data);
     if (data.type === "status") {
       dispatch(
         webSocketConnect(

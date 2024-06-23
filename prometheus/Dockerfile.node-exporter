@@ -1,0 +1,27 @@
+FROM ubuntu:latest
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       ca-certificates \
+       wget \
+       tar \
+       procps \
+       systemd \
+       curl
+
+RUN wget https://github.com/prometheus/node_exporter/releases/download/v1.3.1/node_exporter-1.3.1.linux-amd64.tar.gz \
+    && tar xvf node_exporter-1.3.1.linux-amd64.tar.gz \
+    && mv node_exporter-1.3.1.linux-amd64/node_exporter /usr/local/bin/ \
+    && rm -rf node_exporter-1.3.1.linux-amd64.tar.gz node_exporter-1.3.1.linux-amd64
+
+
+RUN mkdir -p /etc/ssl/certs
+RUN mkdir -p /opt/node-exporter
+COPY node-exporter-selfsigned.crt /etc/ssl/certs/node-exporter-selfsigned.crt
+COPY node-exporter-selfsigned.key /etc/ssl/certs/node-exporter-selfsigned.key
+
+COPY web_node.yml /opt/node-exporter/web.yml
+
+EXPOSE 9100
+
+CMD ["/usr/local/bin/node_exporter", "--web.listen-address=:9100", "--web.config=opt/node-exporter/web.yml"]
