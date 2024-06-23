@@ -117,17 +117,21 @@ const GamePage = () => {
             console.log(timer);
             timer--;
             const counter = document.querySelector(".pong-game-info h1");
-            counter.innerText = timer;
-            if (timer <= 0) {
-              counter.style.display = "none";
-              clearInterval(interval);
-              ws_gamelogic.getState().socket.send(
-                JSON.stringify({
-                  type: "start_game",
-                  role: role,
-                  match: match,
-                })
-              );
+            if (counter) {
+              counter.innerText = timer;
+              if (timer <= 0) {
+                counter.style.display = "none";
+                clearInterval(interval);
+                ws_gamelogic.getState().socket.send(
+                  JSON.stringify({
+                    type: "start_game",
+                    role: role,
+                    match: match,
+                  })
+                );
+              }
+            } else {
+              timer++;
             }
           }, 1000);
           addEventArray(eventType.KEYDOWN, (e) => {
@@ -221,9 +225,11 @@ const GamePage = () => {
           role = data.role;
           match = data.match;
           let timer = 3;
+          const counter = document.querySelector(".pong-game-info h1");
+          counter.innerText = timer;
+          counter.style.display = "inline";
           let interval = setInterval(() => {
             timer--;
-            const counter = document.querySelector(".pong-game-info h1");
             counter.innerText = timer;
             if (timer <= 0) {
               counter.style.display = "none";
@@ -274,8 +280,8 @@ const GamePage = () => {
   }, [gameStat, userStat]);
   return (
     <div class="tournament">
+      <Bracket users={userStat} />
       <div class="pong-game-main">
-        <Bracket users={userStat} />
         <canvas id="pong-game"></canvas>
         {isEmpty(gameStat) ? null : (
           <div class="pong-game-info">

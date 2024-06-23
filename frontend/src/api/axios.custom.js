@@ -146,3 +146,12 @@ export const axiosUserProfile = async (user_name) => {
     return error;
   }
 };
+
+export const axiosLogout = async () => {
+  try {
+    const response = await instance.get(`${axiosUserURL}/logout`);
+    return response;
+  } catch (error) {
+    return error;
+  }
+};

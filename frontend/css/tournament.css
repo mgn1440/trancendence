@@ -7,11 +7,6 @@
   min-height: 10rem;
 }
 
-.tournament .pong-game-info {
-  margin-top: 400px;
-  height: 100px;
-}
-
 @media screen and (min-height: 800px) {
   .tournament #Bracket {
     display: block;
