@@ -17,7 +17,6 @@ const LobbyProfile = ({ data, sendLobbySocket, stat }) => {
     };
     fetchProfile();
   }, []);
-  console.log(myProfile); // debug
 
   return (
     <div class="lobby-profile">
@@ -56,12 +55,14 @@ const LobbyProfile = ({ data, sendLobbySocket, stat }) => {
         )}
         {stat === MainProfileState.LOBBY ? (
           <div class="lobby-buttons">
-            <button class="lobby-game-btn"
-            onclick={() => {
-              console.log("offline game");
-              console.log(myProfile.username);
-              gotoPage(`/local/${myProfile.username}`);
-            }}>
+            <button
+              class="lobby-game-btn"
+              onclick={() => {
+                console.log("offline game");
+                console.log(myProfile.username);
+                gotoPage(`/local/${myProfile.username}`);
+              }}
+            >
               <img src="/icon/user.svg"></img>
               Offline Game
             </button>

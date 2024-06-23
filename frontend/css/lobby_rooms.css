@@ -2,9 +2,9 @@
 
 .lobby-rooms-main {
   flex: 0.95;
-  width: 100%;
   display: flex;
   flex-flow: row nowrap;
+  padding-bottom: 1rem;
 }
 
 .lobby-rooms-nav {
