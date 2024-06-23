@@ -16,25 +16,21 @@ RUN wget https://github.com/prometheus/prometheus/releases/download/v2.35.0/prom
     && mv prometheus-2.35.0.linux-amd64 /opt/prometheus \
     && rm prometheus-2.35.0.linux-amd64.tar.gz
 
-# OpenSSL을 사용하여 SSL 인증서 생성
-RUN mkdir -p /etc/ssl/certs
-RUN echo "[SAN]\nsubjectAltName=DNS:prometheus" > /tmp/san_config.cnf \
-    && cat /etc/ssl/openssl.cnf /tmp/san_config.cnf > /tmp/openssl.cnf \
-    && openssl req -x509 -newkey rsa:2048 -nodes \
-       -keyout /etc/ssl/certs/prometheus-selfsigned.key \
-       -out /etc/ssl/certs/prometheus-selfsigned.crt \
-       -subj "/C=KR/ST=GEYOUNG-GI-DO/L=SEOUL/O=42SEOUL/OU=CARDET/CN=prometheus" \
-       -reqexts SAN \
-       -config /tmp/openssl.cnf \
-       -extensions SAN
-
-
 # Prometheus 설정 파일 복사
+RUN mkdir -p /etc/ssl/certs
+RUN mkdir -p /opt/prometheus
 COPY prometheus.yml /opt/prometheus/prometheus.yml
-COPY web.yml /opt/prometheus/web.yml
-
+COPY web_prometheus.yml /opt/prometheus/web.yml
+COPY alerts.yml /opt/prometheus/alerts.yml
+RUN chmod 755 /opt/prometheus/alerts.yml
+COPY prometheus-selfsigned.crt /etc/ssl/certs/prometheus-selfsigned.crt
+COPY prometheus-selfsigned.key /etc/ssl/certs/prometheus-selfsigned.key
+COPY node-exporter-selfsigned.crt /etc/ssl/certs/node-exporter-selfsigned.crt
+COPY node-exporter-selfsigned.key /etc/ssl/certs/node-exporter-selfsigned.key
+COPY alertmanager-selfsigned.crt /etc/ssl/certs/alertmanager-selfsigned.crt
+COPY alertmanager-selfsigned.key /etc/ssl/certs/alertmanager-selfsigned.key
 # 포트 열기
 EXPOSE 9090
 
 # 실행 명령 설정
-CMD ["/opt/prometheus/prometheus", "--config.file=/opt/prometheus/prometheus.yml", "--web.config.file=/opt/prometheus/web.yml"]
+CMD ["/opt/prometheus/prometheus", "--config.file=/opt/prometheus/prometheus.yml", "--web.config.file=/opt/prometheus/web.yml", "--storage.tsdb.retention=14d"]

@@ -166,3 +166,7 @@
     transform: scale(1.2);
   }
 }
+
+.modal .user-item h6 {
+  text-align: left;
+}
