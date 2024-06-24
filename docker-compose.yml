@@ -105,8 +105,6 @@ services:
     depends_on:
       - backend
     tty: true
-    depends_on:
-      - backend
     volumes:
       - "${NGINX_PATH}:/etc/nginx/conf.d"
     networks:
