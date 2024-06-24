@@ -1,3 +1,4 @@
+import { gotoPage } from "@/lib/libft.js";
 import { createStore } from "../lib/observer/Store.js";
 
 const WS_GAMELOGIC = "WS_GAMELOGIC";
@@ -39,6 +40,9 @@ export const connectGameLogicWebSocket = (dispatch, path) => {
   ) {
     const socket = new WebSocket("wss://" + "localhost" + path);
     dispatch(webSocketConnect(socket));
+    socket.onerror = (e) => {
+      gotoPage("/");
+    };
   } else {
     console.log("WebSocket is already connected");
   }

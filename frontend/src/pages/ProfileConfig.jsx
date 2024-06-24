@@ -13,6 +13,9 @@ const ProfileConfigPage = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       const userMe = await axiosUserMe();
+      if (!userMe.data) {
+        return;
+      }
       setUserData(clientUserStore.dispatch, userMe.data.user_info);
       setProfile(userMe.data.user_info);
     };

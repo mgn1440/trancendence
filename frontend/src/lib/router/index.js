@@ -2,6 +2,7 @@ import { pathToRegex } from "./utils";
 import { createElement } from "../dom/client";
 import { render } from "../dom";
 import { setCurrentComponent } from "@/lib/jsx/jsx-runtime";
+import { gotoPage } from "../libft";
 
 const spaRouter = () => {
   let pageParams;
@@ -45,7 +46,7 @@ const spaRouter = () => {
     const { Component, params } = matchUrlToRoute(routeInfo.routes ?? [], path);
 
     if (!Component) {
-      throw new Error("no matching component error");
+      gotoPage("/");
     } else {
       pageParams = params;
       if (routeInfo.root) {
