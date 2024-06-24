@@ -160,10 +160,8 @@ class GameConsumer(AsyncWebsocketConsumer):
             await asyncio.sleep(0.03)
 
     def update_ball_position(self):
-        self.game['player_bar']['left'] = min(720, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
-        self.game['player_bar']['right'] = min(720, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
-        self.game['player_bar']['left'] = max(0, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
-        self.game['player_bar']['right'] = max(0, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
+        self.game['player_bar']['left'] = max(0, min(720, self.game['player_bar']['left'] + self.game['bar_move']['left']))
+        self.game['player_bar']['right'] = max(0, min(720, self.game['player_bar']['right'] + self.game['bar_move']['right']))
         if -19 < self.game['ball']['speedX'] < 19 and -39 < self.game['ball']['speedY'] < 39:
             self.game['ball']['speedX'] *= 1.02
             self.game['ball']['speedY'] *= 1.02
@@ -268,9 +266,9 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     def update_bar_position(self, direction, role):
         if direction == 'up':
-            self.game['bar_move'][role] = -10
+            self.game['bar_move'][role] = -20
         elif direction == 'down':
-            self.game['bar_move'][role] = 10
+            self.game['bar_move'][role] = 20
 
     async def game_start(self, event):
         await self.send(text_data=json.dumps({
@@ -677,11 +675,9 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             await asyncio.sleep(0.03)
 
     def update_ball_position(self, match):
-        self.match = self.game[match]
-        self.match['player_bar']['left'] = min(720, self.match['player_bar']['left'] + self.match['bar_move']['left'])  # Assuming bar height is 200
-        self.match['player_bar']['right'] = min(720, self.match['player_bar']['right'] + self.match['bar_move']['right'])  # Assuming bar height is 200
-        self.match['player_bar']['left'] = max(0, self.match['player_bar']['left'] + self.match['bar_move']['left'])  # Assuming bar height is 200
-        self.match['player_bar']['right'] = max(0, self.match['player_bar']['right'] + self.match['bar_move']['right'])  # Assuming bar height is 200
+        self.match = self.game[match]      
+        self.match['player_bar']['left'] = max(0, min(720, self.match['player_bar']['left'] + self.match['bar_move']['left']))
+        self.match['player_bar']['right'] = max(0, min(720, self.match['player_bar']['right'] + self.match['bar_move']['right']))
         if -19 < self.match['ball']['speedX'] < 19  and -39 < self.match['ball']['speedY'] < 39:
             self.match['ball']['speedX'] *= 1.02
             self.match['ball']['speedY'] *= 1.02
@@ -815,9 +811,9 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 
     def update_bar_position(self, direction, role, match):
         if direction == 'up':
-            self.game[match]['bar_move'][role] = -10
+            self.game[match]['bar_move'][role] = -20
         elif direction == 'down':
-            self.game[match]['bar_move'][role] = 10
+            self.game[match]['bar_move'][role] = 20
 
     async def game_start(self, event):
         match = event['game']['match'][self.scope['user'].username]
@@ -954,10 +950,8 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
             await asyncio.sleep(0.03)
 
     def update_ball_position(self):
-        self.game['player_bar']['left'] = min(720, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
-        self.game['player_bar']['right'] = min(720, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
-        self.game['player_bar']['left'] = max(0, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
-        self.game['player_bar']['right'] = max(0, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
+        self.game['player_bar']['left'] = max(0, min(720, self.game['player_bar']['left'] + self.game['bar_move']['left']))
+        self.game['player_bar']['right'] = max(0, min(720, self.game['player_bar']['right'] + self.game['bar_move']['right']))
         if -19 < self.game['ball']['speedX'] < 19  and -39 < self.game['ball']['speedY'] < 39:
             self.game['ball']['speedX'] *= 1.02
             self.game['ball']['speedY'] *= 1.02
@@ -1035,9 +1029,9 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
 
     def update_bar_position(self, direction, role):
         if direction == 'up':
-            self.game['bar_move'][role] = -10
+            self.game['bar_move'][role] = -20
         elif direction == 'down':
-            self.game['bar_move'][role] = 10
+            self.game['bar_move'][role] = 20
         elif direction == 'stop':
             self.game['bar_move'][role] = 0
         
@@ -1208,16 +1202,30 @@ class CustomGameConsumer(AsyncWebsocketConsumer):
             await asyncio.sleep(0.03)
 
     def update_ball_position(self):
-        self.game['player_bar']['left'] = min(720, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
-        self.game['player_bar']['right'] = min(720, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
-        self.game['player_bar']['left'] = max(0, self.game['player_bar']['left'] + self.game['bar_move']['left'])  # Assuming bar height is 200
-        self.game['player_bar']['right'] = max(0, self.game['player_bar']['right'] + self.game['bar_move']['right'])  # Assuming bar height is 200
+        left_bar_size = 0
+        right_bar_size = 0
+        if self.game['bar_size']['left'] == 5:
+            left_bar_size = 180
+        elif self.game['bar_size']['left'] == 2.5:
+            left_bar_size = 360
+        elif self.game['bar_size']['left'] == 10:
+            left_bar_size = 90
+        if self.game['bar_size']['right'] == 5:
+            right_bar_size = 180
+        elif self.game['bar_size']['right'] == 2.5:
+            right_bar_size = 360
+        elif self.game['bar_size']['right'] == 10:
+            right_bar_size = 90
+        
+        self.game['player_bar']['left'] = max(0, min(900 - left_bar_size, self.game['player_bar']['left'] + self.game['bar_move']['left']))
+        self.game['player_bar']['right'] = max(0, min(900 - right_bar_size, self.game['player_bar']['right'] + self.game['bar_move']['right']))
         if -19 < self.game['ball']['speedX'] < 19 and -39 < self.game['ball']['speedY'] < 39:
             self.game['ball']['speedX'] *= 1.02
             self.game['ball']['speedY'] *= 1.02
-        self.create_item()
-        self.apply_item()
-        self.move_item()
+        if len(LobbyConsumer.rooms[self.room_id]['items']) >= 1:
+            self.create_item()
+            self.apply_item()
+            self.move_item()
         self.game['ball']['x'] += self.game['ball']['speedX']
         self.game['ball']['y'] += self.game['ball']['speedY']
         # 위 야래 벽에 부딪히면 방향 바꾸기
@@ -1262,7 +1270,6 @@ class CustomGameConsumer(AsyncWebsocketConsumer):
         if len(self.game['items']) < 2:
             x = random.randint(200, 1000)
             y = 0
-            # item_type = random.choice(['speed_up', 'speed_down', 'bar_up', 'bar_down'])
             item_type = random.choice(LobbyConsumer.rooms[self.room_id]['items'])
             self.game['items'].append({'x': x, 'y': y, 'type': item_type})
         
@@ -1365,9 +1372,9 @@ class CustomGameConsumer(AsyncWebsocketConsumer):
 
     def update_bar_position(self, direction, role):
         if direction == 'up':
-            self.game['bar_move'][role] = -10
+            self.game['bar_move'][role] = -20
         elif direction == 'down':
-            self.game['bar_move'][role] = 10
+            self.game['bar_move'][role] = 20
 
     async def game_start(self, event):
         await self.send(text_data=json.dumps({

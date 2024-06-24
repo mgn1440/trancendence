@@ -2,9 +2,9 @@
 
 .lobby-rooms-main {
   flex: 0.95;
-  width: 100%;
   display: flex;
   flex-flow: row nowrap;
+  padding-bottom: 1rem;
 }
 
 .lobby-rooms-nav {
@@ -52,4 +52,10 @@
 .lobby-room:hover {
   z-index: 1;
   transform: scale(1.03);
+}
+
+.lobby-room .first-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

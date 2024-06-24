@@ -1,6 +1,7 @@
 .lobby-profile {
   /* height: minmax(3rem, 5rem); */
   height: 20vh;
+  min-height: 8rem;
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
@@ -8,6 +9,7 @@
 
 .profile-start > img {
   height: 18vh;
+  min-height: 6rem;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   /* border: 1px solid var(--white); */
@@ -33,6 +35,10 @@
 
 .profile-start > div {
   margin-left: 1rem;
+}
+
+.profile-start > div > div > h3 {
+  padding-bottom: 3vh;
 }
 
 .lobby-game-btn {

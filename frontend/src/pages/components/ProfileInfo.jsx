@@ -5,47 +5,58 @@ import {
   axiosUserRecentOpponent,
   axiosGameDetail,
 } from "@/api/axios.custom";
-import { Chart } from "chart.js";
+import { Chart, registerables } from "chart.js";
 import { isEmpty } from "@/lib/libft";
+import { eventType, addEventArray, addEventHandler } from "@/lib/libft";
 
 let canvas;
 let routeInfo;
 let ctx;
 let ratio;
 let step = 0;
+let gameMaxIdx = 0;
 let requestId;
+let canvasDone = false;
 
-const drawLine = (stX, stY, edX, edY, color) => {
-  ctx.setLineDash([]);
-  ctx.beginPath();
-  ctx.moveTo(stX * ratio, stY * ratio);
-  ctx.lineTo(edX * ratio, edY * ratio);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.closePath();
+Chart.register(...registerables);
+
+const drawLine = (stX, stY, edX, edY, color, gameIdx) => {
+  ctx[gameIdx].setLineDash([]);
+  ctx[gameIdx].beginPath();
+  ctx[gameIdx].moveTo(stX * ratio, stY * ratio);
+  ctx[gameIdx].lineTo(edX * ratio, edY * ratio);
+  ctx[gameIdx].strokeStyle = color;
+  ctx[gameIdx].lineWidth = 1;
+  ctx[gameIdx].stroke();
+  ctx[gameIdx].closePath();
 };
 
-const drawLineDash = (stX, stY, edX, edY, color) => {
-  ctx.setLineDash([5, 5]);
-  ctx.beginPath();
-  ctx.moveTo(stX * ratio, stY * ratio);
-  ctx.lineTo(edX * ratio, edY * ratio);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.closePath();
+const drawLineDash = (stX, stY, edX, edY, color, gameIdx) => {
+  ctx[gameIdx].setLineDash([5, 5]);
+  ctx[gameIdx].beginPath();
+  ctx[gameIdx].moveTo(stX * ratio, stY * ratio);
+  ctx[gameIdx].lineTo(edX * ratio, edY * ratio);
+  ctx[gameIdx].strokeStyle = color;
+  ctx[gameIdx].lineWidth = 1;
+  ctx[gameIdx].stroke();
+  ctx[gameIdx].closePath();
 };
 
-const drawBall = (x, y, radius) => {
-  // ctx.fillStyle = "#ffffff";
-  ctx.beginPath();
-  ctx.arc(x * ratio, y * ratio, Math.max(radius * ratio, 7), 0, Math.PI * 2);
-  ctx.fill();
-  ctx.closePath();
+const drawBall = (x, y, radius, gameIdx) => {
+  // ctx[gameIdx].fillStyle = "#ffffff";
+  ctx[gameIdx].beginPath();
+  ctx[gameIdx].arc(
+    x * ratio,
+    y * ratio,
+    Math.max(radius * ratio, 7),
+    0,
+    Math.PI * 2
+  );
+  ctx[gameIdx].fill();
+  ctx[gameIdx].closePath();
 };
 
-const drawRoute = (start, end, stepX) => {
+const drawRoute = (start, end, stepX, gameIdx) => {
   let slopeSt = start.speedY / start.speedX;
   let dir = 1;
   if (start.speedX < 0) {
@@ -67,7 +78,8 @@ const drawRoute = (start, end, stepX) => {
     y,
     Math.abs(ex - x) < Math.abs(stepX - x) ? ex : stepX,
     Math.abs(ex - x) < Math.abs(stepX - x) ? ey : calcY(slopeSt, x, y, stepX),
-    "#ffffff"
+    "#ffffff",
+    gameIdx
   );
   x = slopeSt * dir < 0 ? xDir : xDir2;
   y = slopeSt * dir < 0 ? 0 : 900;
@@ -80,79 +92,93 @@ const drawRoute = (start, end, stepX) => {
       y,
       Math.abs(ex - x) < Math.abs(stepX - x) ? ex : stepX,
       Math.abs(ex - x) < Math.abs(stepX - x) ? ey : calcY(slopeSt, x, y, stepX),
-      "#ffffff"
+      "#ffffff",
+      gameIdx
     );
     x += delta;
     y = start.y === 900 ? 0 : 900;
   }
 };
 
-// const drawBallRoute = () => {
-//   console.log("drawBallRoute", routeInfo);
-//   ratio = canvas.width / 1200;
-//   ctx.fillStyle = "#181818";
-//   ctx.fillRect(0, 0, canvas.width, canvas.height);
-//   ctx.fillStyle = "#ffffff";
-//   drawLine(600, 0, 600, 900, "#ffffff");
-//   for (let info of routeInfo) {
-//     console.log(info);
-//     drawRoute(info.ball_start_position, info.ball_end_position);
-//     drawBall(
-//       info.ball_end_position.x,
-//       info.ball_end_position.y,
-//       info.ball_end_position.radius
-//     );
-//   }
-// };
+const drawBallRouteDone = () => {
+  for (let gameIdx = 0; gameIdx < gameMaxIdx; gameIdx++) {
+    // 몇경기인지
+    ratio = canvas[gameIdx].width / 1200;
+    ctx[gameIdx].fillStyle = "#181818";
+    ctx[gameIdx].fillRect(0, 0, canvas[gameIdx].width, canvas[gameIdx].height);
+    ctx[gameIdx].fillStyle = "#ffffff";
+    drawLine(600, 0, 600, 900, "#ffffff", gameIdx);
+    for (let idx = 0; idx < routeInfo[gameIdx].length; idx++) {
+      const info = routeInfo[gameIdx][idx];
+      drawRoute(
+        info.ball_start_position,
+        info.ball_end_position,
+        info.ball_end_position.x,
+        gameIdx
+      );
+      drawBall(
+        info.ball_end_position.x,
+        info.ball_end_position.y,
+        info.ball_end_position.radius,
+        gameIdx
+      );
+    }
+  }
+};
 
-const drawBallRoute = (doneIdx, gameRecords, setGameRecords) => {
+const drawBallRoute = (doneIdx) => {
   step++;
-  if (doneIdx >= routeInfo.length) {
+  let countDone = 0;
+  for (let gameIdx = 0; gameIdx < gameMaxIdx; gameIdx++) {
+    if (doneIdx >= routeInfo[gameIdx].length) {
+      countDone++;
+      continue;
+    }
+    ratio = canvas[gameIdx].width / 1200;
+    ctx[gameIdx].fillStyle = "#181818";
+    ctx[gameIdx].fillRect(0, 0, canvas[gameIdx].width, canvas[gameIdx].height);
+    ctx[gameIdx].fillStyle = "#ffffff";
+    drawLine(600, 0, 600, 900, "#ffffff", gameIdx);
+    for (let idx = 0; idx < doneIdx; idx++) {
+      const info = routeInfo[gameIdx][idx];
+      drawRoute(
+        info.ball_start_position,
+        info.ball_end_position,
+        info.ball_end_position.x,
+        gameIdx
+      );
+      drawBall(
+        info.ball_end_position.x,
+        info.ball_end_position.y,
+        info.ball_end_position.radius,
+        gameIdx
+      );
+    }
+    const info = routeInfo[gameIdx][doneIdx];
+    const stepX =
+      info.ball_start_position.x +
+      ((info.ball_end_position.x - info.ball_start_position.x) / 50) * step;
+    // console.log(info.ball_start_position.x, step, stepX);
+    drawRoute(info.ball_start_position, info.ball_end_position, stepX, gameIdx);
+    if (step >= 50) {
+      drawBall(
+        info.ball_end_position.x,
+        info.ball_end_position.y,
+        info.ball_end_position.radius,
+        gameIdx
+      );
+    }
+  }
+  if (countDone === gameMaxIdx) {
+    canvasDone = true;
     return;
   }
-  ratio = canvas.width / 1200;
-  ctx.fillStyle = "#181818";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#ffffff";
-  drawLine(600, 0, 600, 900, "#ffffff");
-  for (let idx = 0; idx < doneIdx; idx++) {
-    const info = routeInfo[idx];
-    drawRoute(
-      info.ball_start_position,
-      info.ball_end_position,
-      info.ball_end_position.x
-    );
-    drawBall(
-      info.ball_end_position.x,
-      info.ball_end_position.y,
-      info.ball_end_position.radius
-    );
-  }
-  const info = routeInfo[doneIdx];
-  const stepX =
-    info.ball_start_position.x +
-    ((info.ball_end_position.x - info.ball_start_position.x) / 50) * step;
-  // console.log(info.ball_start_position.x, step, stepX);
-  drawRoute(info.ball_start_position, info.ball_end_position, stepX);
   if (step >= 50) {
     step = 0;
-    drawBall(
-      info.ball_end_position.x,
-      info.ball_end_position.y,
-      info.ball_end_position.radius
-    );
-    setGameRecords({
-      ...gameRecords,
-      gameDetail: routeInfo.slice(0, doneIdx + 1),
-    });
-    requestId = requestAnimationFrame(() =>
-      drawBallRoute(doneIdx + 1, gameRecords, setGameRecords)
-    );
+    requestId = requestAnimationFrame(() => drawBallRoute(doneIdx + 1));
     return;
   }
-  requestId = requestAnimationFrame(() =>
-    drawBallRoute(doneIdx, gameRecords, setGameRecords)
-  );
+  requestId = requestAnimationFrame(() => drawBallRoute(doneIdx));
 };
 
 function convertOrdinalNumber(n) {
@@ -186,39 +212,54 @@ function convertDate(date) {
   return date_text;
 }
 
+const convertRouteInfo = (data) => {
+  const routeInfo = data.data.goal_list;
+  routeInfo.forEach((info, idx) => {
+    info.left = routeInfo
+      .slice(0, idx + 1)
+      .reduce(
+        (accu, value) =>
+          value.goal_user_position === "left" ? accu + 1 : accu,
+        0
+      );
+    info.right = routeInfo
+      .slice(0, idx + 1)
+      .reduce(
+        (accu, value) =>
+          value.goal_user_position === "right" ? accu + 1 : accu,
+        0
+      );
+    info.ball_start_position = JSON.parse(info.ball_start_position);
+    info.ball_end_position = JSON.parse(info.ball_end_position);
+  });
+  return routeInfo;
+};
+
 const LogSingleItem = ({ record, setLogStat, gameRecords, setGameRecords }) => {
+  const defaultImg = `/img/minji_${
+    (record.opponent_name[0].charCodeAt(0) % 5) + 1
+  }.jpg`;
+
   const handleGameDetail = async (id) => {
     const gameDetail = await axiosGameDetail({ gameId: id });
-    console.log("handleGameDetail", gameDetail.data);
-    routeInfo = gameDetail.data.goal_list;
-
-    routeInfo.forEach((info, idx) => {
-      info.left = routeInfo
-        .slice(0, idx + 1)
-        .reduce(
-          (accu, value) =>
-            value.goal_user_position === "left" ? accu + 1 : accu,
-          0
-        );
-      info.right = routeInfo
-        .slice(0, idx + 1)
-        .reduce(
-          (accu, value) =>
-            value.goal_user_position === "right" ? accu + 1 : accu,
-          0
-        );
+    routeInfo = [convertRouteInfo(gameDetail)];
+    setGameRecords({
+      ...gameRecords,
+      gameDetail: {},
     });
     setLogStat(PlayStat.DETAIL);
   };
   return (
     <div class="log-single-item" onclick={() => handleGameDetail(record.id)}>
       <div>
-        <img src="/img/minji_2.jpg"></img>
-        <h4>{record.opponent_name}</h4>
+        <img src={record.opponent_profile ?? defaultImg}></img>
+        <div>
+          <h4>{record.opponent_name}</h4>
+          <p>
+            {record.user_score}:{record.opponent_score}
+          </p>
+        </div>
       </div>
-      <h6>
-        {record.user_score}:{record.opponent_score}
-      </h6>
       <div class="log-result flex-column">
         <h3>{record.user_score > record.opponent_score ? "WIN!" : "LOSE"}</h3>
         <p>{convertDate(record.created_at)}</p>
@@ -227,31 +268,69 @@ const LogSingleItem = ({ record, setLogStat, gameRecords, setGameRecords }) => {
   );
 };
 
-const LogMultiItem = ({ name, record }) => {
+const getDefaultImg = (name) => {
+  return `/img/minji_${(name[0].charCodeAt(0) % 5) + 1}.jpg`;
+};
+
+const LogMultiItem = ({
+  name,
+  record,
+  setLogStat,
+  gameRecords,
+  setGameRecords,
+}) => {
+  const handleGameDetail = async (idArr) => {
+    routeInfo = [];
+    for (let id of idArr) {
+      const gameDetail = await axiosGameDetail({ gameId: id });
+      routeInfo.push(convertRouteInfo(gameDetail));
+    }
+    console.log("handleGameDetail", routeInfo);
+    setLogStat(PlayStat.DETAILS);
+    setGameRecords({
+      ...gameRecords,
+      gameDetail: {},
+    });
+  };
+
   return (
-    <div class="log-multi-item">
+    <div
+      class="log-multi-item"
+      onclick={() =>
+        handleGameDetail([record.game1_id, record.game2_id, record.game3_id])
+      }
+    >
       <div class="log-multi-info">
         <div class="flex-row">
           <div class="flex-column">
             <img class="my-profile" src="/img/minji_2.jpg"></img>
-            <img src="/img/minji_2.jpg"></img>
-            {/* <img src={record.record_list.opponent1_profile}></img> */}
+            <img
+              src={
+                record.opponent1_profile ?? getDefaultImg(record.opponent1_name)
+              }
+            ></img>
           </div>
           <div class="flex-column">
-            <img src="/img/minji_2.jpg"></img>
-            <img src="/img/minji_2.jpg"></img>
-            {/* <img src={record.record_list.opponent2_profile}></img>
-            <img src={record.record_list.opponent3_profile}></img> */}
+            <img
+              src={
+                record.opponent2_profile ?? getDefaultImg(record.opponent2_name)
+              }
+            ></img>
+            <img
+              src={
+                record.opponent3_profile ?? getDefaultImg(record.opponent3_name)
+              }
+            ></img>
           </div>
         </div>
         <div class="flex-row">
           <div class="flex-column">
             <h6 class="my-profile">{name}</h6>
-            {/* <h6>{record.record_list.opponent1_name}</h6> */}
+            <h6>{record.opponent1_name}</h6>
           </div>
           <div class="flex-column">
-            {/* <h6>{record.record_list.opponent2_name}</h6> */}
-            {/* <h6>{record.record_list.opponent3_name}</h6> */}
+            <h6>{record.opponent2_name}</h6>
+            <h6>{record.opponent3_name}</h6>
           </div>
         </div>
       </div>
@@ -268,13 +347,12 @@ const PlayStat = {
   MULTI: "multi",
   DASHBOARD: "dashboard",
   DETAIL: "detail",
+  DETAILS: "details",
 };
 
 const LobbyProfile = ({ profile }) => {
   const [logStat, setLogStat] = useState(PlayStat.SINGLE);
   const [gameRecords, setGameRecords] = useState({});
-
-  console.log(logStat);
 
   useEffect(() => {
     const getGameRecords = async () => {
@@ -296,7 +374,6 @@ const LobbyProfile = ({ profile }) => {
         isSingle: "MULTI",
       });
 
-      console.log("recentOpponentApi", recentOpponentApi.data);
       setGameRecords({
         playOfWeek: dayStatApi.data.day_count_stats,
         recentOpponent: recentOpponentApi.data.opponent_records,
@@ -307,9 +384,7 @@ const LobbyProfile = ({ profile }) => {
     getGameRecords();
   }, []);
 
-  console.log("gameRecords", gameRecords);
   useEffect(() => {
-    console.log("gameRecords useEffect", gameRecords);
     if (logStat === PlayStat.DASHBOARD) {
       const labels = gameRecords.playOfWeek.map((data) => data.day);
       const numOfRound = gameRecords.playOfWeek.map((data) => data.count);
@@ -402,31 +477,65 @@ const LobbyProfile = ({ profile }) => {
           },
         },
       });
-    } else if (logStat === PlayStat.DETAIL) {
-      canvas = document.querySelector("#gameDetail > canvas");
-      ctx = canvas.getContext("2d");
+    } else if (logStat === PlayStat.DETAIL || logStat === PlayStat.DETAILS) {
+      canvas = document.querySelectorAll(".game-detail > canvas");
+      console.log(canvas);
+      ctx = [...canvas].map((cvsComponent) => cvsComponent.getContext("2d"));
 
-      ctx.scale(1, 1);
-      canvas.width = document.querySelector("#gameDetail").clientWidth;
-      canvas.height = document.querySelector("#gameDetail").clientHeight;
-      routeInfo.forEach((info) => {
-        info.ball_start_position = JSON.parse(info.ball_start_position);
-        info.ball_end_position = JSON.parse(info.ball_end_position);
+      for (let context of ctx) {
+        context.scale(1, 1);
+      }
+
+      canvas.forEach((cvsComponent) => {
+        let rate = 1;
+        if (document.querySelector(".game-detail").clientWidth > 600) {
+          rate = document.querySelector(".game-detail").clientWidth / 600;
+        }
+        cvsComponent.width =
+          document.querySelector(".game-detail").clientWidth / rate;
+        cvsComponent.height = cvsComponent.width * 0.75;
       });
-      drawBallRoute(0, gameRecords, setGameRecords);
+      // routeInfo.forEach((info) => {
+      //   info.ball_start_position = JSON.parse(info.ball_start_position);
+      //   info.ball_end_position = JSON.parse(info.ball_end_position);
+      // });
+      gameMaxIdx = routeInfo.length;
+      canvasDone = false;
+      drawBallRoute(0);
     }
   }, [logStat]);
 
+  useEffect(() => {
+    addEventArray(eventType.RESIZE, () => {
+      canvas = document.querySelectorAll(".game-detail > canvas");
+      if (canvas.length === 0) return;
+      canvas.forEach((cvsComponent) => {
+        let rate = 1;
+        if (document.querySelector(".game-detail").clientWidth > 600) {
+          rate = document.querySelector(".game-detail").clientWidth / 600;
+        }
+        cvsComponent.width =
+          document.querySelector(".game-detail").clientWidth / rate;
+        cvsComponent.height = cvsComponent.width * 0.75;
+      });
+      if (canvasDone) {
+        gameMaxIdx = routeInfo.length;
+        drawBallRouteDone();
+      }
+    });
+    addEventHandler();
+  }, []);
+
   const matchNum = profile.win + profile.lose;
   const handleLogStat = (stat) => {
-    if (logStat === PlayStat.DETAIL) {
+    if (logStat === PlayStat.DETAIL || logStat === PlayStat.DETAILS) {
+      cancelAnimationFrame(requestId);
       setGameRecords({
         ...gameRecords,
-        gameDetail: [],
+        gameDetail: {},
       });
-      cancelAnimationFrame(requestId);
     }
-    if (stat !== logStat) setLogStat(stat);
+    setLogStat(stat);
   };
   return (
     <div class="profile-main">
@@ -467,23 +576,32 @@ const LobbyProfile = ({ profile }) => {
         {!isEmpty(gameRecords) ? (
           logStat === PlayStat.SINGLE ? (
             <div class="log-container">
-              {gameRecords.singleRecords.map((record) => (
-                <LogSingleItem
-                  record={record}
-                  setLogStat={setLogStat}
-                  gameRecords={gameRecords}
-                  setGameRecords={setGameRecords}
-                />
-              ))}
+              {gameRecords.singleRecords
+                .slice()
+                .reverse()
+                .map((record) => (
+                  <LogSingleItem
+                    record={record}
+                    setLogStat={setLogStat}
+                    gameRecords={gameRecords}
+                    setGameRecords={setGameRecords}
+                  />
+                ))}
             </div>
           ) : logStat === PlayStat.MULTI ? (
             <div class="log-container">
-              {gameRecords.multiRecords.map(
-                (record) => (
-                  console.log(record),
-                  (<LogMultiItem name={profile.username} record={record} />)
-                )
-              )}
+              {gameRecords.multiRecords
+                .slice()
+                .reverse()
+                .map((record) => (
+                  <LogMultiItem
+                    name={profile.username}
+                    record={record}
+                    setLogStat={setLogStat}
+                    gameRecords={gameRecords}
+                    setGameRecords={setGameRecords}
+                  />
+                ))}
             </div>
           ) : logStat === PlayStat.DASHBOARD ? (
             <div class="log-container forward">
@@ -502,30 +620,36 @@ const LobbyProfile = ({ profile }) => {
                 );
               })} */}
             </div>
-          ) : (
+          ) : gameRecords.gameDetail ? (
             <div class="log-container forward">
-              <div id="gameDetail">
-                <canvas></canvas>
-              </div>
-              <h4>Game Details</h4>
-              <div class="goal-info-item main">
-                <h5 class="no">no.</h5>
-                <h5>Username</h5>
-                <h5>Score</h5>
-                <h5>Time</h5>
-              </div>
-              {gameRecords.gameDetail &&
-                gameRecords.gameDetail.map((goal, idx) => (
-                  <div class="goal-info-item">
-                    <h5 class="no">{idx + 1}</h5>
-                    <h5>{goal.goal_user_name}</h5>
-                    <h5>
-                      {goal.left}:{goal.right}
-                    </h5>
-                    <h5>{goal.timestamp.toFixed(2)}</h5>
+              {routeInfo.map((value, idx) => (
+                <div class="game-detail-page">
+                  <div class="game-detail">
+                    <canvas></canvas>
                   </div>
-                ))}
+                  <h4>Game Details</h4>
+                  <div class="goal-info-item main">
+                    <p class="no">no.{idx}</p>
+                    <p>Username</p>
+                    <p>Score</p>
+                    <p>Time</p>
+                  </div>
+                  {routeInfo[idx] &&
+                    routeInfo[idx].map((goal, idx) => (
+                      <div key={idx} class="goal-info-item">
+                        <p class="no">{idx + 1}</p>
+                        <p>{goal.goal_user_name}</p>
+                        <p>
+                          {goal.left}:{goal.right}
+                        </p>
+                        <p>{goal.timestamp.toFixed(2)}</p>
+                      </div>
+                    ))}
+                </div>
+              ))}
             </div>
+          ) : (
+            <div></div>
           )
         ) : null}
       </div>
