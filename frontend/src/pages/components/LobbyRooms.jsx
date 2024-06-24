@@ -54,7 +54,6 @@ const LobbyRooms = ({ roomList, sendLobbySocket }) => {
         }
       });
     };
-
     pswdModalElement.addEventListener("hidden.bs.modal", handlePswdModalHidden);
     pswdModalElement.addEventListener("shown.bs.modal", handlePswdModalShown);
     pswdModalElement.addEventListener("show.bs.modal", handlePswdModalShow);

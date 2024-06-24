@@ -34,10 +34,22 @@ const LobbyPage = () => {
           }
           gotoPage(`/lobby/${data.room_id}`);
         } else if (data.type === "join_denied") {
-          document
-            .getElementById("PswdRoomModal")
-            .querySelector(".denied")
-            .classList.add("show");
+          const pswdRoomModalElement = document.getElementById("PswdRoomModal");
+          pswdRoomModalElement
+            .querySelector(".modal-content")
+            .classList.add("active");
+          pswdRoomModalElement
+            .querySelector(".modal-content")
+            .classList.add("shake");
+          pswdRoomModalElement.querySelector(".modal-content").addEventListener(
+            "animationend",
+            function () {
+              this.classList.remove("shake");
+              this.classList.remove("active");
+            },
+            { once: true }
+          );
+          pswdRoomModalElement.querySelector(".denied").classList.add("show");
         } else if (data.type === "password_required") {
           let enterModal = new bootstrap.Modal(
             document.getElementById("PswdRoomModal")
