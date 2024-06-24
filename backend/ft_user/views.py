@@ -42,7 +42,7 @@ class UserNameDetailView(RetrieveAPIView):
 	def get(self, request, *args, **kwargs):
 		user = self.get_object()
 		if user is None:
-			return JsonResponse({'status_code': '400', 'message': 'User not found'}, status=400)
+			return JsonResponse({'status_code': '200', 'message': 'User not found'}, status=200)
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 
