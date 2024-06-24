@@ -14,15 +14,30 @@ const LobbyPage = () => {
   useEffect(() => {
     const socketAsync = async () => {
       await connectGameLogicWebSocket(ws_gamelogic.dispatch, "/ws/lobby/");
+      console.log(ws_gamelogic.getState().socket); // debug
       ws_gamelogic.getState().socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
 
+        // console.log(data); // debug
         if (data.type === "room_list") {
           setRoomList(data.rooms);
         } else if (data.type === "join_approved") {
+          const pswdRoomModalElement = document.getElementById("PswdRoomModal");
+          if (pswdRoomModalElement.classList.contains("show")) {
+            pswdRoomModalElement.style.display = "none";
+            setTimeout(() => {
+              const modalBackdrop = document.querySelector(".modal-backdrop");
+              if (modalBackdrop) {
+                modalBackdrop.remove();
+              }
+            }, 10);
+          }
           gotoPage(`/lobby/${data.room_id}`);
         } else if (data.type === "join_denied") {
-          alert(data.message);
+          document
+            .getElementById("PswdRoomModal")
+            .querySelector(".denied")
+            .classList.add("show");
         } else if (data.type === "password_required") {
           let enterModal = new bootstrap.Modal(
             document.getElementById("PswdRoomModal")
@@ -59,6 +74,7 @@ const LobbyPage = () => {
       ws_gamelogic.getState().socket.readyState === WebSocket.OPEN
     ) {
       ws_gamelogic.getState().socket.send(JSON.stringify(roomData));
+      console.log(roomData);
     } else {
       console.log(
         ws_gamelogic.getState().socket,
