@@ -76,7 +76,6 @@ const RoomPage = () => {
   useEffect(() => {
     setWindowSize(windowSizeStore.dispatch, setWinSize);
     addEventArray(eventType.RESIZE, () => {
-      console.log("resize");
       setWindowSize(windowSizeStore.dispatch, setWinSize);
     });
     addEventHandler();
@@ -87,7 +86,6 @@ const RoomPage = () => {
       ws_gamelogic.getState().socket &&
       ws_gamelogic.getState().socket.readyState === WebSocket.OPEN
     ) {
-      console.log(roomData);
       ws_gamelogic.getState().socket.send(JSON.stringify(roomData));
     }
   };

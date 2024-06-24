@@ -95,7 +95,7 @@ const draw = () => {
 
 const update = () => {
   draw();
-  requestAnimationFrame(() => update());
+  // requestAnimationFrame(() => update());
 };
 
 const dirStat = {
