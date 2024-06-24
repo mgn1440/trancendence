@@ -1199,10 +1199,6 @@ class CustomGameConsumer(AsyncWebsocketConsumer):
                 return
             self.status = 'playing'
             if self.room_id in LobbyConsumer.rooms and self.scope['user'].username == LobbyConsumer.rooms[self.room_id]['game']['roles']['left']:
-                if "goal_score" not in LobbyConsumer.rooms[self.room_id]:
-                    LobbyConsumer.rooms[self.room_id]['goal_score'] = 3
-                if "items" not in LobbyConsumer.rooms[self.room_id]: #이건 고치면 없애기
-                    LobbyConsumer.rooms[self.room_id]['items'] = ["bar_up", "bar_down", "speed_up", "speed_down"]
                 asyncio.create_task(self.start_ball_movement())
         elif data['type'] == 'move_bar':
             self.update_bar_position(data['direction'], data['role'])
@@ -1512,6 +1508,7 @@ class CustomTournamentGameConsumer(AsyncWebsocketConsumer):
                 'players': [],
                 'roles' : {},
                 'match' : {},
+                'items' : [],
                 'winner_a' : None,
                 'winner_b' : None,
                 'winner_f' : None,
@@ -1806,13 +1803,13 @@ class CustomTournamentGameConsumer(AsyncWebsocketConsumer):
             self.match['ball']['y'] = self.match['ball']['radius']
         # 왼쪽 player bar에 부딪히면 방향 바꾸기
         if 20 < self.match['ball']['x'] - self.match['ball']['radius'] < 40:
-            if self.match['ball']['y'] > self.match['player_bar']['left'] and self.match['ball']['y'] < self.match['player_bar']['left'] + 180:
+            if self.match['ball']['y'] > self.match['player_bar']['left'] and self.match['ball']['y'] < self.match['player_bar']['left'] + (900 / self.match['bar_size']['left']):
                 degree = (self.match['player_bar']['left'] + 90 - self.match['ball']['y']) * 8 / 9
                 self.match['ball']['speedY'] = math.tan(math.radians(-degree)) * 5
                 self.match['ball']['speedX'] = 5
         # 오른쪽 player bar에 부딪히면 방향 바꾸기
         if 1160 < self.match['ball']['x'] + self.match['ball']['radius'] < 1180:
-            if self.match['ball']['y'] > self.match['player_bar']['right'] and self.match['ball']['y'] < self.match['player_bar']['right'] + 180:
+            if self.match['ball']['y'] > self.match['player_bar']['right'] and self.match['ball']['y'] < self.match['player_bar']['right'] + (900 / self.match['bar_size']['right']):
                 degree = (self.match['player_bar']['right'] + 90 - self.match['ball']['y']) * 8 / 9
                 self.match['ball']['speedY'] = math.tan(math.radians(degree)) * (-5)
                 self.match['ball']['speedX'] = -5
@@ -1830,7 +1827,7 @@ class CustomTournamentGameConsumer(AsyncWebsocketConsumer):
 
 
     def creat_item(self, match):
-        if len(self.game['items']) < 2:
+        if len(self.game[match]['items']) < 4:
             x = random.randint(200, 1000)
             y = 0
             item_type = random.choice(LobbyConsumer.rooms[self.room_id]['items'])
@@ -1865,6 +1862,7 @@ class CustomTournamentGameConsumer(AsyncWebsocketConsumer):
                         self.game[match]['bar_size']['left'] = 10
                     else:
                         self.game[match]['bar_size']['right'] = 10
+                self.game[match]['items'].remove(item)
 
     def record_goal(self, goal_user_position, match):
         match_player_1 = self.game[match]['players'][0]
@@ -1898,9 +1896,9 @@ class CustomTournamentGameConsumer(AsyncWebsocketConsumer):
         )
 
     async def check_game_over(self, match):
-        if self.game[match]['scores']['left'] >= 3:
+        if self.game[match]['scores']['left'] >= LobbyConsumer.rooms[self.room_id]['goal_score']:
             await self.game_end('left', 'right', match)
-        elif self.game[match]['scores']['right'] >= 3:
+        elif self.game[match]['scores']['right'] >= LobbyConsumer.rooms[self.room_id]['goal_score']:
             await self.game_end('right', 'left', match)
 
     async def game_end(self, winner, loser, match):
