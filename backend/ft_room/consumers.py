@@ -125,16 +125,6 @@ class RoomConsumer(AsyncWebsocketConsumer):
                 LobbyConsumer.rooms[self.room_id]['in_game_players'].append(LobbyConsumer.rooms[self.room_id]['players'][2])
                 LobbyConsumer.rooms[self.room_id]['in_game_players'].append(LobbyConsumer.rooms[self.room_id]['players'][3])
             
-            print (LobbyConsumer.rooms[self.room_id]['in_game_players'])
-            # 커스텀 게임일 경우 goal_score와 items를 설정
-            # goal_score는 int형
-            # items는 리스트형을 원함
-            # items에 들어갈 수 있는 요소는 "speed_up", "speed_down", "bar_up", "bar_down"
-            # 리스트로 보내줄 수 없다면 각 요소를 따로
-            # speed_up : true
-            # speed_down : false 
-            # 이런식으로 보내줘도 됨 <- 이렇게 되면 일요일날 와서 고칠게
-            # 현재 items에 담긴 게 없으면 default 로 모든 아이템을 true로 설정
             if LobbyConsumer.rooms[self.room_id]['is_custom']:
                 if 'goal_score' in data:
                     LobbyConsumer.rooms[self.room_id]['goal_score'] = data['goal_score']
