@@ -105,10 +105,18 @@ services:
     depends_on:
       - backend
     tty: true
-    depends_on:
-      - backend
     volumes:
       - "${NGINX_PATH}:/etc/nginx/conf.d"
+    networks:
+      - transcendence
+
+  certificate-generator:
+    container_name: certificate-generator
+    build:
+      context: ${CERTIFICATE_PATH}
+      dockerfile: Dockerfile.certificate
+    volumes:
+      - ${CERTIFICATE_PATH}/certs:/certs
     networks:
       - transcendence
 
@@ -152,13 +160,27 @@ services:
 
   alertmanager:
     container_name: alertmanager
+    env_file:
+      - ${BE_ENV_PATH}
     build:
       context: ${PROMETHEUS_PATH}
       dockerfile: Dockerfile.alertmanager
+    depends_on:
+      - certificate-generator
+    volumes:
+      - ${CERTIFICATE_PATH}/certs:/certs
     ports:
       - "9093:9093"
     networks:
       - transcendence
+    entrypoint:
+      - "/usr/local/bin/entrypoint.sh"
+      - "/etc/ssl/certs/alertmanager-selfsigned.crt"
+      - "60"
+      - "/usr/local/bin/alertmanager"
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--web.config.file=/opt/alertmanager/web.yml"
 
 networks:
   transcendence:

@@ -5,8 +5,6 @@ RUN apt-get update \
        ca-certificates \
        openssl
 
-RUN mkdir -p /etc/ssl/certs
-WORKDIR /etc/ssl/certs
 COPY generate-certificate.sh .
 RUN chmod +x generate-certificate.sh
 
