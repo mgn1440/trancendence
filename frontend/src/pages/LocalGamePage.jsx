@@ -105,13 +105,18 @@ const LocalGamePage = () => {
           let interval = setInterval(() => {
             timer--;
             const counter = document.querySelector(".pong-game-info h1");
-            counter.innerText = timer;
-            if (timer <= 0) {
-              counter.style.display = "none";
+            if (counter) {
+              counter.innerText = timer;
+              if (timer <= 0) {
+                counter.style.display = "none";
+                clearInterval(interval);
+                ws_gamelogic
+                  .getState()
+                  .socket.send(JSON.stringify({ type: "start_game" }));
+              }
+            } else {
+              timer++;
               clearInterval(interval);
-              ws_gamelogic
-                .getState()
-                .socket.send(JSON.stringify({ type: "start_game" }));
             }
           }, 1000);
           window.addEventListener("keydown", handleKeyDown);
