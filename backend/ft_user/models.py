@@ -12,7 +12,7 @@ class CustomUser(ExportModelOperationsMixin("user"), AbstractUser):
 	win = models.IntegerField(default=0)
 	lose = models.IntegerField(default=0)
 	multi_nickname = models.CharField(max_length=128, null=True, blank=True)
-	profile_image = models.ImageField(upload_to='profile_image/', null=True, blank=True)
+	profile_image = models.ImageField(upload_to='profile_image/', null=True, blank=True, max_length=4096)
 
 	def __str__(self):
 		return self.username
