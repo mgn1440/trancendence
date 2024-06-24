@@ -19,7 +19,6 @@ const cropImage = async (img, width, height) => {
   const canvas = document.createElement("canvas");
   canvas.width = cropSize;
   canvas.height = cropSize;
-  console.log(canvas.width, canvas.height);
   const ctx = canvas.getContext("2d");
   ctx.drawImage(img, 0, 0, cropSize, cropSize, 0, 0, cropSize, cropSize);
 
@@ -56,11 +55,8 @@ const cropImage = async (img, width, height) => {
     );
   }
 
-  console.log(file);
-
   const formData = new FormData();
   formData.append("file", file, "profile.jpg");
-  console.log(formData.get("file"));
   return formData.get("file");
 };
 
@@ -90,7 +86,6 @@ const ProfileImg = ({ stat, setStat, profile, setProfileImg }) => {
         setProfileImg(file);
         setProfileImgSrc(URL.createObjectURL(file));
       };
-      // console.log(typeof file, file);
     });
   }, []);
 
@@ -107,7 +102,6 @@ const ProfileImg = ({ stat, setStat, profile, setProfileImg }) => {
   };
 
   const changeProfile = () => {
-    console.log("change profile");
     const realUpload = document.querySelector(".real-upload");
     realUpload.click();
   };
@@ -148,25 +142,19 @@ const ProfileImg = ({ stat, setStat, profile, setProfileImg }) => {
           </button>
         </div>
       ) : stat === 2 ? (
-        (console.log("two"),
-        (
-          <div>
-            <button class="follow-btn" onclick={() => follow(username)}>
-              <img src="/icon/user.svg"></img>
-              Follow
-            </button>
-          </div>
-        ))
+        <div>
+          <button class="follow-btn" onclick={() => follow(username)}>
+            <img src="/icon/user.svg"></img>
+            Follow
+          </button>
+        </div>
       ) : (
-        (console.log(stat),
-        (
-          <div>
-            <button class="follow-btn" onclick={() => unfollow(username)}>
-              <img src="/icon/close.svg"></img>
-              Unfollow
-            </button>
-          </div>
-        ))
+        <div>
+          <button class="follow-btn" onclick={() => unfollow(username)}>
+            <img src="/icon/close.svg"></img>
+            Unfollow
+          </button>
+        </div>
       )}
     </div>
   );

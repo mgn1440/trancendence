@@ -8,7 +8,6 @@ import { isEmpty } from "@/lib/libft";
 import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 
 export const UserFind = ({ userData }) => {
-  console.log(userData);
   const imgSrc = `/img/minji_${
     (userData.username[0].charCodeAt(0) % 5) + 1
   }.jpg`;
@@ -104,7 +103,6 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     const loaderElement = document.getElementById("QuickMatchModal");
     const handleLoaderHidden = () => {
       sendLobbySocket({ type: "cancel_matchmaking" });
-      // console.log("modal hidden"); // debug
     };
 
     loaderElement.addEventListener("hidden.bs.modal", handleLoaderHidden);
@@ -131,12 +129,10 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
             if (findModal) {
               findModal.hide();
             }
-            console.log(findName.innerText); // debug
             const modalBackdrop = document.querySelector(".modal-backdrop");
             if (modalBackdrop) {
               modalBackdrop.remove();
             }
-            console.log(modalBackdrop); // debug
           }, 10);
           moveToProfile(findName.innerText);
         }

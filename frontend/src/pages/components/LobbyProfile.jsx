@@ -12,7 +12,6 @@ const LobbyProfile = ({ data, sendLobbySocket, stat }) => {
     const fetchProfile = async () => {
       const userMe = await axiosUserMe();
       setUserData(clientUserStore.dispatch, userMe.data.user_info);
-      // console.log(clientUserStore.getState()); // debug
       setMyProfile(userMe.data.user_info);
     };
     fetchProfile();
@@ -58,8 +57,6 @@ const LobbyProfile = ({ data, sendLobbySocket, stat }) => {
             <button
               class="lobby-game-btn"
               onclick={() => {
-                console.log("offline game");
-                console.log(myProfile.username);
                 gotoPage(`/local/${myProfile.username}`);
               }}
             >

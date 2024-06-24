@@ -90,15 +90,12 @@ const OTP = ({ len }) => {
         e.preventDefault();
       });
       input.addEventListener("paste", (e) => {
-        console.log(e.clipboardData.getData("text"));
         let pastedData = e.clipboardData.getData("text");
         let pastedDatalen = pastedData.length;
         if (pastedData.match(/[^0-9]/g)) {
           e.preventDefault();
-          console.log("not number");
           return;
         }
-        console.log(index);
         for (let i = 0; i < Math.min(pastedDatalen, 6); i++) {
           if (index + i >= 6) {
             break;
@@ -110,14 +107,12 @@ const OTP = ({ len }) => {
         }
         let foucusIndex = index + pastedDatalen;
         if (foucusIndex > 6) {
-          console.log("foucusIndex", foucusIndex);
           foucusIndex = 6;
           VerifyOTP(inputs);
           return;
         }
         inputs[index + pastedDatalen - 1].addEventListener("blur", blurEvent);
         inputs[index + pastedDatalen - 1].focus();
-        console.log(pastedDatalen, pastedData);
       });
     });
   }, []);
