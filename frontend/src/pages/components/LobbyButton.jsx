@@ -8,7 +8,6 @@ import { isEmpty } from "@/lib/libft";
 import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 
 export const UserFind = ({ userData }) => {
-  console.log(userData);
   const imgSrc = `/img/minji_${
     (userData.username[0].charCodeAt(0) % 5) + 1
   }.jpg`;
@@ -70,7 +69,7 @@ const getModalInput = (data) => {
     return false;
   }
   let mode = 0;
-  if (radios[2].checked || radios[4].checked) mode = 2;
+  if (radios[2].checked) mode = 2;
   else mode = 4;
   const retRoomData = {
     type: "create_room",
@@ -87,6 +86,7 @@ const getModalInput = (data) => {
 const LobbyButton = ({ data, sendLobbySocket }) => {
   const createRoomModalReset = () => {
     const modalElement = document.getElementById("CreateRoomModal");
+    if (!modalElement) return;
     const inputs = modalElement.querySelectorAll("input[type=text]");
     inputs.forEach((input) => (input.value = ""));
     const radios = modalElement.querySelectorAll("input[type=radio]");
@@ -97,14 +97,15 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     inputs[0].focus();
   };
   useEffect(() => {
+    // addEventArray(eventType.DOMLOADED, () => {
     createRoomModalReset();
+    // });
     const modalElement = document.getElementById("CreateRoomModal");
     modalElement.addEventListener("hidden.bs.modal", createRoomModalReset);
 
     const loaderElement = document.getElementById("QuickMatchModal");
     const handleLoaderHidden = () => {
       sendLobbySocket({ type: "cancel_matchmaking" });
-      // console.log("modal hidden"); // debug
     };
 
     loaderElement.addEventListener("hidden.bs.modal", handleLoaderHidden);
@@ -131,12 +132,10 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
             if (findModal) {
               findModal.hide();
             }
-            console.log(findName.innerText); // debug
             const modalBackdrop = document.querySelector(".modal-backdrop");
             if (modalBackdrop) {
               modalBackdrop.remove();
             }
-            console.log(modalBackdrop); // debug
           }, 10);
           moveToProfile(findName.innerText);
         }
