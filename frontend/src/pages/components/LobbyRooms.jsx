@@ -7,7 +7,6 @@ import { BottomSection } from "./ModalSection";
 let roomID = 0;
 
 const LobbyRoom = ({ roomInfo, clickEvent }) => {
-  console.log(roomInfo);
   return (
     <div
       class={`lobby-room ${

@@ -1,6 +1,7 @@
 import Modal from "./Modal";
 import { TitleSection, BottomSection } from "./ModalSection";
 import { gotoPage } from "@/lib/libft";
+import { axiosLogout } from "@/api/axios.custom";
 
 const TopNavBar = () => {
   return (
@@ -15,7 +16,11 @@ const TopNavBar = () => {
           BottomSection({
             ButtonName: "Logout",
             ClickEvent: () => {
-              console.log("logout");
+              axiosLogout().then((res) => {
+                if (res.status === 200) {
+                  gotoPage("/");
+                }
+              });
             },
           })
         }

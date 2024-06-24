@@ -101,13 +101,17 @@ const GamePage = () => {
             console.log(timer);
             timer--;
             const counter = document.querySelector(".pong-game-info h1");
-            counter.innerText = timer;
-            if (timer <= 0) {
-              counter.style.display = "none";
-              clearInterval(interval);
-              ws_gamelogic
-                .getState()
-                .socket.send(JSON.stringify({ type: "start_game" }));
+            if (counter) {
+              counter.innerText = timer;
+              if (timer <= 0) {
+                counter.style.display = "none";
+                clearInterval(interval);
+                ws_gamelogic
+                  .getState()
+                  .socket.send(JSON.stringify({ type: "start_game" }));
+              }
+            } else {
+              timer++;
             }
           }, 1000);
           addEventArray(eventType.KEYDOWN, (e) => {
