@@ -218,33 +218,38 @@ class AverageLineAPIView(APIView):
 			Q(player1=user) | Q(player2=user)
 		).order_by('created_at')
 
-		overall_win_rate = self.calculate_win_rate(records, username)
-
-		# Calculate win rate 3 games
-		recent_3_games = records[-3:]
-		recent_3_win_rate = self.calculate_win_rate(recent_3_games, username)
-
-		recent_5_games = records[-5:]
-		recent_5_win_rate = self.calculate_win_rate(recent_5_games, username)
-
 		win_rates = [1 if record.winner == username else 0 for record in records]
+		overall_win_rate = self.calculate_win_rate(win_rates)
 		moving_average_3 = self.moving_average(win_rates, 3)
 		moving_average_5 = self.moving_average(win_rates, 5)
 
+		response_data = {
+			'status_code': '200',
+			'index': list(range(1, len(win_rates) + 1)),
+			'rates_total': overall_win_rate,
+			'rates_3play': moving_average_3,
+			'rates_5play': moving_average_5,
+		}
 
-	def calculate_win_rate(self, games, username):
-		wins = games.filter(winner=username).count()
-		total = games.count()
-		return wins / total if total > 0 else 0
+		return JsonResponse(response_data, status=200)
+
+	def calculate_win_rate(self, win_rates):
+		cumulative_wins = 0
+		cumulative_win_rates = []
+		for i, win in enumerate(win_rates):
+			cumulative_wins += win
+			cumulative_win_rates.append(round(cumulative_wins / (i + 1), 2))
+		return cumulative_win_rates
 
 	def moving_average(self, data, window_size):
-		if len(data) < window_size:
-			return []
-
-		return [sum(data[i:i+window_size]) / window_size for i in range(len(data) - window_size + 1)]
-
-
-
+		moving_averages = []
+		for i in range(len(data)):
+			if i < window_size - 1:
+				moving_averages.append(None)
+			else:
+				window_avg = sum(data[i-window_size+1:i+1]) / window_size
+				moving_averages.append(round(window_avg * 100, 2))
+		return moving_averages
 
 
 def logout(request):
