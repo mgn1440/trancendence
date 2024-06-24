@@ -57,16 +57,16 @@ const drawItems = (items) => {
   items.forEach((item) => {
     switch (item.type) {
       case "speed_up":
-        context.fillStyle = "green";
+        context.fillStyle = "rgba(255, 0, 0, 0.75)";
         break;
       case "speed_down":
-        context.fillStyle = "yellow";
+        context.fillStyle = "rgba(0, 0, 255, 0.75)";
         break;
       case "bar_up":
-        context.fillStyle = "purple";
+        context.fillStyle = "rgba(255, 0, 255, 0.75)";
         break;
       case "bar_down":
-        context.fillStyle = "orange";
+        context.fillStyle = "rgba(255, 165, 0, 0.75)";
         break;
       default:
         context.fillStyle = "white";
@@ -86,6 +86,7 @@ const drawItems = (items) => {
     );
   });
 };
+
 const draw = () => {
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.fillStyle = "#181818";
