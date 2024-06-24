@@ -42,7 +42,7 @@ class UserNameDetailView(RetrieveAPIView):
 	def get(self, request, *args, **kwargs):
 		user = self.get_object()
 		if user is None:
-			return JsonResponse({'status_code': '400', 'message': 'User not found'}, status=400)
+			return JsonResponse({'status_code': '200', 'message': 'User not found'}, status=200)
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 
@@ -61,13 +61,13 @@ class UserMeView(RetrieveUpdateAPIView):
 			profile_image = request.FILES.get('profile_image')
 			if profile_image:
 				try:
-					target_path = 'profile_images/' + user.username + '/' + profile_image.name
-					path = default_storage.save(target_path, profile_image)
-					file_url = default_storage.url(path)
-					user.profile_image = file_url
+					user.profile_image = profile_image
 					user.save()
 				except Exception as e:
 					return JsonResponse({'status_code': '400', 'message': str(e)}, status=400)
+			elif profile_image is None:
+				user.profile_image = None
+				user.save()
 			return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 		return JsonResponse({'status_code': '400', 'message': serializer.error}, status=400)
 

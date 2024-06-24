@@ -53,7 +53,6 @@ const UserList = () => {
   useEffect(() => {
     const socketAsync = async () => {
       startWebSocketConnection(ws_userlist.dispatch, setUserListData);
-      // console.log(ws_userlist.getState()); //debug
     };
     socketAsync();
   }, []);

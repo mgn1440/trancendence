@@ -159,7 +159,6 @@ const drawBallRoute = (doneIdx) => {
     const stepX =
       info.ball_start_position.x +
       ((info.ball_end_position.x - info.ball_start_position.x) / 50) * step;
-    // console.log(info.ball_start_position.x, step, stepX);
     drawRoute(info.ball_start_position, info.ball_end_position, stepX, gameIdx);
     if (step >= 50) {
       drawBall(
@@ -286,7 +285,6 @@ const LogMultiItem = ({
       const gameDetail = await axiosGameDetail({ gameId: id });
       routeInfo.push(convertRouteInfo(gameDetail));
     }
-    console.log("handleGameDetail", routeInfo);
     setLogStat(PlayStat.DETAILS);
     setGameRecords({
       ...gameRecords,
@@ -379,7 +377,6 @@ const LobbyProfile = ({ profile }) => {
         username: profile.username,
       });
 
-      console.log("avgGameLineApi", avgGameLineApi.data);
       setGameRecords({
         playOfWeek: dayStatApi.data.day_count_stats,
         recentOpponent: recentOpponentApi.data.opponent_records,
@@ -454,7 +451,7 @@ const LobbyProfile = ({ profile }) => {
             {
               type: "line",
               tension: 0.3,
-              label: "# of Votes",
+              label: "Rate of Week",
               data: rateOfWins,
               borderWidth: 1,
               fill: true,
@@ -497,7 +494,7 @@ const LobbyProfile = ({ profile }) => {
             {
               type: "line",
               tension: 0.3,
-              label: "# of Votes",
+              label: "3plays avg",
               data: avgRates3,
               borderWidth: 1,
               fill: true,
@@ -506,7 +503,7 @@ const LobbyProfile = ({ profile }) => {
             {
               type: "line",
               tension: 0.3,
-              label: "# of Votes",
+              label: "Total avg",
               data: avgRates,
               borderWidth: 1,
               fill: true,
@@ -515,7 +512,7 @@ const LobbyProfile = ({ profile }) => {
             {
               type: "line",
               tension: 0.3,
-              label: "# of Votes",
+              label: "5plays avg",
               data: avgRates5,
               borderWidth: 1,
               fill: true,
@@ -547,7 +544,6 @@ const LobbyProfile = ({ profile }) => {
       });
     } else if (logStat === PlayStat.DETAIL || logStat === PlayStat.DETAILS) {
       canvas = document.querySelectorAll(".game-detail > canvas");
-      console.log(canvas);
       ctx = [...canvas].map((cvsComponent) => cvsComponent.getContext("2d"));
 
       for (let context of ctx) {
@@ -681,7 +677,6 @@ const LobbyProfile = ({ profile }) => {
               <canvas id="myChartAvgRates"></canvas>
               {/* <h4>Recent Opponents</h4>
               {Object.keys(gameRecords.recentOpponent).map((key) => {
-                console.log(key);
                 return (
                   <RecentOpponentItem
                     name={key}

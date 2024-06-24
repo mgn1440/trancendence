@@ -13,12 +13,14 @@ const ProfileConfigPage = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       const userMe = await axiosUserMe();
+      if (!userMe.data) {
+        return;
+      }
       setUserData(clientUserStore.dispatch, userMe.data.user_info);
       setProfile(userMe.data.user_info);
     };
     fetchProfile();
   }, []);
-  console.log(clientUserStore.getState().client);
   return (
     <div>
       {isEmpty(clientUserStore.getState().client) ? null : (

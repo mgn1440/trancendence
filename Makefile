@@ -101,6 +101,9 @@ fclean:
 backend-restart:
 	docker compose -f $(COMPOSE_FILE) restart backend
 
+frontend-restart:
+	docker compose -f $(COMPOSE_FILE) restart frontend
+
 nginx-restart:
 	docker compose -f $(COMPOSE_FILE) restart nginx
 

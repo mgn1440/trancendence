@@ -31,7 +31,7 @@ instance.interceptors.response.use(
       error.response?.status === STATUS_401_UNAUTHORIZED ||
       error.response?.status === STATUS_403_FORBIDDEN
     ) {
-      alert(error.response.data.message);
+      // alert(error.response.data.message);
       gotoPage("/");
     }
     return Promise.reject(error);

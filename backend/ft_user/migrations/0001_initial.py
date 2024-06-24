@@ -32,11 +32,11 @@ class Migration(migrations.Migration):
                 ('username', models.CharField(max_length=128, unique=True)),
                 ('otp_enabled', models.BooleanField(default=False, null=True)),
                 ('password', models.CharField(blank=True, max_length=128, null=True)),
-                ('refresh_token', models.CharField(blank=True, max_length=1024, null=True)),
+                ('refresh_token', models.CharField(blank=True, max_length=4096, null=True)),
                 ('win', models.IntegerField(default=0)),
                 ('lose', models.IntegerField(default=0)),
                 ('multi_nickname', models.CharField(blank=True, max_length=128, null=True)),
-                ('profile_image', models.ImageField(blank=True, null=True, upload_to='profile_image/')),
+                ('profile_image', models.ImageField(blank=True, max_length=4096, null=True, upload_to='profile_image/')),
                 ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups')),
                 ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions')),
             ],
@@ -101,3 +101,5 @@ class Migration(migrations.Migration):
             ],
         ),
     ]
+
+
