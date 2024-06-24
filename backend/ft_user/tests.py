@@ -292,3 +292,22 @@ from backend.settings import JWT_SECRET_KEY
 # 		self.user.refresh_from_db()
 # 		response = self.client.get(self.url)
 # 		print(response.content)
+
+class AverageAPIViewTest(APITestCase):
+	def setUp(self):
+		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
+		self.user2 = CustomUser.objects.create_user(username="sunghyun", uid=2)
+		self.game_record1 = SingleGameRecord.objects.create(id=1, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
+		self.game_record2 = SingleGameRecord.objects.create(id=2, player1=self.user, player1_score=2, player2=self.user2, player2_score=5, is_tournament=False)
+		self.game_record3 = SingleGameRecord.objects.create(id=3, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
+		self.game_record4 = SingleGameRecord.objects.create(id=4, player1=self.user, player1_score=1, player2=self.user2, player2_score=3, is_tournament=False)
+		self.game_record5 = SingleGameRecord.objects.create(id=5, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
+		self.game_record6 = SingleGameRecord.objects.create(id=6, player1=self.user, player1_score=1, player2=self.user2, player2_score=3, is_tournament=False)
+		self.game_record7 = SingleGameRecord.objects.create(id=7, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
+		self.game_record8 = SingleGameRecord.objects.create(id=8, player1=self.user, player1_score=1, player2=self.user2, player2_score=3, is_tournament=False)
+		self.game_record9 = SingleGameRecord.objects.create(id=9, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
+		self.game_record10 = SingleGameRecord.objects.create(id=10, player1=self.user, player1_score=1, player2=self.user2, player2_score=3, is_tournament=False)
+	def test_get_average_line(self):
+		url = reverse('average_line', kwargs={'username': self.user.username})
+		response = self.client.get(url)
+		print(response.content)

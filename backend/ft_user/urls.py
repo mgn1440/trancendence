@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import render
 from .views import OtpUpdateView, FollowView, ProfileImageView, logout, SingleGameRecordListView, FollowDetailView, \
-	MultiGameRecordListView, UserMeView, UserNameDetailView, SingleGameDetailListView, DayStatAPIView, RecentOpponentsAPIView
+	MultiGameRecordListView, UserMeView, UserNameDetailView, SingleGameDetailListView, DayStatAPIView, RecentOpponentsAPIView, \
+		AverageLineAPIView
 
 urlpatterns = [
 	path('otp/', OtpUpdateView.as_view(), name='otp_update'),
@@ -18,4 +19,5 @@ urlpatterns = [
 	path('<str:username>/', UserNameDetailView.as_view(), name='user_detail_by_username'),
 	# TODO: delete this url
 	path('<str:username>/profile-image/', ProfileImageView.as_view(), name='profile_image'),
+	path('<str:username>/average-line/',AverageLineAPIView.as_view(), name='average_line'),
 ]
