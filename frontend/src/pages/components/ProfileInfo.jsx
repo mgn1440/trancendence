@@ -501,7 +501,7 @@ const LobbyProfile = ({ profile }) => {
               data: avgRates,
               borderWidth: 1,
               fill: true,
-              backgroundColor: "rgba(255,255,255,0.3)",
+              backgroundColor: "rgba(255,255,255,0.5)",
             },
             {
               type: "line",
@@ -510,7 +510,7 @@ const LobbyProfile = ({ profile }) => {
               data: avgRates3,
               borderWidth: 1,
               fill: true,
-              backgroundColor: "rgba(255,255,255,0.3)",
+              backgroundColor: "rgba(255,100,100,0.5)",
             },
             {
               type: "line",
@@ -519,7 +519,7 @@ const LobbyProfile = ({ profile }) => {
               data: avgRates5,
               borderWidth: 1,
               fill: true,
-              backgroundColor: "rgba(255,255,255,0.3)",
+              backgroundColor: "rgba(100,100,255,0.5)",
             },
           ],
         },
@@ -672,7 +672,7 @@ const LobbyProfile = ({ profile }) => {
                 ))}
             </div>
           ) : logStat === PlayStat.DASHBOARD ? (
-            <div class="log-container forward">
+            <div class="log-container detail">
               <h4>Play of Week</h4>
               <canvas id="myChartCnt"></canvas>
               <h4>Winning Rate of Week</h4>
@@ -691,7 +691,7 @@ const LobbyProfile = ({ profile }) => {
               })} */}
             </div>
           ) : gameRecords.gameDetail ? (
-            <div class="log-container forward">
+            <div class="log-container detail">
               {routeInfo.map((value, idx) => (
                 <div class="game-detail-page">
                   <div class="game-detail">
