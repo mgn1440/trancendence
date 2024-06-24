@@ -121,9 +121,9 @@ services:
       - transcendence
 
   prometheus:
-    container_name: prometheus
     env_file:
       - ${BE_ENV_PATH}
+    container_name: prometheus
     build:
       context: ${PROMETHEUS_PATH}
       dockerfile: Dockerfile.prometheus
@@ -148,8 +148,6 @@ services:
 
   node-exporter:
     container_name: node-exporter
-    env_file:
-      - ${BE_ENV_PATH}
     build:
       context: ${PROMETHEUS_PATH}
       dockerfile: Dockerfile.node-exporter
