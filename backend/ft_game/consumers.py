@@ -15,6 +15,12 @@ import math
 
 class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        
+        if self.scope['user'].is_anonymous:
+            await self.close()
+            return
+        
+        
         self.room_id_str = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = self.room_id_str
         self.room_id = int(self.room_id_str)
@@ -84,6 +90,9 @@ class GameConsumer(AsyncWebsocketConsumer):
         self.status = 'connect error'
 
     async def disconnect(self, close_code):
+        if self.scope['user'].is_anonymous:
+            return
+        
         if self.room_id not in LobbyConsumer.rooms:
             await self.channel_layer.group_discard(
                 self.room_group_name,
@@ -352,6 +361,10 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
     game_record_list = {}
     game_player_list = {}
     async def connect(self):
+        if self.scope['user'].is_anonymous:
+            await self.close()
+            return
+        
         self.room_id_str = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = self.room_id_str
         self.room_id = int(self.room_id_str)
@@ -469,7 +482,8 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
         }))
 
     async def disconnect(self, close_code):
-
+        if self.scope['user'].is_anonymous:
+            return
         if self.room_id not in LobbyConsumer.rooms:
             await self.channel_layer.group_discard(
                 self.room_group_name,
@@ -898,6 +912,9 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 
 class LocalGameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        if self.scope['user'].is_anonymous:
+            await self.close()
+            return
         self.host_username = self.scope['url_route']['kwargs']['host_username']
         self.room_group_name = f"local_game_{self.host_username}"
         self.game_status = 'waiting'
@@ -923,6 +940,8 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
         )
 
     async def disconnect(self, close_code):
+        if self.scope['user'].is_anonymous:
+            return
         del self.game
         await self.channel_layer.group_discard(
             self.room_group_name,
@@ -1051,6 +1070,9 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
 
 class CustomGameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        if self.scope['user'].is_anonymous:
+            await self.close()
+            return
         self.room_id_str = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = self.room_id_str
         self.room_id = int(self.room_id_str)
@@ -1122,6 +1144,8 @@ class CustomGameConsumer(AsyncWebsocketConsumer):
         self.status = 'connect error'
 
     async def disconnect(self, close_code):
+        if self.scope['user'].is_anonymous:
+            return
         if self.room_id not in LobbyConsumer.rooms:
             await self.channel_layer.group_discard(
                 self.room_group_name,
@@ -1412,6 +1436,9 @@ class CustomTournamentGameConsumer(AsyncWebsocketConsumer):
     game_record_list = {}
     game_player_list = {}
     async def connect(self):
+        if self.scope['user'].is_anonymous:
+            await self.close()
+            return
         self.room_id_str = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = self.room_id_str
         self.room_id = int(self.room_id_str)
@@ -1536,6 +1563,8 @@ class CustomTournamentGameConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
 
+        if self.scope['user'].is_anonymous:
+            return
         if self.room_id not in LobbyConsumer.rooms:
             await self.channel_layer.group_discard(
                 self.room_group_name,
