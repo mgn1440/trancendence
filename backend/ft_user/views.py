@@ -225,7 +225,7 @@ class AverageLineAPIView(APIView):
 
 		response_data = {
 			'status_code': '200',
-			'index': list(range(1, len(win_rates) + 1)),
+			'index': list(range(len(win_rates), 0, -1)),
 			'rates_total': overall_win_rate,
 			'rates_3play': moving_average_3,
 			'rates_5play': moving_average_5,
@@ -238,14 +238,14 @@ class AverageLineAPIView(APIView):
 		cumulative_win_rates = []
 		for i, win in enumerate(win_rates):
 			cumulative_wins += win
-			cumulative_win_rates.append(round(cumulative_wins / (i + 1), 2))
+			cumulative_win_rates.append(round(cumulative_wins / (i + 1) * 100, 2))
 		return cumulative_win_rates
 
 	def moving_average(self, data, window_size):
 		moving_averages = []
 		for i in range(len(data)):
 			if i < window_size - 1:
-				moving_averages.append(None)
+				moving_averages.append(0.0)
 			else:
 				window_avg = sum(data[i-window_size+1:i+1]) / window_size
 				moving_averages.append(round(window_avg * 100, 2))
