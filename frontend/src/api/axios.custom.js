@@ -105,6 +105,18 @@ export const axiosGameRecords = async ({ username, isSingle }) => {
   }
 };
 
+export const axiosAvgGameLine = async ({ username }) => {
+  try {
+    const response = await instance.get(
+      `${axiosUserURL}/${username}/average-line`
+    );
+    return response;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
+
 export const axiosUserFollow = async (user_name) => {
   try {
     const apiURL = axiosUserFollowURL + "/";

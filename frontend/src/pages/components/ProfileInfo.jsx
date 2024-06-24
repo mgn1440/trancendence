@@ -4,6 +4,7 @@ import {
   axiosUserDayStat,
   axiosUserRecentOpponent,
   axiosGameDetail,
+  axiosAvgGameLine,
 } from "@/api/axios.custom";
 import { Chart, registerables } from "chart.js";
 import { isEmpty } from "@/lib/libft";
@@ -374,11 +375,17 @@ const LobbyProfile = ({ profile }) => {
         isSingle: "MULTI",
       });
 
+      const avgGameLineApi = await axiosAvgGameLine({
+        username: profile.username,
+      });
+
+      console.log("avgGameLineApi", avgGameLineApi.data);
       setGameRecords({
         playOfWeek: dayStatApi.data.day_count_stats,
         recentOpponent: recentOpponentApi.data.opponent_records,
         singleRecords: singleRecordsApi.data.record_list,
         multiRecords: multiRecordsApi.data.record_list,
+        avgGameLine: avgGameLineApi.data,
       });
     };
     getGameRecords();
@@ -449,6 +456,67 @@ const LobbyProfile = ({ profile }) => {
               tension: 0.3,
               label: "# of Votes",
               data: rateOfWins,
+              borderWidth: 1,
+              fill: true,
+              backgroundColor: "rgba(255,255,255,0.3)",
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              grid: {
+                color: (context) => {
+                  // if (context.tick.value % 20 === 0) {
+                  //   return "rgba(255,255,255,0.8)";
+                  // }
+                  return "rgba(255,255,255,0.4)";
+                },
+                lineWidth: (context) => {
+                  return 1;
+                },
+              },
+              ticks: {
+                stepSize: 20,
+              },
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+
+      const avgLabels = gameRecords.avgGameLine.index;
+      const avgRates = gameRecords.avgGameLine.rates_total;
+      const avgRates3 = gameRecords.avgGameLine.rates_3play;
+      const avgRates5 = gameRecords.avgGameLine.rates_5play;
+      ctx = document.getElementById("myChartAvgRates");
+      new Chart(ctx, {
+        data: {
+          labels: avgLabels,
+          datasets: [
+            {
+              type: "line",
+              tension: 0.3,
+              label: "# of Votes",
+              data: avgRates,
+              borderWidth: 1,
+              fill: true,
+              backgroundColor: "rgba(255,255,255,0.3)",
+            },
+            {
+              type: "line",
+              tension: 0.3,
+              label: "# of Votes",
+              data: avgRates3,
+              borderWidth: 1,
+              fill: true,
+              backgroundColor: "rgba(255,255,255,0.3)",
+            },
+            {
+              type: "line",
+              tension: 0.3,
+              label: "# of Votes",
+              data: avgRates5,
               borderWidth: 1,
               fill: true,
               backgroundColor: "rgba(255,255,255,0.3)",
@@ -609,6 +677,8 @@ const LobbyProfile = ({ profile }) => {
               <canvas id="myChartCnt"></canvas>
               <h4>Winning Rate of Week</h4>
               <canvas id="myChartRate"></canvas>
+              <h4>Average Winning Rates</h4>
+              <canvas id="myChartAvgRates"></canvas>
               {/* <h4>Recent Opponents</h4>
               {Object.keys(gameRecords.recentOpponent).map((key) => {
                 console.log(key);
