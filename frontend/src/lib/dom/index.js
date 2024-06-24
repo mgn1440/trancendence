@@ -65,6 +65,10 @@ const domRenderer = () => {
     renderInfo.$root = root;
     renderInfo.component = component;
     disconnectGameLogicWebSocket();
+    const modalBackdrop = document.querySelector(".modal-backdrop");
+    if (modalBackdrop) {
+      modalBackdrop.remove();
+    }
     _render();
   };
 

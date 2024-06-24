@@ -70,6 +70,7 @@ const GamePage = () => {
               }
             } else {
               timer++;
+              clearInterval(interval);
             }
           }, 1000);
           addEventArray(eventType.KEYDOWN, (e) => {
