@@ -134,14 +134,12 @@ const LocalGamePage = () => {
 
       ws_gamelogic.getState().socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
         if (data.type === "game_start") {
           startFlag = true;
           gameState = data.game;
           setGameStat([data.game.scores, data.game.roles]);
           let timer = 3;
           let interval = setInterval(() => {
-            console.log(timer);
             timer--;
             const counter = document.querySelector(".pong-game-info h1");
             counter.innerText = timer;
@@ -163,7 +161,6 @@ const LocalGamePage = () => {
           gotoPage(`/lobby`);
         } else if (data.type === "error") {
           alert(data.message);
-          console.log(data.message);
           gotoPage("/lobby");
         }
       };

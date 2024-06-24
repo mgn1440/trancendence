@@ -89,7 +89,6 @@ const GamePage = () => {
 
       ws_gamelogic.getState().socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
         if (data.type === "game_start") {
           startFlag = true;
           gameState = data.game;
@@ -98,7 +97,6 @@ const GamePage = () => {
           setGameStat([data.game.scores, data.game.roles]);
           let timer = 3;
           let interval = setInterval(() => {
-            console.log(timer);
             timer--;
             const counter = document.querySelector(".pong-game-info h1");
             if (counter) {
@@ -157,7 +155,6 @@ const GamePage = () => {
           gotoPage(`/lobby/${data.room_id}`);
         } else if (data.type === "error") {
           alert(data.message);
-          console.log(data.message);
           gotoPage("/lobby");
         }
       };

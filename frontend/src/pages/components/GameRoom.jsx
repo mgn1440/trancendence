@@ -46,7 +46,6 @@ const GameRoom = ({ gameData, isStart, isCustom, sendRoomSocket }) => {
       <div />
     );
 
-  console.log(gameData);
   return (
     <div class="game-room-main">
       <div class="game-room-nav">

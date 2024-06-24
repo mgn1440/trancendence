@@ -18,7 +18,6 @@ const ProfileConfigPage = () => {
     };
     fetchProfile();
   }, []);
-  console.log(clientUserStore.getState().client);
   return (
     <div>
       {isEmpty(clientUserStore.getState().client) ? null : (
