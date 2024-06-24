@@ -4,6 +4,7 @@ import {
   axiosUserDayStat,
   axiosUserRecentOpponent,
   axiosGameDetail,
+  axiosAvgGameLine,
 } from "@/api/axios.custom";
 import { Chart, registerables } from "chart.js";
 import { isEmpty } from "@/lib/libft";
@@ -158,7 +159,6 @@ const drawBallRoute = (doneIdx) => {
     const stepX =
       info.ball_start_position.x +
       ((info.ball_end_position.x - info.ball_start_position.x) / 50) * step;
-    // console.log(info.ball_start_position.x, step, stepX);
     drawRoute(info.ball_start_position, info.ball_end_position, stepX, gameIdx);
     if (step >= 50) {
       drawBall(
@@ -285,7 +285,6 @@ const LogMultiItem = ({
       const gameDetail = await axiosGameDetail({ gameId: id });
       routeInfo.push(convertRouteInfo(gameDetail));
     }
-    console.log("handleGameDetail", routeInfo);
     setLogStat(PlayStat.DETAILS);
     setGameRecords({
       ...gameRecords,
@@ -374,11 +373,16 @@ const LobbyProfile = ({ profile }) => {
         isSingle: "MULTI",
       });
 
+      const avgGameLineApi = await axiosAvgGameLine({
+        username: profile.username,
+      });
+
       setGameRecords({
         playOfWeek: dayStatApi.data.day_count_stats,
         recentOpponent: recentOpponentApi.data.opponent_records,
         singleRecords: singleRecordsApi.data.record_list,
         multiRecords: multiRecordsApi.data.record_list,
+        avgGameLine: avgGameLineApi.data,
       });
     };
     getGameRecords();
@@ -447,7 +451,7 @@ const LobbyProfile = ({ profile }) => {
             {
               type: "line",
               tension: 0.3,
-              label: "# of Votes",
+              label: "Rate of Week",
               data: rateOfWins,
               borderWidth: 1,
               fill: true,
@@ -477,9 +481,69 @@ const LobbyProfile = ({ profile }) => {
           },
         },
       });
+
+      const avgLabels = gameRecords.avgGameLine.index;
+      const avgRates = gameRecords.avgGameLine.rates_total;
+      const avgRates3 = gameRecords.avgGameLine.rates_3play;
+      const avgRates5 = gameRecords.avgGameLine.rates_5play;
+      ctx = document.getElementById("myChartAvgRates");
+      new Chart(ctx, {
+        data: {
+          labels: avgLabels,
+          datasets: [
+            {
+              type: "line",
+              tension: 0.3,
+              label: "3plays avg",
+              data: avgRates3,
+              borderWidth: 1,
+              fill: true,
+              backgroundColor: "rgba(255,130,130,0.5)",
+            },
+            {
+              type: "line",
+              tension: 0.3,
+              label: "Total avg",
+              data: avgRates,
+              borderWidth: 1,
+              fill: true,
+              backgroundColor: "rgba(255,255,255,0.2)",
+            },
+            {
+              type: "line",
+              tension: 0.3,
+              label: "5plays avg",
+              data: avgRates5,
+              borderWidth: 1,
+              fill: true,
+              backgroundColor: "rgba(130,130,255,0.5)",
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              grid: {
+                color: (context) => {
+                  // if (context.tick.value % 20 === 0) {
+                  //   return "rgba(255,255,255,0.8)";
+                  // }
+                  return "rgba(255,255,255,0.4)";
+                },
+                lineWidth: (context) => {
+                  return 1;
+                },
+              },
+              ticks: {
+                stepSize: 20,
+              },
+              beginAtZero: true,
+            },
+          },
+        },
+      });
     } else if (logStat === PlayStat.DETAIL || logStat === PlayStat.DETAILS) {
       canvas = document.querySelectorAll(".game-detail > canvas");
-      console.log(canvas);
       ctx = [...canvas].map((cvsComponent) => cvsComponent.getContext("2d"));
 
       for (let context of ctx) {
@@ -604,14 +668,15 @@ const LobbyProfile = ({ profile }) => {
                 ))}
             </div>
           ) : logStat === PlayStat.DASHBOARD ? (
-            <div class="log-container forward">
+            <div class="log-container detail">
               <h4>Play of Week</h4>
               <canvas id="myChartCnt"></canvas>
               <h4>Winning Rate of Week</h4>
               <canvas id="myChartRate"></canvas>
+              <h4>Average Winning Rates</h4>
+              <canvas id="myChartAvgRates"></canvas>
               {/* <h4>Recent Opponents</h4>
               {Object.keys(gameRecords.recentOpponent).map((key) => {
-                console.log(key);
                 return (
                   <RecentOpponentItem
                     name={key}
@@ -621,7 +686,7 @@ const LobbyProfile = ({ profile }) => {
               })} */}
             </div>
           ) : gameRecords.gameDetail ? (
-            <div class="log-container forward">
+            <div class="log-container detail">
               {routeInfo.map((value, idx) => (
                 <div class="game-detail-page">
                   <div class="game-detail">

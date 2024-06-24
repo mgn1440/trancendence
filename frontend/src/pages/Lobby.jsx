@@ -56,7 +56,6 @@ const LobbyPage = () => {
           );
           enterModal.show();
         } else if (data.type === "matchmaking_waiting") {
-          console.log("matchmaking_waiting"); //debug
         } else if (data.type === "goto_matchmaking_game") {
           const quickMatchModal = new bootstrap.Modal(
             document.getElementById("QuickMatchModal")
@@ -70,7 +69,6 @@ const LobbyPage = () => {
               modalBackdrop.remove();
             }
           }, 10);
-          console.log(quickMatchModal); //debug
           gotoPage(`/game/${data.room_id}`);
         } else if (data.type === "room_created") {
           gotoPage(`/lobby/${data.room_id}`);
@@ -88,10 +86,6 @@ const LobbyPage = () => {
       ws_gamelogic.getState().socket.send(JSON.stringify(roomData));
       console.log(roomData);
     } else {
-      console.log(
-        ws_gamelogic.getState().socket,
-        ws_gamelogic.getState().socket.readyState
-      );
       console.log("socket is not ready");
     }
   };

@@ -42,7 +42,7 @@ class UserNameDetailView(RetrieveAPIView):
 	def get(self, request, *args, **kwargs):
 		user = self.get_object()
 		if user is None:
-			return JsonResponse({'status_code': '400', 'message': 'User not found'}, status=400)
+			return JsonResponse({'status_code': '200', 'message': 'User not found'}, status=200)
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 
@@ -61,13 +61,13 @@ class UserMeView(RetrieveUpdateAPIView):
 			profile_image = request.FILES.get('profile_image')
 			if profile_image:
 				try:
-					target_path = 'profile_images/' + user.username + '/' + profile_image.name
-					path = default_storage.save(target_path, profile_image)
-					file_url = default_storage.url(path)
-					user.profile_image = file_url
+					user.profile_image = profile_image
 					user.save()
 				except Exception as e:
 					return JsonResponse({'status_code': '400', 'message': str(e)}, status=400)
+			elif profile_image is None:
+				user.profile_image = None
+				user.save()
 			return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 		return JsonResponse({'status_code': '400', 'message': serializer.error}, status=400)
 
@@ -208,6 +208,48 @@ class RecentOpponentsAPIView(APIView):
 				opponent_records[opponent.username]['loses'] += 1
 			opponent_records[opponent.username]['total'] += 1
 		return JsonResponse({'status_code': '200', 'opponent_records': opponent_records}, status=200)
+
+class AverageLineAPIView(APIView):
+	def get(self, request, username):
+		if not CustomUser.objects.filter(username=username).exists():
+			return JsonResponse({'status_code': '404', 'message': 'User not found'}, status=404)
+		user = CustomUser.objects.get(username=username)
+		records = SingleGameRecord.objects.filter(
+			Q(player1=user) | Q(player2=user)
+		).order_by('created_at')
+
+		win_rates = [1 if record.winner == username else 0 for record in records]
+		overall_win_rate = self.calculate_win_rate(win_rates)
+		moving_average_3 = self.moving_average(win_rates, 3)
+		moving_average_5 = self.moving_average(win_rates, 5)
+
+		response_data = {
+			'status_code': '200',
+			'index': list(range(len(win_rates), 0, -1)),
+			'rates_total': overall_win_rate,
+			'rates_3play': moving_average_3,
+			'rates_5play': moving_average_5,
+		}
+
+		return JsonResponse(response_data, status=200)
+
+	def calculate_win_rate(self, win_rates):
+		cumulative_wins = 0
+		cumulative_win_rates = []
+		for i, win in enumerate(win_rates):
+			cumulative_wins += win
+			cumulative_win_rates.append(round(cumulative_wins / (i + 1) * 100, 2))
+		return cumulative_win_rates
+
+	def moving_average(self, data, window_size):
+		moving_averages = []
+		for i in range(len(data)):
+			if i < window_size - 1:
+				moving_averages.append(0.0)
+			else:
+				window_avg = sum(data[i-window_size+1:i+1]) / window_size
+				moving_averages.append(round(window_avg * 100, 2))
+		return moving_averages
 
 
 def logout(request):

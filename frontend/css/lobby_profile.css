@@ -1,5 +1,4 @@
 .lobby-profile {
-  /* height: minmax(3rem, 5rem); */
   height: 20vh;
   min-height: 8rem;
   display: flex;
@@ -8,8 +7,9 @@
 }
 
 .profile-start > img {
-  height: 18vh;
+  height: 16vh;
   min-height: 6rem;
+  max-height: 10rem;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   /* border: 1px solid var(--white); */

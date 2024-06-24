@@ -4,58 +4,17 @@ import { history } from "@/lib/router";
 import { ws_gamelogic, connectGameLogicWebSocket } from "@/store/gameLogicWS";
 import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 import Bracket from "./components/Bracket";
+import {
+  draw,
+  setGameState,
+  canvas,
+  setCanvas,
+  setRatio,
+} from "./utils/GameLogic";
 
-let gameState;
-let canvas;
-let context;
-let ratio;
 let role;
 let match;
-
 let users;
-
-const drawPaddle = (x, y) => {
-  context.fillStyle = "#ffffff";
-  context.fillRect(x * ratio, y * ratio, 20 * ratio, canvas.height / 5);
-};
-
-const drawBall = (x, y) => {
-  context.fillStyle = "#ffffff";
-  // context.fillRect(x, y, 20, 20);
-  context.beginPath();
-  context.arc(
-    gameState.ball.x * ratio,
-    gameState.ball.y * ratio,
-    gameState.ball.radius * ratio,
-    0,
-    Math.PI * 2
-  );
-  context.fill();
-  context.closePath();
-};
-
-const drawLine = () => {
-  context.beginPath();
-  context.moveTo(canvas.width / 2, 0);
-  context.lineTo(canvas.width / 2, canvas.height);
-  context.strokeStyle = "#ffffff";
-  context.lineWidth = 2;
-  context.stroke();
-  context.closePath();
-};
-
-const draw = () => {
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = "#181818";
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = "#ffffff";
-  drawPaddle(20, gameState.player_bar.left);
-  drawPaddle(1160, gameState.player_bar.right);
-  drawBall(gameState.ball.x, gameState.ball.y);
-  drawLine();
-  // context.font = "20px Quantico";
-  // context.fillText("User1", 10, 20);
-};
 
 const update = () => {
   draw();
@@ -98,7 +57,7 @@ const GamePage = () => {
         // console.log(data);
         if (data.type === "game_start") {
           startFlag = true;
-          gameState = data.game;
+          setGameState(data.game);
           setGameStat([data.game.scores, data.roles]);
           users = [
             data.match_a_player[0],
@@ -117,17 +76,21 @@ const GamePage = () => {
             console.log(timer);
             timer--;
             const counter = document.querySelector(".pong-game-info h1");
-            counter.innerText = timer;
-            if (timer <= 0) {
-              counter.style.display = "none";
-              clearInterval(interval);
-              ws_gamelogic.getState().socket.send(
-                JSON.stringify({
-                  type: "start_game",
-                  role: role,
-                  match: match,
-                })
-              );
+            if (counter) {
+              counter.innerText = timer;
+              if (timer <= 0) {
+                counter.style.display = "none";
+                clearInterval(interval);
+                ws_gamelogic.getState().socket.send(
+                  JSON.stringify({
+                    type: "start_game",
+                    role: role,
+                    match: match,
+                  })
+                );
+              }
+            } else {
+              timer++;
             }
           }, 1000);
           addEventArray(eventType.KEYDOWN, (e) => {
@@ -161,7 +124,7 @@ const GamePage = () => {
           });
           addEventHandler();
         } else if (data.type === "update_game") {
-          gameState = data.game;
+          setGameState(data.game);
           setGameStat([data.game.scores, data.roles]);
         } else if (data.type === "game_over") {
           const newUsers = [...users];
@@ -216,14 +179,16 @@ const GamePage = () => {
           console.log(data.message);
           gotoPage("/lobby");
         } else if (data.type === "final_game_start") {
-          gameState = data.game;
+          setGameState(data.game);
           setGameStat([data.game.scores, data.roles]);
           role = data.role;
           match = data.match;
           let timer = 3;
+          const counter = document.querySelector(".pong-game-info h1");
+          counter.innerText = timer;
+          counter.style.display = "inline";
           let interval = setInterval(() => {
             timer--;
-            const counter = document.querySelector(".pong-game-info h1");
             counter.innerText = timer;
             if (timer <= 0) {
               counter.style.display = "none";
@@ -247,20 +212,23 @@ const GamePage = () => {
   useEffect(() => {
     if (isEmpty(gameStat)) return;
     document.getElementById("pong-game").style.display = "block";
-    canvas = document.getElementById("pong-game");
     let windowH = window.innerHeight;
     if (window.innerHeight > 800) {
       windowH = window.innerHeight - 400;
     }
-    if (windowH / 3 > window.innerWidth / 4) {
-      canvas.width = window.innerWidth - 10;
-      canvas.height = (window.innerWidth * 3) / 4 - 10;
+    if (window.innerHeight / 3 > window.innerWidth / 4) {
+      setCanvas(
+        document.getElementById("pong-game"),
+        window.innerWidth - 10,
+        (window.innerWidth * 3) / 4 - 10
+      );
     } else {
-      canvas.height = windowH - 10;
-      canvas.width = (windowH * 4) / 3 - 10;
+      setCanvas(
+        document.getElementById("pong-game"),
+        (window.innerHeight * 4) / 3 - 10,
+        window.innerHeight - 10
+      );
     }
-    context = canvas.getContext("2d");
-    context.scale(1, 1);
 
     document.querySelector(
       ".pong-game-info > p.user1"
@@ -269,13 +237,13 @@ const GamePage = () => {
       ".pong-game-info > p.user2"
     ).style.right = `calc(52% - ${canvas.width / 2}px)`;
 
-    ratio = canvas.width / 1200;
+    setRatio(canvas.width / 1200);
     update();
   }, [gameStat, userStat]);
   return (
     <div class="tournament">
+      <Bracket users={userStat} />
       <div class="pong-game-main">
-        <Bracket users={userStat} />
         <canvas id="pong-game"></canvas>
         {isEmpty(gameStat) ? null : (
           <div class="pong-game-info">

@@ -10,13 +10,6 @@ export const InputBox = (props) => {
 };
 
 export const RadioCheck = (props) => {
-  useEffect(() => {
-    const modalElement = document.getElementById("CreateRoomModal");
-    const radios = modalElement.querySelectorAll("input[type=radio]");
-    radios[0].checked = true;
-    radios[2].checked = true;
-  }, []);
-
   const toggleInputFields = () => {
     const radios = document.querySelectorAll("input[type=radio]");
     const inputs = document.querySelectorAll("input[type=text]");
@@ -25,6 +18,7 @@ export const RadioCheck = (props) => {
       inputs[1].value = "";
     } else {
       inputs[1].disabled = false;
+      inputs[1].focus();
     }
   };
   return (

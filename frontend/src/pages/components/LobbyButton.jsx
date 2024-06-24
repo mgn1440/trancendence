@@ -8,7 +8,6 @@ import { gotoPage, isEmpty } from "@/lib/libft";
 import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 
 export const UserFind = ({ userData }) => {
-  console.log(userData);
   const imgSrc = `/img/minji_${
     (userData.username[0].charCodeAt(0) % 5) + 1
   }.jpg`;
@@ -68,14 +67,14 @@ const getModalInput = (data) => {
     return false;
   }
   let mode = 0;
-  if (radios[2].checked || radios[4].checked) mode = 2;
+  if (radios[2].checked) mode = 2;
   else mode = 4;
   const retRoomData = {
     type: "create_room",
     room_name:
       inputs[0].value === "" ? `${data.username}'s Room` : inputs[0].value,
     mode: mode,
-    is_custom: radios[4].checked ? true : false,
+    is_custom: radios[5].checked ? true : false,
     is_secret: radios[1].checked ? true : false,
     password: radios[1].checked ? inputs[1].value : "",
   };
@@ -83,30 +82,28 @@ const getModalInput = (data) => {
 };
 
 const LobbyButton = ({ data, sendLobbySocket }) => {
-  useEffect(() => {
+  const createRoomModalReset = () => {
     const modalElement = document.getElementById("CreateRoomModal");
-    const handleModalHidden = () => {
-      const inputs = modalElement.querySelectorAll("input[type=text]");
-      inputs.forEach((input) => (input.value = ""));
-
-      const radios = modalElement.querySelectorAll("input[type=radio]");
-      radios[0].checked = true;
-      radios[2].checked = true;
-    };
-
-    modalElement.addEventListener("hidden.bs.modal", handleModalHidden);
-
-    addEventArray(eventType.DOMLOADED, () => {
-      const radios = modalElement.querySelectorAll("input[type=radio]");
-      const inputs = modalElement.querySelectorAll("input[type=text]");
-      if (radios[0].checked == true) inputs[1].disable = true;
-      else inputs[1].disable = false;
-    });
+    if (!modalElement) return;
+    const inputs = modalElement.querySelectorAll("input[type=text]");
+    inputs.forEach((input) => (input.value = ""));
+    const radios = modalElement.querySelectorAll("input[type=radio]");
+    radios[0].checked = true;
+    radios[2].checked = true;
+    radios[4].checked = true;
+    inputs[1].setAttribute("disabled", true);
+    inputs[0].focus();
+  };
+  useEffect(() => {
+    // addEventArray(eventType.DOMLOADED, () => {
+    createRoomModalReset();
+    // });
+    const modalElement = document.getElementById("CreateRoomModal");
+    modalElement.addEventListener("hidden.bs.modal", createRoomModalReset);
 
     const loaderElement = document.getElementById("QuickMatchModal");
     const handleLoaderHidden = () => {
       sendLobbySocket({ type: "cancel_matchmaking" });
-      // console.log("modal hidden"); // debug
     };
 
     loaderElement.addEventListener("hidden.bs.modal", handleLoaderHidden);
@@ -133,12 +130,10 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
             if (findModal) {
               findModal.hide();
             }
-            console.log(findName.innerText); // debug
             const modalBackdrop = document.querySelector(".modal-backdrop");
             if (modalBackdrop) {
               modalBackdrop.remove();
             }
-            console.log(modalBackdrop); // debug
           }, 10);
           moveToProfile(findName.innerText);
         }
@@ -191,20 +186,19 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     });
     addEventHandler();
 
-    // return () => {
-    //   console.log("hi"); // debug
-    //   modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
-    //   loaderElement.removeEventListener("hidden.bs.modal", handleLoaderHidden);
-    //   findModalElement.removeEventListener(
-    //     "hidden.bs.modal",
-    //     handleFindModalHidden
-    //   );
-    //   findModalElement.removeEventListener(
-    //     "shown.bs.modal",
-    //     handleFindModalShown
-    //   );
-    //   findModalInput.removeEventListener("keydown", handleFindInput);
-    // };
+    return () => {
+      modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
+      loaderElement.removeEventListener("hidden.bs.modal", handleLoaderHidden);
+      findModalElement.removeEventListener(
+        "hidden.bs.modal",
+        handleFindModalHidden
+      );
+      findModalElement.removeEventListener(
+        "shown.bs.modal",
+        handleFindModalShown
+      );
+      findModalInput.removeEventListener("keydown", handleFindInput);
+    };
   }, []);
 
   const findModalInput = useRef("");
@@ -253,7 +247,10 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
               <div class="radio-check body-element robby-game-btn">
                 <RadioCheck text="1 vs 1" name="battle" id="1vs1" />
                 <RadioCheck text="Tournament" name="battle" id="tornament" />
-                <RadioCheck text="Custom" name="battle" id="custom" />
+              </div>
+              <div class="radio-check body-element robby-game-btn">
+                <RadioCheck text="Classic" name="type" id="classic" />
+                <RadioCheck text="Custom" name="type" id="custom" />
               </div>
             </div>
           );

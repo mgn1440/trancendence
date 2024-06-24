@@ -127,6 +127,20 @@
   overflow-y: auto;
 }
 
+.log-container.detail {
+  padding-left: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.log-container.detail > h4 {
+  padding: 1rem 0;
+}
+
+.log-container.detail > canvas {
+  padding-bottom: 3rem;
+}
+
 .game-detail-page {
   width: 100%;
   padding-left: 1rem;

@@ -35,7 +35,6 @@ export const axiosUserMe = async () => {
     const response = await instance.get(axiosUserMeURL);
     return response;
   } catch (error) {
-    console.log(error);
     return error;
   }
 };
@@ -105,6 +104,18 @@ export const axiosGameRecords = async ({ username, isSingle }) => {
   }
 };
 
+export const axiosAvgGameLine = async ({ username }) => {
+  try {
+    const response = await instance.get(
+      `${axiosUserURL}/${username}/average-line`
+    );
+    return response;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
+
 export const axiosUserFollow = async (user_name) => {
   try {
     const apiURL = axiosUserFollowURL + "/";
@@ -141,6 +152,15 @@ export const axiosUserProfile = async (user_name) => {
     const response = await instance.get(
       `${axiosUserURL}/${user_name}/profile-image`
     );
+    return response;
+  } catch (error) {
+    return error;
+  }
+};
+
+export const axiosLogout = async () => {
+  try {
+    const response = await instance.get(`${axiosUserURL}/logout`);
     return response;
   } catch (error) {
     return error;

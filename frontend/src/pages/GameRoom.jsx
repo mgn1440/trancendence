@@ -54,9 +54,18 @@ const RoomPage = () => {
             setStartBtn(true);
           }
         } else if (data.type === "goto_game") {
-          if (data.is_custom === true) gotoPage(`/custom/${data.room_id}`);
-          else if (data.mode === 2) gotoPage(`/game/${data.room_id}`);
-          else if (data.mode === 4) gotoPage(`/tournament/${data.room_id}`);
+          if (data.mode === 2) {
+            if (data.is_custom) {
+              gotoPage(`/custom/${data.room_id}`);
+            } else {
+              gotoPage(`/game/${data.room_id}`);
+            }
+          } else if (data.mode === 4)
+            if (data.is_custom) {
+              gotoPage(`/customTournament/${data.room_id}`);
+            } else {
+              gotoPage(`/tournament/${data.room_id}`);
+            }
         }
       };
     };
@@ -67,7 +76,6 @@ const RoomPage = () => {
   useEffect(() => {
     setWindowSize(windowSizeStore.dispatch, setWinSize);
     addEventArray(eventType.RESIZE, () => {
-      console.log("resize");
       setWindowSize(windowSizeStore.dispatch, setWinSize);
     });
     addEventHandler();
@@ -78,7 +86,6 @@ const RoomPage = () => {
       ws_gamelogic.getState().socket &&
       ws_gamelogic.getState().socket.readyState === WebSocket.OPEN
     ) {
-      console.log(roomData);
       ws_gamelogic.getState().socket.send(JSON.stringify(roomData));
     }
   };
