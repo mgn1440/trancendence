@@ -18,15 +18,9 @@ RUN wget https://github.com/prometheus/alertmanager/releases/download/v0.23.0/al
     && mv alertmanager-0.23.0.linux-amd64/amtool /usr/local/bin/ \
     && rm -rf alertmanager-0.23.0.linux-amd64.tar.gz alertmanager-0.23.0.linux-amd64
 
-# SSL 인증서 복사
-# RUN mkdir -p /etc/ssl/certs
-# COPY alertmanager-selfsigned.crt /etc/ssl/certs/alertmanager-selfsigned.crt
-# COPY alertmanager-selfsigned.key /etc/ssl/certs/alertmanager-selfsigned.key
-
 # wait-for-file 스크립트 복사 및 실행 권한 부여
 COPY wait-for-file.sh /usr/local/bin/wait-for-file.sh
 RUN chmod +x /usr/local/bin/wait-for-file.sh
-
 
 # Alertmanager 설정 파일 복사
 COPY alertmanager.yml /etc/alertmanager/alertmanager.yml
