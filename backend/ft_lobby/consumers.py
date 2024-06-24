@@ -10,6 +10,9 @@ class LobbyConsumer(AsyncWebsocketConsumer):
     lock = asyncio.Lock()
 
     async def connect(self):
+        if self.scope['user'].is_anonymous:
+            self.close()
+            return
         await self.channel_layer.group_add("lobby", self.channel_name)
         await self.accept()
         await self.send(text_data=json.dumps({
@@ -18,6 +21,12 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         }))
 
     async def disconnect(self, close_code):
+        
+        if self.scope['user'].is_anonymous:
+            return
+        
+        if self.scope['user'].username in LobbyConsumer.matchmaking_queue:
+            LobbyConsumer.matchmaking_queue.remove(self.scope['user'].username)
         await self.channel_layer.group_discard("lobby", self.channel_name)
 
     async def receive(self, text_data):

@@ -23,8 +23,9 @@ const GameRoom = ({ gameData, isStart, isCustom, sendRoomSocket }) => {
         goal_score: Number(document.querySelector("#Number").innerText),
         items: find_items,
       });
+    } else {
+      sendRoomSocket({ type: "start_game" });
     }
-    sendRoomSocket({ type: "start_game" });
   };
   const roomSetting =
     gameData.is_custom &&

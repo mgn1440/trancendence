@@ -69,7 +69,7 @@ const getModalInput = (data) => {
     return false;
   }
   let mode = 0;
-  if (radios[2].checked || radios[4].checked) mode = 2;
+  if (radios[2].checked) mode = 2;
   else mode = 4;
   const retRoomData = {
     type: "create_room",
@@ -97,7 +97,9 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     inputs[0].focus();
   };
   useEffect(() => {
+    // addEventArray(eventType.DOMLOADED, () => {
     createRoomModalReset();
+    // });
     const modalElement = document.getElementById("CreateRoomModal");
     modalElement.addEventListener("hidden.bs.modal", createRoomModalReset);
 
