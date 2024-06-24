@@ -86,6 +86,7 @@ const getModalInput = (data) => {
 const LobbyButton = ({ data, sendLobbySocket }) => {
   const createRoomModalReset = () => {
     const modalElement = document.getElementById("CreateRoomModal");
+    if (!modalElement) return;
     const inputs = modalElement.querySelectorAll("input[type=text]");
     inputs.forEach((input) => (input.value = ""));
     const radios = modalElement.querySelectorAll("input[type=radio]");

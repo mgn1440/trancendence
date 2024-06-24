@@ -25,11 +25,19 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
       "otp_enabled",
       document.querySelectorAll("input[type=checkbox]")[0].checked
     );
-    if (getProfileImg()) {
+    if (getProfileImg() === undefined) {
+      // profile image not changed
+    } else if (getProfileImg() === null) {
+      config2Change.append("profile_image", null);
+    } else {
       config2Change.append("profile_image", getProfileImg());
     }
     axiosUserMeConfig(config2Change);
-    gotoPage("/profile/me");
+    // gotoPage("/profile/me");
+    config2Change.forEach((value, key) => {
+      console.log(`${key}, ${value}`);
+    });
+    console.log(getProfileImg());
   };
   return (
     <div class="profile-config-main">
