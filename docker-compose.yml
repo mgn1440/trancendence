@@ -110,6 +110,16 @@ services:
     networks:
       - transcendence
 
+  certificate-generator:
+    container_name: certificate-generator
+    build:
+      context: ${CERTIFICATE_PATH}
+      dockerfile: Dockerfile.certificate
+    volumes:
+      - ${CERTIFICATE_PATH}/certs:/etc/ssl/certs
+    networks:
+      - transcendence
+
   prometheus:
     env_file:
       - ${BE_ENV_PATH}
@@ -117,12 +127,23 @@ services:
     build:
       context: ${PROMETHEUS_PATH}
       dockerfile: Dockerfile.prometheus
+    depends_on:
+      - certificate-generator
     volumes:
       - ${PROMETHEUS_PATH}/data:/prometheus
+      - ${CERTIFICATE_PATH}/certs:/etc/ssl/certs
     ports:
       - "9090:9090"
     networks:
       - transcendence
+    entrypoint:
+      - "/usr/local/bin/entrypoint.sh"
+      - "/etc/ssl/certs/prometheus-selfsigned.crt"
+      - "60"
+      - "/opt/prometheus/prometheus"
+      - "--config.file=/opt/prometheus/prometheus.yml"
+      - "--web.config.file=/opt/prometheus/web.yml"
+      - "--storage.tsdb.retention=14d"
     restart: always
 
   node-exporter:
@@ -130,10 +151,47 @@ services:
     build:
       context: ${PROMETHEUS_PATH}
       dockerfile: Dockerfile.node-exporter
+    depends_on:
+      - certificate-generator
+    volumes:
+      - ${CERTIFICATE_PATH}/certs:/etc/ssl/certs
     ports:
       - "9100:9100"
     networks:
       - transcendence
+    entrypoint:
+      - "/usr/local/bin/entrypoint.sh"
+      - "/etc/ssl/certs/node-exporter-selfsigned.crt"
+      - "60"
+      - "/usr/local/bin/node_exporter"
+      - "--web.listen-address=:9100"
+      - "--web.config=opt/node-exporter/web.yml"
+    restart: always
+
+
+  alertmanager:
+    container_name: alertmanager
+    env_file:
+      - ${BE_ENV_PATH}
+    build:
+      context: ${PROMETHEUS_PATH}
+      dockerfile: Dockerfile.alertmanager
+    depends_on:
+      - certificate-generator
+    volumes:
+      - ${CERTIFICATE_PATH}/certs:/etc/ssl/certs
+    ports:
+      - "9093:9093"
+    networks:
+      - transcendence
+    entrypoint:
+      - "/usr/local/bin/entrypoint.sh"
+      - "/etc/ssl/certs/alertmanager-selfsigned.crt"
+      - "60"
+      - "/usr/local/bin/alertmanager"
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--web.config.file=/opt/alertmanager/web.yml"
     restart: always
 
   grafana:
@@ -145,16 +203,6 @@ services:
       - ${GRAFANA_PATH}/data:/var/lib/grafana
     ports:
       - "3000:3000"
-    networks:
-      - transcendence
-
-  alertmanager:
-    container_name: alertmanager
-    build:
-      context: ${PROMETHEUS_PATH}
-      dockerfile: Dockerfile.alertmanager
-    ports:
-      - "9093:9093"
     networks:
       - transcendence
 

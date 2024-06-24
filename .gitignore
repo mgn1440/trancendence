@@ -471,3 +471,6 @@ prometheus/data
 
 # grafana/data
 grafana/data
+
+# cert
+cert/certs
