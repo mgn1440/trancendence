@@ -9,6 +9,9 @@ import asyncio
 class RoomConsumer(AsyncWebsocketConsumer):
     async def connect(self):
 
+        if self.scope['user'].is_anonymous:
+            await self.close()
+            return
         self.room_id_str = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = f'room_{self.room_id_str}'
         self.room_id = int(self.room_id_str)
@@ -75,6 +78,9 @@ class RoomConsumer(AsyncWebsocketConsumer):
         
 
     async def disconnect(self, close_code):
+        if self.scope['user'].is_anonymous:
+            return
+    
         if self.room_id not in LobbyConsumer.rooms: # 방이 없어졌으면 그냥 종료
             await self.channel_layer.group_discard(
                 self.room_group_name,
