@@ -4,7 +4,7 @@ import { InputBox, RadioCheck } from "./Inputs";
 import { useEffect, useRef, useState } from "@/lib/dom";
 import { moveToProfile } from "./UserList";
 import { axiosUserOther } from "@/api/axios.custom";
-import { isEmpty } from "@/lib/libft";
+import { gotoPage, isEmpty } from "@/lib/libft";
 import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 
 export const UserFind = ({ userData }) => {
@@ -20,16 +20,14 @@ export const UserFind = ({ userData }) => {
       onclick={() => {
         const findModalElement = document.getElementById("FindUserModal");
         setTimeout(() => {
-          setTimeout(() => {
-            const findModal = new bootstrap.Modal(findModalElement);
-            if (findModal) {
-              findModal.hide();
-            }
-            const modalBackdrop = document.querySelector(".modal-backdrop");
-            if (modalBackdrop) {
-              modalBackdrop.remove();
-            }
-          }, 10);
+          const findModal = new bootstrap.Modal(findModalElement);
+          if (findModal) {
+            findModal.hide();
+          }
+          const modalBackdrop = document.querySelector(".modal-backdrop");
+          if (modalBackdrop) {
+            modalBackdrop.remove();
+          }
         }, 10);
         moveToProfile(userData.username);
       }}
@@ -182,6 +180,8 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
         ) {
           logoutModal.show();
         }
+      } else if (e.key === "h") {
+        gotoPage("/user/me");
       }
     });
     addEventHandler();
@@ -278,12 +278,14 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
                 <input class="user-search-input"></input>
                 <img src="/icon/search.svg"></img>
               </div>
-              {findStatus == 0 ? null : (
+              {findStatus == 0 ? (
+                <div />
+              ) : (
                 <div class="find-result">
                   {findResult ? (
                     <UserFind userData={findResult} />
                   ) : (
-                    <div class="not-found-msg">no user found</div>
+                    <div class="not-found-msg cl-red">no user found</div>
                   )}
                 </div>
               )}
