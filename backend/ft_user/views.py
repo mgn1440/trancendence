@@ -46,7 +46,7 @@ class UserNameDetailView(RetrieveAPIView):
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 
-class UserMeView(RetrieveUpdateAPIView):
+class UserMeView(RetrieveUpdateDestroyAPIView):
 	serializer_class = CustomUserSerializer
 	def get(self, request, *args, **kwargs):
 		user = get_jwt_user(self.request)
@@ -62,14 +62,21 @@ class UserMeView(RetrieveUpdateAPIView):
 			if profile_image:
 				try:
 					user.profile_image = profile_image
+					user.image_number = 0
 					user.save()
 				except Exception as e:
 					return JsonResponse({'status_code': '400', 'message': str(e)}, status=400)
 			elif profile_image is None:
 				user.profile_image = None
+				user.image_number = ord(user.username[0]) % 5 + 1
 				user.save()
 			return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 		return JsonResponse({'status_code': '400', 'message': serializer.error}, status=400)
+	def destroy(self, request, *args, **kwargs):
+		user = get_jwt_user(self.request)
+		user.profile_image = None
+		user.save()
+		return JsonResponse({'status_code': '204', 'message': 'User Profile deleted'}, status=204)
 
 class ProfileImageView(RetrieveUpdateDestroyAPIView):
 	serializer_class = ProfileImageSerializer

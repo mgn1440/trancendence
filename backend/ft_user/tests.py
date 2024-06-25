@@ -153,33 +153,34 @@ from backend.settings import JWT_SECRET_KEY
 # 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 # 		# print('follow_test', response.content)
 
-# class ProfileImageViewTest(APITestCase):
-# 	def setUp(self):
-# 		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
-# 		self.client.force_authenticate(user=self.user)
-# 		self.jwt_token = jwt.encode(
-# 			{'uid': self.user.uid},
-# 			JWT_SECRET_KEY,
-# 			algorithm='HS256'
-# 		)
-# 		self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_token)
+class ProfileImageViewTest(APITestCase):
+	def setUp(self):
+		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
+		self.client.force_authenticate(user=self.user)
+		self.jwt_token = jwt.encode(
+			{'uid': self.user.uid},
+			JWT_SECRET_KEY,
+			algorithm='HS256'
+		)
+		self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_token)
 
-# 	def test_retrive_profile_image(self):
-# 		url = reverse('profile_image', kwargs={'username': self.user.username})
-# 		response = self.client.get(url)
-# 		self.assertEqual(response.status_code, status.HTTP_200_OK)
-# 		# print('image', response.content)
-
-	# def test_update_profile_image(self):
+	# def test_retrive_profile_image(self):
 	# 	url = reverse('profile_image', kwargs={'username': self.user.username})
-	# 	with open('/Users/sunko/Desktop/jordan.jpeg', 'rb') as image:
-	# 		response = self.client.put(url, {'profile_image': image}, format='multipart')
-	# 	self.assertEqual(response.status_code, status.HTTP_200_OK)
-	# 	url = reverse('user_detail_by_username', kwargs={'username': self.user.username})
 	# 	response = self.client.get(url)
-		# print('update', response.content)
-		# url = reverse('profile_image', kwargs={'username': self.user.username})
-		# response = self.client.delete(url)
+	# 	self.assertEqual(response.status_code, status.HTTP_200_OK)
+		# print('image', response.content)
+
+	def test_update_profile_image(self):
+		url = reverse('me')
+		with open('/Users/sunko/Desktop/jordan.jpeg', 'rb') as image:
+			response = self.client.put(url, {'profile_image': image}, format='multipart')
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		response = self.client.get(url)
+		print('update', response.content)
+		response = self.client.delete(url)
+		print('delete_image', response.content)
+		response = self.client.get(url)
+		print('delete_image', response.content)
 		# self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 		# url = reverse('user_detail_by_username', kwargs={'username': self.user.username})
 		# print(url)
@@ -293,21 +294,21 @@ from backend.settings import JWT_SECRET_KEY
 # 		response = self.client.get(self.url)
 # 		print(response.content)
 
-class AverageAPIViewTest(APITestCase):
-	def setUp(self):
-		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
-		self.user2 = CustomUser.objects.create_user(username="sunghyun", uid=2)
-		self.game_record1 = SingleGameRecord.objects.create(id=1, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
-		self.game_record2 = SingleGameRecord.objects.create(id=2, player1=self.user, player1_score=2, player2=self.user2, player2_score=5, is_tournament=False)
-		self.game_record3 = SingleGameRecord.objects.create(id=3, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
-		self.game_record4 = SingleGameRecord.objects.create(id=4, player1=self.user, player1_score=1, player2=self.user2, player2_score=3, is_tournament=False)
-		self.game_record5 = SingleGameRecord.objects.create(id=5, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
-		self.game_record6 = SingleGameRecord.objects.create(id=6, player1=self.user, player1_score=1, player2=self.user2, player2_score=3, is_tournament=False)
-		self.game_record7 = SingleGameRecord.objects.create(id=7, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
-		self.game_record8 = SingleGameRecord.objects.create(id=8, player1=self.user, player1_score=1, player2=self.user2, player2_score=3, is_tournament=False)
-		self.game_record9 = SingleGameRecord.objects.create(id=9, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
-		self.game_record10 = SingleGameRecord.objects.create(id=10, player1=self.user, player1_score=1, player2=self.user2, player2_score=3, is_tournament=False)
-	def test_get_average_line(self):
-		url = reverse('average_line', kwargs={'username': self.user.username})
-		response = self.client.get(url)
-		print(response.content)
+# class AverageAPIViewTest(APITestCase):
+# 	def setUp(self):
+# 		self.user = CustomUser.objects.create_user(username="sunko", uid=1)
+# 		self.user2 = CustomUser.objects.create_user(username="sunghyun", uid=2)
+# 		self.game_record1 = SingleGameRecord.objects.create(id=1, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
+# 		self.game_record2 = SingleGameRecord.objects.create(id=2, player1=self.user, player1_score=2, player2=self.user2, player2_score=5, is_tournament=False)
+# 		self.game_record3 = SingleGameRecord.objects.create(id=3, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
+# 		self.game_record4 = SingleGameRecord.objects.create(id=4, player1=self.user, player1_score=1, player2=self.user2, player2_score=3, is_tournament=False)
+# 		self.game_record5 = SingleGameRecord.objects.create(id=5, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
+# 		self.game_record6 = SingleGameRecord.objects.create(id=6, player1=self.user, player1_score=1, player2=self.user2, player2_score=3, is_tournament=False)
+# 		self.game_record7 = SingleGameRecord.objects.create(id=7, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
+# 		self.game_record8 = SingleGameRecord.objects.create(id=8, player1=self.user, player1_score=1, player2=self.user2, player2_score=3, is_tournament=False)
+# 		self.game_record9 = SingleGameRecord.objects.create(id=9, player1=self.user, player1_score=5, player2=self.user2, player2_score=3, is_tournament=False)
+# 		self.game_record10 = SingleGameRecord.objects.create(id=10, player1=self.user, player1_score=1, player2=self.user2, player2_score=3, is_tournament=False)
+# 	def test_get_average_line(self):
+# 		url = reverse('average_line', kwargs={'username': self.user.username})
+# 		response = self.client.get(url)
+# 		print(response.content)
