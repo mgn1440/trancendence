@@ -3,6 +3,8 @@ import { gotoPage, isEmpty } from "@/lib/libft";
 import { history } from "@/lib/router";
 import { ws_gamelogic, connectGameLogicWebSocket } from "@/store/gameLogicWS";
 import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
+import { clientUserStore } from "@/store/clientUserStore";
+import { WinMessage, LoseMessage } from "./components/ResultMessage";
 import Bracket from "./components/Bracket";
 
 let gameState;
@@ -114,6 +116,7 @@ const dirStat = {
 const GamePage = () => {
   const [gameStat, setGameStat] = useState([]);
   const [userStat, setUserStat] = useState([]);
+  const [gameResult, setGameResult] = useState(null);
   let direction = dirStat.STOP;
   let startFlag = false;
   useEffect(() => {
@@ -223,10 +226,14 @@ const GamePage = () => {
             }
             users = newUsers;
             setUserStat(newUsers);
-            alert(data.winner);
+            if (clientUserStore.getState().client.username === data.winner) {
+              setGameResult(1);
+            } else {
+              setGameResult(2);
+            }
             setTimeout(() => {
               gotoPage(`/lobby/${data.room_id}`);
-            }, 1500);
+            }, 5000);
           } else {
             if (data.winner === data.you) {
               ws_gamelogic.getState().socket.send(
@@ -323,20 +330,29 @@ const GamePage = () => {
     update();
   }, [gameStat, userStat]);
   return (
-    <div class="tournament">
-      <Bracket users={userStat} />
-      <div class="pong-game-main">
-        <canvas id="pong-game"></canvas>
-        {isEmpty(gameStat) ? null : (
-          <div class="pong-game-info">
-            <p class="user1">{gameStat[1].left}</p>
-            <p class="user2">{gameStat[1].right}</p>
-            <h6 class="user1">{gameStat[0].left}</h6>
-            <h6 class="user2">{gameStat[0].right}</h6>
-            <h1>3</h1>
-          </div>
-        )}
+    <div class="game-display">
+      <div class="tournament">
+        <Bracket users={userStat} />
+        <div class="pong-game-main">
+          <canvas id="pong-game"></canvas>
+          {isEmpty(gameStat) ? null : (
+            <div class="pong-game-info">
+              <p class="user1">{gameStat[1].left}</p>
+              <p class="user2">{gameStat[1].right}</p>
+              <h6 class="user1">{gameStat[0].left}</h6>
+              <h6 class="user2">{gameStat[0].right}</h6>
+              <h1>3</h1>
+            </div>
+          )}
+        </div>
       </div>
+      {gameResult == 1 ? (
+        <WinMessage />
+      ) : gameResult == 2 ? (
+        <LoseMessage />
+      ) : (
+        <div />
+      )}
     </div>
   );
 };

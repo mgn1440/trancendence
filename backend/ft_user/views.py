@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
 from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer, SingleGameDetailSerializer, DayStatSerializer, UserUpdateSerializer
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView
 from rest_framework.exceptions import NotFound, ValidationError
 import json
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -56,6 +56,10 @@ class UserMeView(RetrieveUpdateDestroyAPIView):
 		user = get_jwt_user(self.request)
 		partial = kwargs.pop('partial', False)
 		serializer = UserUpdateSerializer(user, data=request.data, partial=partial)
+
+		if CustomUser.objects.filter(username=user.username).exists():
+			return JsonResponse({'status_code': '200', 'message': 'Username already exists'}, status=200)
+
 		if serializer.is_valid(raise_exception=True):
 			serializer.save()
 			profile_image = request.FILES.get('profile_image')
@@ -65,13 +69,13 @@ class UserMeView(RetrieveUpdateDestroyAPIView):
 					user.image_number = 0
 					user.save()
 				except Exception as e:
-					return JsonResponse({'status_code': '400', 'message': str(e)}, status=400)
+					return JsonResponse({'status_code': '200', 'message': str(e)}, status=400)
 			elif profile_image is None:
 				user.profile_image = None
 				user.image_number = ord(user.username[0]) % 5 + 1
 				user.save()
 			return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
-		return JsonResponse({'status_code': '400', 'message': serializer.error}, status=400)
+		return JsonResponse({'status_code': '200', 'message': serializer.error}, status=200)
 	def delete(self, request, *args, **kwargs):
 		user = get_jwt_user(self.request)
 		user.profile_image = None

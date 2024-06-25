@@ -2,6 +2,8 @@ import Modal from "./Modal";
 import { TitleSection, BottomSection } from "./ModalSection";
 import { gotoPage } from "@/lib/libft";
 import { axiosLogout } from "@/api/axios.custom";
+import { ws_userlist } from "@/store/userListWS";
+import { ws_gamelogic } from "@/store/gameLogicWS";
 
 const TopNavBar = () => {
   return (
@@ -18,6 +20,8 @@ const TopNavBar = () => {
             ClickEvent: () => {
               axiosLogout().then((res) => {
                 if (res.status === 200) {
+                  ws_userlist.getState().socket.close();
+                  ws_gamelogic.getState().socket.close();
                   gotoPage("/");
                 }
               });
