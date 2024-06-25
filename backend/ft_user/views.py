@@ -72,7 +72,7 @@ class UserMeView(RetrieveUpdateDestroyAPIView):
 				user.save()
 			return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 		return JsonResponse({'status_code': '400', 'message': serializer.error}, status=400)
-	def destroy(self, request, *args, **kwargs):
+	def delete(self, request, *args, **kwargs):
 		user = get_jwt_user(self.request)
 		user.profile_image = None
 		user.save()
@@ -89,7 +89,7 @@ class ProfileImageView(RetrieveUpdateDestroyAPIView):
 		user = self.get_object()
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'profile_image': serializer.data}, status=200)
-	def destroy(self, request, *args, **kwargs):
+	def delete(self, request, *args, **kwargs):
 		user = self.get_object()
 		if user.profile_image:
 			user.profile_image.delete(save=False)

@@ -35,6 +35,7 @@ const ProfilePage = () => {
       if (!user.data) {
         return;
       }
+      console.log(user.data.user_info);
       setProfile(user.data.user_info);
     };
     fetchProfile();

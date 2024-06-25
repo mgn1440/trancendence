@@ -50,6 +50,16 @@ export const axiosUserMeConfig = async (config2Change) => {
   }
 };
 
+export const axiosDeleteProfileImg = async () => {
+  try {
+    const response = await instance.delete(axiosUserMeURL);
+    return response;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
+
 export const axiosUserDayStat = async ({ username }) => {
   try {
     const response = await instance.get(
