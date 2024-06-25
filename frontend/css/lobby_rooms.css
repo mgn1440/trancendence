@@ -1,7 +1,7 @@
 @import url(./color.css);
 
 .lobby-rooms-main {
-  flex: 0.95;
+  flex: 1;
   display: flex;
   flex-flow: row nowrap;
   padding-bottom: 1rem;
@@ -30,7 +30,6 @@
 .lobby-rooms {
   flex: 1;
   margin-right: 1rem;
-  border-radius: 0.5rem;
   border-radius: 0 0 0 1rem;
   border-left: 2px solid var(--white);
   display: grid;
