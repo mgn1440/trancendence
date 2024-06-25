@@ -1,9 +1,13 @@
 import { addEventArray, gotoPage } from "@/lib/libft.js";
 import { ItemInput, ItemToggle } from "./Items.jsx";
 import { useState, useEffect } from "@/lib/dom/index.js";
-import { axiosUserMe } from "@/api/axios.custom.js";
 import { isEmpty } from "@/lib/libft.js";
-import { axiosUserMeConfig } from "@/api/axios.custom.js";
+import {
+  axiosUserMe,
+  axiosUserMeConfig,
+  axiosDeleteProfileImg,
+} from "@/api/axios.custom.js";
+import { setUserData, clientUserStore } from "@/store/clientUserStore.js";
 
 const ProfileConfig = ({ profile, getProfileImg }) => {
   useEffect(() => {
@@ -19,7 +23,7 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
       });
     });
   }, []);
-  const saveMyConfig = () => {
+  const saveMyConfig = async () => {
     const config2Change = new FormData();
     if (document.querySelectorAll("input[type=text]")[0].value !== "") {
       config2Change.append(
@@ -41,16 +45,19 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
     if (getProfileImg() === undefined) {
       // profile image not changed
     } else if (getProfileImg() === null) {
-      config2Change.append("profile_image", null);
+      axiosDeleteProfileImg();
     } else {
       config2Change.append("profile_image", getProfileImg());
     }
-    axiosUserMeConfig(config2Change);
-    // gotoPage("/profile/me");
-    config2Change.forEach((value, key) => {
-      console.log(`${key}, ${value}`);
-    });
-    console.log(getProfileImg());
+    const res = await axiosUserMeConfig(config2Change);
+
+    const userMe = await axiosUserMe();
+    setUserData(clientUserStore.dispatch, userMe.data.user_info);
+    gotoPage("/profile/me");
+    // config2Change.forEach((value, key) => {
+    //   console.log(`${key}, ${value}`);
+    // });
+    // console.log(getProfileImg());
   };
   return (
     <div class="profile-config-main">

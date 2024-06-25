@@ -62,6 +62,7 @@ const cropImage = async (img, width, height) => {
 
 const ProfileImg = ({ stat, setStat, profile, setProfileImg }) => {
   const username = profile.username;
+  console.log(profile.profile_image);
   const [profileImgSrc, setProfileImgSrc] = useState(profile.profile_image);
   const defaultImg = `/img/minji_${(username[0].charCodeAt(0) % 5) + 1}.jpg`;
 
