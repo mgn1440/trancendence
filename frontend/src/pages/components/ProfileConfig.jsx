@@ -10,12 +10,10 @@ import {
 import { setUserData, clientUserStore } from "@/store/clientUserStore.js";
 
 const ProfileConfig = ({ profile, getProfileImg }) => {
-  const [isDuplicated, setIsDuplicated] = useState(false);
   useEffect(() => {
     const inputs = document.querySelectorAll("input[type=text]");
     inputs.forEach((input) => {
       input.addEventListener("keydown", (e) => {
-        console.log(e.key);
         const isalpha = /^[a-zA-Z0-9]*$/i.test(e.key);
         const isnumpad = /^[0-9]*$/i.test(e.key);
         if (!isalpha && !isnumpad) {
@@ -50,11 +48,27 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
     } else {
       config2Change.append("profile_image", getProfileImg());
     }
+    for (let pair of config2Change.entries()) {
+      console.log(pair[0] + ", " + pair[1]);
+    }
     const res = await axiosUserMeConfig(config2Change);
-
-    const userMe = await axiosUserMe();
-    setUserData(clientUserStore.dispatch, userMe.data.user_info);
-    gotoPage("/profile/me");
+    console.log(res);
+    if (res.data.message === "Username already exists") {
+      document.querySelector(".dupl-msg").classList.add("show");
+      document.querySelector(".dupl-msg").classList.add("active");
+      document.querySelectorAll("input[type=text]")[0].focus();
+      document.querySelector(".dupl-msg").addEventListener(
+        "animationend",
+        function () {
+          this.classList.remove("active");
+        },
+        { once: true }
+      );
+    } else {
+      const userMe = await axiosUserMe();
+      setUserData(clientUserStore.dispatch, userMe.data.user_info);
+      gotoPage("/profile/me");
+    }
     // config2Change.forEach((value, key) => {
     //   console.log(`${key}, ${value}`);
     // });
@@ -65,11 +79,13 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
       {!profile ? null : <h3>{profile.username}</h3>}
       <div class="profile-config-list">
         <ItemInput ItemName="Nickname" defaultValue={profile.username} />
-        {isDuplicated ? <div class="item">nickname duplicated</div> : <div />}
-        <ItemInput
-          ItemName="Multi-nickname"
-          defaultValue={profile.multi_nickname}
-        />
+        <div class="cl-red dupl-msg">nickname duplicated</div>
+        <div style="display: none;">
+          <ItemInput
+            ItemName="Multi-nickname"
+            defaultValue={profile.multi_nickname}
+          />
+        </div>
         <ItemToggle ItemName="2FA" isOn={profile.otp_enabled} />
       </div>
       <div class="profile-config-submit">

@@ -42,7 +42,6 @@ export const axiosUserMe = async () => {
 export const axiosUserMeConfig = async (config2Change) => {
   try {
     const response = await instance.put(axiosUserMeURL + "/", config2Change);
-    console.log(response);
     return response;
   } catch (error) {
     console.log(error);

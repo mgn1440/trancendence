@@ -606,7 +606,7 @@ const LobbyProfile = ({ profile }) => {
       <div class="profile-info">
         <div>
           <h3>{profile.username}</h3>
-          <p>{profile.multi_nickname}</p>
+          {/* <p>{profile.multi_nickname}</p> */}
         </div>
         <p>Win: {profile.win}</p>
         <p>Lose: {profile.lose}</p>
