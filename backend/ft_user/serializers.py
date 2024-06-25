@@ -130,10 +130,7 @@ class DayStatSerializer(serializers.Serializer):
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
-	username = serializers.CharField(
-		required=False,
-		validators=[UniqueValidator(queryset=CustomUser.objects.all(), message="This username is already used.")]
-	)
+	username = serializers.CharField(required=False)
 	class Meta:
 		model = CustomUser
 		fields = ['username', 'otp_enabled','profile_image', 'multi_nickname']
