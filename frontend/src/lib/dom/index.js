@@ -94,12 +94,12 @@ const domRenderer = () => {
       if (shallowEqual(states[component][index], newState)) return;
       states[component][index] = newState;
       // queueMicrotask(_render);
-      console.log(
-        "setState",
-        component,
-        states[component],
-        states[component][index]
-      );
+      // console.log(
+      //   "setState",
+      //   component,
+      //   states[component],
+      //   states[component][index]
+      // );
       _render();
     };
     options.stateHook[component] += 1;
