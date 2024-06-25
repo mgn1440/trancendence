@@ -1,0 +1,40 @@
+.game-display {
+  margin: 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  /* background-color: #000; */
+}
+
+.marquee {
+  position: absolute;
+  z-index: 999;
+  transform: translate(0%, -50%) rotate(-10deg);
+  top: 50%;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.marquee-content {
+  display: inline-block;
+  font-size: 5rem;
+  color: #fff;
+  font-weight: bold;
+  white-space: nowrap;
+  animation: marquee 20s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
