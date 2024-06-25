@@ -9,7 +9,7 @@ import { gotoPage } from "@/lib/libft";
 axios.defaults.withCredentials = true;
 
 const instance = axios.create({
-  baseURL: "https://localhost",
+  baseURL: "https://10.31.5.2",
   // baseURL: import.meta.env.VITE_BE_HOST,
   withCredentials: true,
 });

@@ -48,6 +48,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "backend",
     "localhost",
+    "*",
 ]
 
 
@@ -87,7 +88,7 @@ CHANNEL_LAYERS = {
 }
 
 
-CORS_ALLOWED_ORIGINS = [ 'http://localhost:5173' ]
+CORS_ALLOWED_ORIGINS = [ 'http://10.31.5.2:5173' ]
 
 CORS_ALLOW_METHODS = [
     'GET',
@@ -104,7 +105,7 @@ CORS_ALLOW_HEADERS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = [ 'http://localhost:5173' ]
+CSRF_TRUSTED_ORIGINS = [ 'http://10.31.5.2:5173' ]
 
 # settings.py
 REST_FRAMEWORK = {

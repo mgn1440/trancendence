@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const socket = new WebSocket("ws://your-websocket-url");
 
     // 친구 목록 가져오기
-    fetch("http://localhost:8000/api/user/friend")
+    fetch("http://10.31.5.2:8000/api/user/friend")
         .then(response => response.json())
         .then(friends => {
             friends.forEach(friend_list => {

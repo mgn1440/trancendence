@@ -63,9 +63,9 @@ class Callback(View): # TODO: POST otp check function
 				send_email(SENDER_EMAIL, user.email, APP_PASSWORD, "Your OTP Code for 2FA", "dfasd", html)
 			except Exception as e:
 				return JsonResponse({'error': f'Email Error: {e}'}, status=503)
-			return redirect('https://localhost/2fa')
+			return redirect('https://10.31.5.2/2fa')
 		else:
-			response = redirect('https://localhost/lobby')
+			response = redirect('https://10.31.5.2/lobby')
 			tokens = generate_jwt(user)
 			response.set_cookie('access_token', tokens['access_token'])
 			response.set_cookie('refresh_token', tokens['refresh_token'])

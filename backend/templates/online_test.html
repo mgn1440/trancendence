@@ -47,7 +47,7 @@
 	<script>
 		document.addEventListener("DOMContentLoaded", function () {
 			const friendListElement = document.getElementById("friend-list");
-			const socket = new WebSocket("ws://localhost:8000/ws/online/");
+			const socket = new WebSocket("ws://10.31.5.2:8000/ws/online/");
 
 			// 웹소켓 연결 및 메시지 처리
 			socket.addEventListener("message", function (event) {
@@ -103,7 +103,7 @@
 				if (nickname) {
 					const accessToken = getCookie('access_token');
 					if (accessToken) {
-						fetch("http://localhost:8000/api/user/follow/", {
+						fetch("http://10.31.5.2:8000/api/user/follow/", {
 							method: "POST",
 							headers: {
 								"Content-Type": "application/json",

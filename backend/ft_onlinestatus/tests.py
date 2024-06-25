@@ -40,14 +40,14 @@ class StatusConsumerTest(TestCase):
 			reverse('follow'),  # ensure this name corresponds to your URLconf
 			{'following_username': 'user2'},
 			format='json',
-			HTTP_ORIGIN='http://localhost:5173'
+			HTTP_ORIGIN='http://10.31.5.2:5173'
 		)
 		self.assertEqual(response.status_code, 201)
 		response = self.client.post(
 			reverse('follow'),  # ensure this name corresponds to your URLconf
 			{'following_username': 'user3'},
 			format='json',
-			HTTP_ORIGIN='http://localhost:5173'
+			HTTP_ORIGIN='http://10.31.5.2:5173'
 		)
 		self.assertEqual(response.status_code, 201)
 
