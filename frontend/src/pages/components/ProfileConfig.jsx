@@ -6,6 +6,7 @@ import { isEmpty } from "@/lib/libft.js";
 import { axiosUserMeConfig } from "@/api/axios.custom.js";
 
 const ProfileConfig = ({ profile, getProfileImg }) => {
+  const [isDuplicated, setIsDuplicated] = useState(false);
   useEffect(() => {
     const inputs = document.querySelectorAll("input[type=text]");
     inputs.forEach((input) => {
@@ -45,8 +46,12 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
     } else {
       config2Change.append("profile_image", getProfileImg());
     }
-    axiosUserMeConfig(config2Change);
-    // gotoPage("/profile/me");
+    const data = axiosUserMeConfig(config2Change);
+    if (data.data.message === "nickname duplicated") {
+      setIsDuplicated(true);
+    } else {
+      gotoPage("/profile/me");
+    }
     config2Change.forEach((value, key) => {
       console.log(`${key}, ${value}`);
     });
@@ -57,6 +62,7 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
       {!profile ? null : <h3>{profile.username}</h3>}
       <div class="profile-config-list">
         <ItemInput ItemName="Nickname" defaultValue={profile.username} />
+        {isDuplicated ? <div class="item">nickname duplicated</div> : <div />}
         <ItemInput
           ItemName="Multi-nickname"
           defaultValue={profile.multi_nickname}
