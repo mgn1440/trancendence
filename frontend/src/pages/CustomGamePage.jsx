@@ -3,6 +3,8 @@ import { gotoPage, isEmpty } from "@/lib/libft";
 import { history } from "@/lib/router";
 import { ws_gamelogic, connectGameLogicWebSocket } from "@/store/gameLogicWS";
 import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
+import { clientUserStore } from "@/store/clientUserStore";
+import { LoseMessage, WinMessage } from "./components/ResultMessage";
 
 let gameState;
 let canvas;
@@ -107,6 +109,7 @@ const dirStat = {
 };
 const CustumGamePage = () => {
   const [gameStat, setGameStat] = useState([]);
+  const [gameResult, setGameResult] = useState(null);
   // const [gameScore, setGameScore] = useState({});
   let direction = dirStat.STOP;
   let startFlag = false;
@@ -194,8 +197,14 @@ const CustumGamePage = () => {
           // setGameUsers(data.game.roles);
           setGameStat([data.game.scores, data.game.roles]);
         } else if (data.type === "game_over") {
-          alert(data.winner + " win!");
-          gotoPage(`/lobby/${data.room_id}`);
+          if (clientUserStore.getState().client.username === data.winner) {
+            setGameResult(1);
+          } else {
+            setGameResult(2);
+          }
+          setTimeout(() => {
+            gotoPage(`/lobby/${data.room_id}`);
+          }, 5000);
         } else if (data.type === "error") {
           alert(data.message);
           gotoPage("/lobby");
@@ -230,7 +239,7 @@ const CustumGamePage = () => {
     update();
   }, [gameStat]);
   return (
-    <div>
+    <div class="game-display">
       <div class="pong-game-main">
         <canvas id="pong-game"></canvas>
         {isEmpty(gameStat) ? null : (
@@ -243,6 +252,13 @@ const CustumGamePage = () => {
           </div>
         )}
       </div>
+      {gameResult == 1 ? (
+        <WinMessage />
+      ) : gameResult == 2 ? (
+        <LoseMessage />
+      ) : (
+        <div />
+      )}
     </div>
   );
 };
