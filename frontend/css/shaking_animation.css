@@ -236,3 +236,11 @@ body #PswdRoomModal .active {
   -o-animation: scale-in-shake 0.3s;
   animation: scale-in-shake 0.3s;
 }
+
+body #CreateRoomModal .active {
+  -webkit-animation: scale-in-shake 0.3s;
+  -moz-animation: scale-in-shake 0.3s;
+  -ms-animation: scale-in-shake 0.3s;
+  -o-animation: scale-in-shake 0.3s;
+  animation: scale-in-shake 0.3s;
+}
