@@ -6,5 +6,6 @@ find ./*/migrations/ -type f ! -name '__init__.py' -exec rm -f {} +
 
 python manage.py makemigrations
 python manage.py migrate
-gunicorn backend.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
-# echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('${DJANGO_ADMIN}', '${DJANGO_ADMIN_EMAIL}', '${DJANGO_ADMIN_PASSWORD}')" | python manage.py shell
+mkdir log
+touch log/django.log
+gunicorn backend.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --logger-class backend.logger.UniformLogger 2>&1 | tee -a log/django.log
