@@ -57,7 +57,6 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
       {!profile ? null : <h3>{profile.username}</h3>}
       <div class="profile-config-list">
         <ItemInput ItemName="Nickname" defaultValue={profile.username} />
-        <button>Change</button>
         <ItemInput
           ItemName="Multi-nickname"
           defaultValue={profile.multi_nickname}
