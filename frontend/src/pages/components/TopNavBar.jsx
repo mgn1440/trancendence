@@ -2,6 +2,7 @@ import Modal from "./Modal";
 import { TitleSection, BottomSection } from "./ModalSection";
 import { gotoPage } from "@/lib/libft";
 import { axiosLogout } from "@/api/axios.custom";
+import { ws_userlist } from "@/store/userListWS";
 
 const TopNavBar = () => {
   return (
@@ -18,6 +19,7 @@ const TopNavBar = () => {
             ClickEvent: () => {
               axiosLogout().then((res) => {
                 if (res.status === 200) {
+                  ws_userlist.getState().socket.close();
                   gotoPage("/");
                 }
               });
