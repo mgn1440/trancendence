@@ -100,6 +100,15 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     // });
     const modalElement = document.getElementById("CreateRoomModal");
     modalElement.addEventListener("hidden.bs.modal", createRoomModalReset);
+    modalElement.querySelectorAll("input[type=text]").forEach((input) => {
+      input.addEventListener("keydown", (e) => {
+        const isalpha = /^[a-zA-Z0-9]*$/i.test(e.key);
+        const isnumpad = /^[0-9]*$/i.test(e.key);
+        if (!isalpha && !isnumpad) {
+          e.preventDefault();
+        }
+      });
+    });
 
     const loaderElement = document.getElementById("QuickMatchModal");
     const handleLoaderHidden = () => {

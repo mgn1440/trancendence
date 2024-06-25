@@ -1,4 +1,4 @@
-import { gotoPage } from "@/lib/libft.js";
+import { addEventArray, gotoPage } from "@/lib/libft.js";
 import { ItemInput, ItemToggle } from "./Items.jsx";
 import { useState, useEffect } from "@/lib/dom/index.js";
 import { axiosUserMe } from "@/api/axios.custom.js";
@@ -6,6 +6,19 @@ import { isEmpty } from "@/lib/libft.js";
 import { axiosUserMeConfig } from "@/api/axios.custom.js";
 
 const ProfileConfig = ({ profile, getProfileImg }) => {
+  useEffect(() => {
+    const inputs = document.querySelectorAll("input[type=text]");
+    inputs.forEach((input) => {
+      input.addEventListener("keydown", (e) => {
+        console.log(e.key);
+        const isalpha = /^[a-zA-Z0-9]*$/i.test(e.key);
+        const isnumpad = /^[0-9]*$/i.test(e.key);
+        if (!isalpha && !isnumpad) {
+          e.preventDefault();
+        }
+      });
+    });
+  }, []);
   const saveMyConfig = () => {
     const config2Change = new FormData();
     if (document.querySelectorAll("input[type=text]")[0].value !== "") {
