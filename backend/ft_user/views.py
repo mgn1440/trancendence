@@ -82,7 +82,7 @@ class ProfileImageView(RetrieveUpdateDestroyAPIView):
 		user = self.get_object()
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'profile_image': serializer.data}, status=200)
-	def destroy(self, request, *args, **kwargs):
+	def delete(self, request, *args, **kwargs):
 		user = self.get_object()
 		if user.profile_image:
 			user.profile_image.delete(save=False)
