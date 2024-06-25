@@ -10,7 +10,8 @@ const UserCard = ({ user_name }) => {
     const fetchProfile = async () => {
       if (user_name === "-") return;
       const userOther = await axiosUserOther(user_name);
-      setMyProfile(userOther.data);
+      setMyProfile(userOther.data.user_info);
+      console.log(userOther.data.user_info);
     };
     fetchProfile();
   }, []);

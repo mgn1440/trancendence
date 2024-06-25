@@ -1,4 +1,5 @@
 import { useEffect, useState } from "@/lib/dom";
+import { LoseMessage } from "./components/ResultMessage";
 
 const TestPage = () => {
   const [stat, setStat] = useState(0);
@@ -10,15 +11,7 @@ const TestPage = () => {
   };
   return (
     <div>
-      <button onclick={onclickHandler}>click Me!</button>
-      {[...Array(stat)].map((_, i) => (
-        <div>
-          <p>{i + 1}</p>
-        </div>
-      ))}
-      {[...Array(4 - stat)].map((_, i) => (
-        <h1>{i + 1}</h1>
-      ))}
+      <LoseMessage />
     </div>
   );
 };

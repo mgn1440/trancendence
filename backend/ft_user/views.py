@@ -57,7 +57,7 @@ class UserMeView(RetrieveUpdateDestroyAPIView):
 		partial = kwargs.pop('partial', False)
 		serializer = UserUpdateSerializer(user, data=request.data, partial=partial)
 
-		if CustomUser.objects.filter(username=user.username).exists():
+		if CustomUser.objects.filter(username=request.data['username']).exists():
 			return JsonResponse({'status_code': '200', 'message': 'Username already exists'}, status=200)
 
 		if serializer.is_valid(raise_exception=True):

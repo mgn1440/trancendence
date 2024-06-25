@@ -22,7 +22,7 @@ const LobbyRoom = ({ roomInfo, clickEvent }) => {
         </div>
       </div>
       <p>
-        {roomInfo.status === "game"
+        {roomInfo.status === "game" || roomInfo.status === "playing"
           ? "Playing..."
           : `${roomInfo.players.length}/${roomInfo.mode}`}
       </p>
