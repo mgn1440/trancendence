@@ -7,7 +7,7 @@ import {
   axiosUserOther,
   axiosGameRecords,
 } from "@/api/axios.custom";
-import { isEmpty } from "@/lib/libft";
+import { gotoPage, isEmpty } from "@/lib/libft";
 import { useState, useEffect } from "@/lib/dom";
 import { history } from "@/lib/router";
 
@@ -27,7 +27,11 @@ const ProfilePage = () => {
         user = await axiosUserOther(name);
         if (!user.data) {
           return;
+        } else if (user.data.message === "User not found") {
+          gotoPage("/lobby");
+          return;
         }
+        console.log(user.data);
         let follow = user.data.user_info.is_following;
         if (!follow) setStat(2);
         else setStat(3);
