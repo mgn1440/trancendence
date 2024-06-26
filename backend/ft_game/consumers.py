@@ -913,6 +913,11 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
         self.host_username = self.scope['url_route']['kwargs']['host_username']
+        self.check = False
+        if self.host_username != self.scope['user'].username:
+            self.check = True
+            await self.close()
+            return
         self.room_group_name = f"local_game_{self.host_username}"
         self.game_status = 'waiting'
         self.game = {
@@ -938,6 +943,8 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         if self.scope['user'].is_anonymous:
+            return
+        if self.check == True:
             return
         self.game_status = 'game_over'
         del self.game
