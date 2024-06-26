@@ -18,6 +18,7 @@ from django.urls import reverse
 import datetime
 import random
 import string
+import re
 
 def oauth(request):
 	response = redirect(API_AUTH_URI)
@@ -48,6 +49,10 @@ class Callback(View): # TODO: POST otp check function
 		id = user_data['id']
 		username = user_data['login']
 		email = user_data['email']
+		pattern = r'^[a-zA-Z0-9_]+$'
+		if not re.match(pattern, username):
+			# 유저네임에서 하이픈이 있다면 모두 _로 변경
+			username = username.replace('-', '_')
 		try:
 			is_already_user = CustomUser.objects.get(username=username)
 			if is_already_user.uid != id:
@@ -149,6 +154,6 @@ def generate_random_username(username):
 	now = datetime.datetime.now()
 	time_str = now.strftime("%S%f")
 	random_str = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-	username = username.join('_')
+	username = username + '_'
 	joined_random_str = ''.join([time_str + random_str for time_str, random_str in zip(time_str, random_str)])
 	return username + joined_random_str

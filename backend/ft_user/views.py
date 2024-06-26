@@ -64,7 +64,8 @@ class UserMeView(RetrieveUpdateDestroyAPIView):
 		if serializer.is_valid(raise_exception=True):
 			username = serializer.validated_data.get('username')
 			patterns = r'^[a-zA-Z0-9_-]+$'
-			if not re.match(patterns, username) or username == '-' or username == '_':
+			patterns2 = r'^[0-9]+$'
+			if not re.match(patterns, username) or username == '_' or re.match(patterns2, username):
 				return JsonResponse({'status_code': '200', 'message': 'Invalid username'}, status=200)
 			if len(username) > 12:
 				return JsonResponse({'status_code': '200', 'message': 'Username must be 12 characters or less'}, status=200)
