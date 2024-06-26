@@ -86,3 +86,66 @@ export const LoseMessage = () => (
     </div>
   </div>
 );
+
+export const resultMessage = (winner) => (
+  <div class="marquee-main">
+    <div class="marquee winMessage win transform-1">
+      <div class="marquee-content win">
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!
+      </div>
+    </div>
+    <div class="marquee winMessage win transform-2">
+      <div class="marquee-content win">
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!
+      </div>
+    </div>
+    <div class="marquee winMessage win transform-3">
+      <div class="marquee-content win">
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win!
+      </div>
+    </div>
+    <div class="marquee winMessage win transform-4">
+      <div class="marquee-content win">
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!{" "}
+        {winner} Win! {winner} Win!
+        {winner} Win! {winner} Win! {winner} Win! {winner} Win! {winner} Win!
+      </div>
+    </div>
+  </div>
+);

@@ -10,6 +10,7 @@ import {
   setCanvas,
   setRatio,
 } from "./utils/GameLogic";
+import { resultMessage } from "./components/ResultMessage";
 
 const update = () => {
   draw();
@@ -24,6 +25,7 @@ const dirStat = {
 
 const LocalGamePage = () => {
   const [gameStat, setGameStat] = useState([]);
+  const [gameResult, setGameResult] = useState("");
   let directionRight = dirStat.STOP;
   let directionLeft = dirStat.STOP;
   let startFlag = false;
@@ -126,8 +128,10 @@ const LocalGamePage = () => {
           setGameState(data.game);
           setGameStat([data.game.scores, data.game.roles]);
         } else if (data.type === "game_over") {
-          alert(data.winner + " win!");
-          gotoPage(`/lobby`);
+          setGameResult(data.winner);
+          setTimeout(() => {
+            gotoPage(`/lobby`);
+          }, 5000);
         } else if (data.type === "error") {
           alert(data.message);
           gotoPage("/lobby");
@@ -170,7 +174,7 @@ const LocalGamePage = () => {
   }, [gameStat]);
 
   return (
-    <div>
+    <div class="game-display">
       <div class="pong-game-main">
         <canvas id="pong-game"></canvas>
         {isEmpty(gameStat) ? null : (
@@ -183,6 +187,7 @@ const LocalGamePage = () => {
           </div>
         )}
       </div>
+      {gameResult === "" ? <div /> : resultMessage(gameResult)}
     </div>
   );
 };
