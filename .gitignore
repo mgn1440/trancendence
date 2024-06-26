@@ -8,7 +8,7 @@ __pycache__/
 
 # for infra
 elasticsearch/certs/*
-kibana_setting/dashbard
+kibana_setting/dashboard
 kibana_setting/lifecycle
 
 # C extensions
