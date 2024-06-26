@@ -62,7 +62,7 @@ class UserMeView(RetrieveUpdateDestroyAPIView):
 		if 'username' in request.data and user.username != request.data['username']:
 			if CustomUser.objects.filter(username=request.data['username']).exists():
 				return JsonResponse({'status_code': '200', 'message': 'duplicate username'}, status=200)
-		if serializer.is_valid(raise_exception=True):
+		if 'username' in request.data:
 			username = request.data['username']
 			patterns = r'^[a-zA-Z0-9_]+$'
 			patterns2 = r'^[0-9]+$'
@@ -70,6 +70,7 @@ class UserMeView(RetrieveUpdateDestroyAPIView):
 				return JsonResponse({'status_code': '200', 'message': 'Invalid username'}, status=200)
 			if len(username) > 12:
 				return JsonResponse({'status_code': '200', 'message': 'Invalid username'}, status=200)
+		if serializer.is_valid(raise_exception=True):
 			serializer.save()
 			if 'profile_image' in request.FILES:
 				profile_image = request.FILES.get('profile_image')
