@@ -914,11 +914,16 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
             return
         self.host_username = self.scope['url_route']['kwargs']['host_username']
         self.check = False
-        if self.host_username != self.scope['user'].username:
-            self.check = True
-            await self.close()
-            return
         self.room_group_name = f"local_game_{self.host_username}"
+        await self.accept()
+        if self.host_username != self.scope['user'].username:
+            print('not host')
+            self.check = True
+            await self.send(text_data=json.dumps({
+                'type': 'error',
+                'message': 'You are not host',
+            }))
+            return
         self.game_status = 'waiting'
         self.game = {
             'ball': {'x': 600, 'y': 450, 'radius': 10, 'speedX': 10, 'speedY': 10},
@@ -946,8 +951,8 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
             return
         if self.check == True:
             return
-        self.game_status = 'game_over'
         del self.game
+        self.game_status = 'game_over'
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
