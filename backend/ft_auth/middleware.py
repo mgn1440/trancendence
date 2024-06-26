@@ -29,28 +29,26 @@ class CustomAuthentication:
 		request_user = request.user
 		if any(public):
 			return self.get_response(request)
-		if any(valid_urls):
-			if request_user == None or request_user.is_anonymous:
+		if request_user == None or request_user.is_anonymous:
 				return JsonResponse({'error': 'Anonymous User'}, status=401)
-			if request_user.is_authenticated:
-				try:
-					token = request.token #이부분은 이후 Header에서 Authorization으로 받아오는 방식으로 바꿔야함
-					payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256']) #이거는 try except으로 해야함. 사이닝 키로 유효성검사와 동시에 성공시 페이로드 리턴받아옴.
-					user = CustomUser.objects.get(uid=payload['uid'])
-					if user == request_user:
-						return self.get_response(request)
-					else:
-						return JsonResponse({'error': 'Not Same User'}, status=401)
-				except:
-					if not token:
-						return JsonResponse({'error': 'Empty Token'}, status=401)
-					if jwt.exceptions.ExpiredSignatureError:
-						return JsonResponse({'error': 'Expired Token'}, status=401)
-					else:
-						return JsonResponse({'error': 'Invalid Token'}, status=401)
-			else:
-				return JsonResponse({'error': 'not user authenticated'}, status=401)
-		return self.get_response(request)
+		if request_user.is_authenticated:
+			try:
+				token = request.token #이부분은 이후 Header에서 Authorization으로 받아오는 방식으로 바꿔야함
+				payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256']) #이거는 try except으로 해야함. 사이닝 키로 유효성검사와 동시에 성공시 페이로드 리턴받아옴.
+				user = CustomUser.objects.get(uid=payload['uid'])
+				if user == request_user:
+					return self.get_response(request)
+				else:
+					return JsonResponse({'error': 'Not Same User'}, status=401)
+			except:
+				if not token:
+					return JsonResponse({'error': 'Empty Token'}, status=401)
+				if jwt.exceptions.ExpiredSignatureError:
+					return JsonResponse({'error': 'Expired Token'}, status=401)
+				else:
+					return JsonResponse({'error': 'Invalid Token'}, status=401)
+		else:
+			return JsonResponse({'error': 'not user authenticated'}, status=401)
 
 class InsertJWT(MiddlewareMixin):
 	PUBLIC_URLS = [
