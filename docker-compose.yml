@@ -150,9 +150,9 @@ services:
       - discovery.type=single-node
     volumes:
       - ./elasticsearch/certs:/usr/share/elasticsearch/certs
+      - esdata:/usr/share/elasticsearch/data
     depends_on:
       - kibana
-      - logstash
     # healthcheck:
     #   test: [ "CMD", "curl", "-f", "http://localhost:9200" ]
     #   interval: 10s
@@ -287,3 +287,8 @@ networks:
   transcendence:
     name: transcendence
     driver: bridge
+volumes:
+  esdata:
+    driver: local
+  kibana_setting_file:
+    driver: local
