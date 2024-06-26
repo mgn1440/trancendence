@@ -140,8 +140,8 @@ def refresh(request):
 					   'cookie_refresh_token': refresh_token}, status=400)
 	tokens = generate_jwt(user)
 	response = JsonResponse({'status': 'success'}, status=200)
-	response.set_cookie('access_token', tokens['access_token'])
-	response.set_cookie('refresh_token', tokens['refresh_token'])
+	response.set_cookie('access_token', tokens['access_token'], httponly=True, secure=True)
+	response.set_cookie('refresh_token', tokens['refresh_token'], httponly=True, secure=True)
 	return response
 
 
