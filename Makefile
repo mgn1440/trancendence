@@ -83,7 +83,8 @@ backend:
 # @$(EXECTUE_BE_CMD)
 
 clean:
-	docker compose down --rmi all --volumes --remove-orphans
+	docker compose down --volumes --remove-orphans
+	rm backend/log/*.log
 
 fclean:
 	make clean

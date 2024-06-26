@@ -39,7 +39,7 @@ while true; do
   	response=$(curl -f --cacert /config/ca/ca.crt \
 	  -X POST https://kibana:5601/api/saved_objects/dashboard \
 	  -u elastic:abc123 -H 'kbn-xsrf: true' -H 'Content-Type: application/json' \
-	  -d '{"visualization": {"title": "django-dash", "id": "django-dash",  }}' 2 > /dev/null)
+	  -d '{"attributes": {"title": "django-dashboard"}}')
 	if [ $? -eq 0 ]; then
 		echo "대시보드 생성"
 		touch dashboard

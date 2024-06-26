@@ -183,8 +183,8 @@ services:
     networks:
       - transcendence
     command: /run/run.sh
-    depends_on:
-      - backend
+    # depends_on:
+    #   - backend
 
 
 networks:

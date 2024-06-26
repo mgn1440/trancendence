@@ -15,23 +15,37 @@ logging_cfg = {
 		},
 		'handlers': {
 			'console': {
-				'level': 'DEBUG',
+				'level': 'INFO',
 				'class': 'logging.StreamHandler',
 				'formatter': 'KeyValueFormatter',
-			}
+			},
+            'gunicorn_access_file': {
+				'level': 'INFO',
+				'class': 'logging.FileHandler',
+				'filename': 'log/gunicorn_access.log',
+				'formatter': 'KeyValueFormatter',
+			},
+            'gunicorn_error_file': {
+				'level': 'INFO',
+				'class': 'logging.FileHandler',
+				'filename': 'log/gunicorn_error.log',
+				'formatter': 'KeyValueFormatter',
+			},
 		},
 		'loggers': {
-			'gunicorn.access': {
-                'level': 'DEBUG', # 'INFO' -> 'DEBUG
-				'propagate': True,
-			},
 			'gunicorn.error': {
-                'level': 'DEBUG', # 'INFO' -> 'DEBUG
-				'propagate': True,
+				'handlers': ['gunicorn_error_file', 'console'],
+				'level': 'INFO',
+				'propagate': False,
 			},
-		},
-		'root': {
-			'level': 'DEBUG',
+            'gunicorn.access': {
+				'handlers': ['gunicorn_access_file','console'],
+				'level': 'INFO',
+				'propagate': False,
+			},
+    	},
+        'root': {
+			'level': 'INFO',
 			'handlers': ['console'],
 		}
 }
