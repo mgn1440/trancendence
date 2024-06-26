@@ -223,10 +223,10 @@ const GamePage = () => {
     if (isEmpty(gameStat)) return;
     document.getElementById("pong-game").style.display = "block";
     let windowH = window.innerHeight;
-    if (window.innerHeight > 800) {
-      windowH = window.innerHeight - 400;
-    }
-    if (window.innerHeight / 3 > window.innerWidth / 4) {
+    // if (window.innerHeight > 800) {
+    //   windowH = window.innerHeight - 400;
+    // }
+    if (windowH / 3 > window.innerWidth / 4) {
       setCanvas(
         document.getElementById("pong-game"),
         window.innerWidth - 10,
@@ -235,8 +235,8 @@ const GamePage = () => {
     } else {
       setCanvas(
         document.getElementById("pong-game"),
-        (window.innerHeight * 4) / 3 - 10,
-        window.innerHeight - 10
+        (windowH * 4) / 3 - 10,
+        windowH.innerHeight - 10
       );
     }
 
