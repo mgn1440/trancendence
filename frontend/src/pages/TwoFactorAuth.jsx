@@ -23,7 +23,8 @@ const OTP = ({ len }) => {
         .map((input) => input.value)
         .join("")
     );
-    if (ret.status === 200) {
+    console.log(ret);
+    if (ret.message === "인증이 완료 되었습니다") {
       MoveToLobby();
     } else {
       setTimeout(() => {
