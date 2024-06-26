@@ -11,7 +11,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         if self.scope['user'].is_anonymous:
-            self.close()
+            await self.close()
             return
         await self.channel_layer.group_add("lobby", self.channel_name)
         await self.accept()
@@ -31,7 +31,6 @@ class LobbyConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        print(data)
         if data['type'] == 'create_room':
             room_id = await self.get_room_id()
             room_info = {
@@ -110,7 +109,6 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             }))
             return
         LobbyConsumer.matchmaking_queue.append(username)
-        print (LobbyConsumer.matchmaking_queue)
         await self.send(text_data=json.dumps({
             'type': 'matchmaking_waiting',
         }))
@@ -120,7 +118,6 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         while len(LobbyConsumer.matchmaking_queue) >= 2:
             player1 = LobbyConsumer.matchmaking_queue.pop(0)
             player2 = LobbyConsumer.matchmaking_queue.pop(0)
-            print (player1, player2)
             room_id = await self.get_room_id()
             room_info = {
                 'room_name': 'Matchmaking Room',
@@ -161,7 +158,6 @@ class LobbyConsumer(AsyncWebsocketConsumer):
 
     async def goto_matchmaking_game(self, event):
         current_user = self.scope['user'].username
-        print(current_user)
         if current_user in LobbyConsumer.match_user_roomid:
             await self.send(text_data=json.dumps({
                 'type': 'goto_matchmaking_game',

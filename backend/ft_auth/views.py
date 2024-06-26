@@ -20,15 +20,12 @@ import random
 import string
 
 def oauth(request):
-	# request.META['Origin'] = 'http://localhost:8000/api/auth/callback'
 	response = redirect(API_AUTH_URI)
-	# response['Origin'] = 'http://localhost:8000'
 	return response
 
 class Callback(View): # TODO: POST otp check function
 	def get(self, request):
 		code = request.GET.get('code')
-		print(code)
 		if code is None:
 			return JsonResponse({'error': 'No code'}, status=400)
 		data = {
@@ -38,9 +35,7 @@ class Callback(View): # TODO: POST otp check function
 			'code': code,
 			'redirect_uri': API_REDIRECT_URI,
 		}
-		print(API_CLIENT_SECRET)
 		response = requests.post('https://api.intra.42.fr/oauth/token', data=data)
-		print(response.json())
 		if response.status_code != 200:
 			return JsonResponse({'error': '42 API Access Token Error'}, status=400)
 		access_token = response.json()['access_token']
@@ -103,7 +98,6 @@ class OTPView(View):
 			device = EmailDevice.objects.filter(user=user).first()
 			data = json.loads(request.body)
 			otp_code = data.get('otp')
-			# print(device.verify_token(otp_code))
 			if otp_code is None:
 				return JsonResponse({'statusCode': 400, "message": "없어"}, status=400)
 			if device.verify_token(otp_code):

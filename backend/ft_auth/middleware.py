@@ -22,7 +22,6 @@ class CustomAuthentication:
 			re.compile(r'^(.*)/admin/'),
 		]
 	def __call__(self, request):
-		# print(f'url is {request.path_info}')
 		path = request.path_info.lstrip('/')
 		valid_urls = (url.match(path) for url in self.API_URLS)
 		public = (url.match(path) for url in self.PUBLIC_URLS)
@@ -31,7 +30,6 @@ class CustomAuthentication:
 			return self.get_response(request)
 		if any(valid_urls):
 			if request_user == None or request_user.is_anonymous:
-				print('here')
 				return JsonResponse({'error': 'Anonymous User'}, status=401)
 			if request_user.is_authenticated:
 				try:
@@ -41,20 +39,15 @@ class CustomAuthentication:
 					if user == request_user:
 						return self.get_response(request)
 					else:
-						print('not same user')
 						return JsonResponse({'error': 'Not Same User'}, status=401)
 				except:
 					if not token:
-						print('empty token4')
 						return JsonResponse({'error': 'Empty Token'}, status=401)
 					if jwt.exceptions.ExpiredSignatureError:
-						print('empty token3')
 						return JsonResponse({'error': 'Expired Token'}, status=401)
 					else:
-						print('empty token2')
 						return JsonResponse({'error': 'Invalid Token'}, status=401)
 			else:
-				print('empty token1')
 				return JsonResponse({'error': 'not user authenticated'}, status=401)
 		return self.get_response(request)
 

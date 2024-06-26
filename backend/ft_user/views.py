@@ -13,6 +13,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q, Count, Case, When, IntegerField
 from datetime import datetime
 from django.core.files.storage import default_storage
+from django.contrib.auth import logout as django_logout
 
 
 class OtpUpdateView(View):
@@ -269,6 +270,7 @@ def logout(request):
 	response.delete_cookie('access_token')
 	response.delete_cookie('refresh_token')
 	response.delete_cookie('sessionid')
+	django_logout(request)
 	return response
 
 def get_jwt_user(request):

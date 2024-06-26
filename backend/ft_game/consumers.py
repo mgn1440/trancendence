@@ -316,7 +316,6 @@ async def create_game_records(game_data, is_tournament=False, game_record_detail
         player2_score=game_data['player2_score'],
         is_tournament=is_tournament
     )
-    print(game_record.id)
     for record_detail in game_record_details:
         ball_start_position = json.dumps(record_detail['ball_start_position'])
         ball_end_position = json.dumps(record_detail['ball_end_position'])
@@ -613,7 +612,6 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        print (data)
         if data['type'] == 'start_game':
             self.status = 'playing'
             if self.room_id in LobbyConsumer.rooms and data['role'] == 'left' and data['match'] == 'a':
@@ -787,7 +785,6 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
             loser_score = left_score
         game_data = await get_game_data(winner, loser, winner_score, loser_score)
         game_record_id = await create_game_records(game_data, is_tournament=True, game_record_details=self.game[match]['record'])
-        print(game_record_id)
         TournamentGameConsumer.game_record_list[self.room_id].append(game_record_id)
         if match == 'a':
             LobbyConsumer.rooms[self.room_id]['game']['winner_a'] = winner
@@ -1692,7 +1689,6 @@ class CustomTournamentGameConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        print (data)
         if data['type'] == 'start_game':
             self.status = 'playing'
             if self.room_id in LobbyConsumer.rooms and data['role'] == 'left' and data['match'] == 'a':
@@ -1923,7 +1919,6 @@ class CustomTournamentGameConsumer(AsyncWebsocketConsumer):
             loser_score = left_score
         game_data = await get_game_data(winner, loser, winner_score, loser_score)
         game_record_id = await create_game_records(game_data, is_tournament=True, game_record_details=self.game[match]['record'])
-        print(game_record_id)
         TournamentGameConsumer.game_record_list[self.room_id].append(game_record_id)
         if match == 'a':
             LobbyConsumer.rooms[self.room_id]['game']['winner_a'] = winner

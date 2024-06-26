@@ -87,13 +87,9 @@ class StatusConsumerTest(TestCase):
 		assert response5['online'][0]['username'] == 'user3'
 
 		# response1 = await communicator1.receive_json_from()
-		# print("response1 again")
-		# print(response1)
 		
 		# communicator3 = await self.connect_communicator(self.user3)
 		# response3 = await communicator3.receive_json_from()
-		# print("response3")
-		# print(response3)
 
 		# assert await communicator1.receive_nothing() is True
 		# assert await communicator2.receive_nothing() is True
@@ -101,8 +97,6 @@ class StatusConsumerTest(TestCase):
 
 
 		# response3 = await communicator2.receive_json_from()
-		# print("response3")
-		# print(response2)
 		# self.assertEqual(response1['type'], 'status')
 		# self.assertEqual(response1['online'], ['user2'])
 		# self.assertEqual(response1['offline'], [])

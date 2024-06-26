@@ -122,7 +122,6 @@ class RoomConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        print(data)
         if data['type'] == 'start_game':
             LobbyConsumer.rooms[self.room_id]['status'] = 'game'
             LobbyConsumer.rooms[self.room_id]['in_game_players'].append(LobbyConsumer.rooms[self.room_id]['players'][0])
@@ -145,7 +144,6 @@ class RoomConsumer(AsyncWebsocketConsumer):
             )
             await self.update_room_list()
         elif data['type'] == 'disconnect':
-            print('disconnect' + self.scope['user'].username)
             await self.close()
 
             
