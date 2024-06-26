@@ -160,6 +160,8 @@ services:
     volumes:
       - ./elasticsearch/certs/:/config
       - ./kibana_setting/:/run
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
     networks:
       - transcendence
     command: /run/run.sh
