@@ -65,7 +65,6 @@ class GameRoomManager:
 		rooms = []
 		for key in sorted_keys:
 			room_data = cache.get(key)
-			print(type(room_data))
 			if room_data:
 				rooms.append(json.loads(room_data))
 		return rooms

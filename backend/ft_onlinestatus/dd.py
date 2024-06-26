@@ -17,7 +17,6 @@ class StatusConsumer(AsyncWebsocketConsumer):
 
 	async def connect(self):
 		user = self.scope['user']
-		self.my_uid = self.scope['user'].uid
 		if user.is_anonymous:
 			await self.close()
 			return
@@ -43,7 +42,6 @@ class StatusConsumer(AsyncWebsocketConsumer):
 				'username': self.user_list,
 				'new_online': username,
 				'new_offline': '',
-				'new_uid': self.scope['user'].uid,
 			}
 		)
 		self.user_list.append(username)
@@ -70,7 +68,6 @@ class StatusConsumer(AsyncWebsocketConsumer):
 				'username': self.user_list,
 				'new_online': '',
 				'new_offline': username,
-				'new_uid': self.scope['user'].uid,
 			}
 		)
 
@@ -79,16 +76,16 @@ class StatusConsumer(AsyncWebsocketConsumer):
 		user = CustomUser.objects.get(username=user)
 		user_list = event['username']
 		friend_list = FollowList.objects.filter(user=user).values_list('following_user', flat=True)
-		friend_list2 = []
 		for ppl in friend_list:
-			friend_list2.append(CustomUser.objects.get(uid=ppl).username)
+			ppl = ppl.username
 		online_list = []
 		offline_list = []
 		if event['new_online'] != '': # 새로운 유저가 온라인으로 들어왔다면
 			if event['new_online'] == user.username:  # 그 새로운유저가 자기 자신채널이라면 그땐 새로 리스트 전부 보내주기
-				for man in friend_list2:
-					user_info = await self.make_dictionary(CustomUser.objects.get(username=man))
-					if man in user_list:
+				for user_id in friend_list:
+					user_info = await self.make_dictionary(CustomUser.objects.get(uid=user_id))
+					user_name = user_info['username']
+					if user_name in user_list:
 						online_list.append(user_info)
 					else:
 						offline_list.append(user_info)
@@ -99,16 +96,16 @@ class StatusConsumer(AsyncWebsocketConsumer):
 				}))
 				return
 			else:  # 다른유저들은 새로들어온유저가 친구일때 그 친구의 정보만 보내주기
-				user_info = await self.make_dictionary(CustomUser.objects.get(uid=event['new_uid']))
-				if event['new_online'] in friend_list2:
+				user_info = await self.make_dictionary(CustomUser.objects.get(username=event['new_online']))
+				if event['new_online'] in friend_list:
 					online_list.append(user_info)
 					await self.send(text_data=json.dumps({
 						'type': 'add_online',
 						'online': online_list,
 					}))
-		else:	
-			user_info = await self.make_dictionary(CustomUser.objects.get(uid=event['new_uid']))
-			if event['new_offline'] in friend_list2:
+		else:
+			user_info = await self.make_dictionary(CustomUser.objects.get(username=event['new_offline']))
+			if event['new_offline'] in friend_list:
 				offline_list.append(user_info)
 				await self.send(text_data=json.dumps({
 					'type': 'add_offline',
@@ -123,12 +120,10 @@ class StatusConsumer(AsyncWebsocketConsumer):
 			user = self.scope['user'].username
 			user = CustomUser.objects.get(username=user)
 			friend_list = FollowList.objects.filter(user=user).values_list('following_user', flat=True)
-			friend_list2 = []
-			for ppl in friend_list:
-				friend_list2.append(CustomUser.objects.get(uid=ppl).username)
-			for man in friend_list2:
-				user_info = await self.make_dictionary(CustomUser.objects.get(username=man))
-				if man in self.user_list:
+			for user_id in friend_list:
+				user_info = await self.make_dictionary(CustomUser.objects.get(uid=user_id))
+				user_name = user_info['username']
+				if user_name in self.user_list:
 					online_list.append(user_info)
 				else:
 					offline_list.append(user_info)
@@ -137,45 +132,6 @@ class StatusConsumer(AsyncWebsocketConsumer):
 				'online': online_list,
 				'offline': offline_list,
 			}))
-		elif data['type'] == 'change_name':
-			self.user_list.remove(self.scope['user'].username)
-			self.user_list.append(data['new_name'])
-			old_name = self.scope['user'].username
-			self.scope['user'].username = data['new_name']
-			await self.channel_layer.group_send(
-				'online_status',
-				{
-					'type': 'change_name',
-					'old_name': old_name,
-					'new_name': data['new_name'],
-					'user_uid': self.scope['user'].uid,
-				}
-			)
-
-	async def change_name(self, event):
-		me = CustomUser.objects.get(uid=self.scope['user'].uid)
-		friend_list = FollowList.objects.filter(user=me).values_list('following_user', flat=True)
-		friend_list2 = []
-		for ppl in friend_list:
-			friend_list2.append(CustomUser.objects.get(uid=ppl).username)
-		if event['old_name'] in friend_list2:
-			friend_list2.remove(event['old_name'])
-			friend_list2.append(event['new_name'])
-		online_list = []
-		offline_list = []
-		for man in friend_list2:
-			user_info = await self.make_dictionary(CustomUser.objects.get(username=man))
-			if man in self.user_list:
-				online_list.append(user_info)
-			else:
-				offline_list.append(user_info)
-		await self.send(text_data=json.dumps({
-			'type': 'status',
-			'online': online_list,
-			'offline': offline_list,
-		}))
-   
-			
 
 	async def make_dictionary(self, user):
 		return ({

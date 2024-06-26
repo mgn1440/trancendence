@@ -7,7 +7,6 @@ def send_email(sender_email, receiver_email, app_password, subject, text, html):
 	message = MIMEMultipart("alternative")
 	message["Subject"] = subject
 	message["From"] = sender_email
-	print(sender_email)
 	message["To"] = receiver_email
 
 	part1 = MIMEText(text, "plain")

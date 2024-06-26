@@ -65,7 +65,12 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
       );
     } else {
       const userMe = await axiosUserMe();
-      ws_userlist.getState().socket.close();
+      ws_userlist.getState().socket.send(
+        JSON.stringify({
+          type: "change_name",
+          new_name: userMe.data.user_info.username,
+        }
+      ));
       setUserData(clientUserStore.dispatch, userMe.data.user_info);
       gotoPage("/profile/me");
     }
