@@ -5,8 +5,6 @@ services:
       context: ${FE_PATH}
       dockerfile: Dockerfile.frontend
     container_name: frontend
-    env_file:
-      - ${FE_ENV_PATH}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5173"]
       interval: 10s
@@ -22,28 +20,12 @@ services:
     networks:
       - transcendence
   backend:
+    env_file:
+      - .env
     build:
       context: ${BE_PATH}
       dockerfile: Dockerfile.backend
     container_name: backend
-    env_file:
-      - ${BE_ENV_PATH}
-    # environment:
-    #   POSTGRES_DB: postgres
-    #   POSTGRES_USER: postgres
-    #   POSTGRES_PASSWORD: postgres
-    #   DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-    #   DJANGO_DEBUG: ${DJANGO_DEBUG}
-    #   DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
-    #   DJANGO_DB_ENGINE: ${DJANGO_DB_ENGINE}
-    #   DJANGO_DB_NAME: ${DJANGO_DB_NAME}
-    #   DJANGO_DB_USER: ${DJANGO_DB_USER}
-    #   DJANGO_DB_PASSWORD: ${DJANGO_DB_PASSWORD}
-    #   DJANGO_DB_HOST: ${DJANGO_DB_HOST}
-    #   DJANGO_DB_PORT: ${DJANGO_DB_PORT}
-    #   DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME}
-    #   DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL}
-    #   DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD}
     depends_on:
       postgresql:
         condition: service_healthy
@@ -63,16 +45,11 @@ services:
       - transcendence
   postgresql:
     container_name: postgresql
-    env_file:
-      - ${BE_ENV_PATH}
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       DJANGO_DB_USER: postgres
-      # POSTGRES_DB: ${DJANGO_DB_NAME}
-      # POSTGRES_USER: ${DJANGO_DB_USER}
-      # POSTGRES_PASSWORD: ${DJANGO_DB_PASSWORD}
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s
@@ -111,9 +88,7 @@ services:
       - transcendence
   logstash:
     container_name: logstash
-    # image: logstash:8.14.1
     image: docker.elastic.co/logstash/logstash:8.14.1
-    # image: docker.elastic.co/logstash/logstash:7.17.1
     volumes:
       - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
       - ./logstash/config/logstash.conf:/config/logstash.conf
@@ -121,8 +96,7 @@ services:
       - ./backend/log/:/django/
     environment:
       - ELASTIC_PASSWORD=abc123
-    command: /usr/share/logstash/bin/logstash -f /config/logstash.conf #--path.settings /usr/share/logstash/config
-    # command: tail -f /dev/null
+    command: /usr/share/logstash/bin/logstash -f /config/logstash.conf
     networks:
       - transcendence
     ports:
@@ -153,14 +127,9 @@ services:
       - esdata:/usr/share/elasticsearch/data
     depends_on:
       - kibana
-    # healthcheck:
-    #   test: [ "CMD", "curl", "-f", "http://localhost:9200" ]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 5
     ports:
-    - "9200:9200"
-    - "9300:9300"
+      - "9200:9200"
+      - "9300:9300"
     networks:
       - transcendence
   kibana_setting:
@@ -182,8 +151,6 @@ services:
       - transcendence
 
   prometheus:
-    env_file:
-      - ${BE_ENV_PATH}
     container_name: prometheus
     build:
       context: ${PROMETHEUS_PATH}
@@ -229,11 +196,8 @@ services:
       - "--web.config=opt/node-exporter/web.yml"
     restart: always
 
-
   alertmanager:
     container_name: alertmanager
-    env_file:
-      - ${BE_ENV_PATH}
     build:
       context: ${PROMETHEUS_PATH}
       dockerfile: Dockerfile.alertmanager
@@ -257,8 +221,6 @@ services:
 
   grafana:
     container_name: grafana
-    env_file:
-      - ${BE_ENV_PATH}
     build:
       context: ${GRAFANA_PATH}
       dockerfile: Dockerfile.grafana
@@ -268,21 +230,6 @@ services:
       - "3000:3000"
     networks:
       - transcendence
-  # redis:
-  #   image: redis:latest
-  #   networks:
-  #     - transcendence
-  #   restart: always
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - "${REDIS_PATH}/data/:/data/"
-  #     - "${REDIS_PATH}/config/:/user/local/etc/redis/"
-  #   command: redis-server /user/local/etc/redis/redis.conf
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "ping"]
-  #     timeout: 20s
-  #     retries: 5
 networks:
   transcendence:
     name: transcendence
