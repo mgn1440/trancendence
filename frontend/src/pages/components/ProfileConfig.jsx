@@ -8,6 +8,7 @@ import {
   axiosDeleteProfileImg,
 } from "@/api/axios.custom.js";
 import { setUserData, clientUserStore } from "@/store/clientUserStore.js";
+import { ws_userlist } from "@/store/userListWS.js";
 
 const ProfileConfig = ({ profile, getProfileImg }) => {
   useEffect(() => {
@@ -66,6 +67,7 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
       );
     } else {
       const userMe = await axiosUserMe();
+      // ws_userlist.getState().socket.close();
       setUserData(clientUserStore.dispatch, userMe.data.user_info);
       gotoPage("/profile/me");
     }
