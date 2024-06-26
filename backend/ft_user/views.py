@@ -64,7 +64,7 @@ class UserMeView(RetrieveUpdateDestroyAPIView):
 				return JsonResponse({'status_code': '200', 'message': 'Invalid username'}, status=200)
 		if serializer.is_valid(raise_exception=True):
 			username = user.username
-			patterns = r'^[a-zA-Z0-9_-]+$'
+			patterns = r'^[a-zA-Z0-9_]+$'
 			patterns2 = r'^[0-9]+$'
 			if not re.match(patterns, username) or username == '_' or re.match(patterns2, username):
 				return JsonResponse({'status_code': '200', 'message': 'Invalid username'}, status=200)
