@@ -67,7 +67,7 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
       );
     } else {
       const userMe = await axiosUserMe();
-      // ws_userlist.getState().socket.close();
+      ws_userlist.getState().socket.close();
       setUserData(clientUserStore.dispatch, userMe.data.user_info);
       gotoPage("/profile/me");
     }
