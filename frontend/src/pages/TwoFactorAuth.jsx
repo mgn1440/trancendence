@@ -149,13 +149,13 @@ const resendBtn = () => {
   clearInputs();
   setTimeout(() => {
     const bottom = document.getElementsByClassName("bottom")[0];
-    const resendBtn = document.createElement("button");
-    resendBtn.className = "small-btn";
-    resendBtn.innerText = "resend";
-    resendBtn.addEventListener("mousedown", (e) => {
+    const resendButton = document.createElement("button");
+    resendButton.className = "small-btn";
+    resendButton.innerText = "resend";
+    resendButton.addEventListener("mousedown", (e) => {
       e.preventDefault();
     });
-    resendBtn.onclick = () => {
+    resendButton.onclick = () => {
       isResendClicked = true;
       // /api/auth/otp #get 요청
       axios({
@@ -165,7 +165,7 @@ const resendBtn = () => {
       });
       resendBtn();
     };
-    bottom.appendChild(resendBtn);
+    bottom.appendChild(resendButton);
   }, 5000); // 5000 밀리초 = 5초
 };
 
