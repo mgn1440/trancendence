@@ -60,14 +60,14 @@ class UserMeView(RetrieveUpdateDestroyAPIView):
 		serializer = UserUpdateSerializer(user, data=request.data, partial=partial)
 		if 'username' in request.data and user.username != request.data['username']:
 			if CustomUser.objects.filter(username=request.data['username']).exists():
-				return JsonResponse({'status_code': '200', 'message': 'Username already exists'}, status=200)
+				return JsonResponse({'status_code': '200', 'message': 'Invalid username'}, status=200)
 		if serializer.is_valid(raise_exception=True):
 			username = serializer.validated_data.get('username')
 			patterns = r'^[a-zA-Z0-9_-]+$'
 			if not re.match(patterns, username) or username == '-' or username == '_':
 				return JsonResponse({'status_code': '200', 'message': 'Invalid username'}, status=200)
 			if len(username) > 12:
-				return JsonResponse({'status_code': '200', 'message': 'Username must be 12 characters or less'}, status=200)
+				return JsonResponse({'status_code': '200', 'message': 'Invalid username'}, status=200)
 	
 			serializer.save()
 			if 'profile_image' in request.FILES:
