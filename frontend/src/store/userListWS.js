@@ -1,4 +1,7 @@
 import { createStore } from "../lib/observer/Store.js";
+import { gotoPage } from "@/lib/libft";
+import { axiosLogout } from "@/api/axios.custom.js";
+import { ws_gamelogic } from "@/store/gameLogicWS.js";
 
 const WS_CONNECT = "WS_CONNECT";
 
@@ -92,6 +95,15 @@ export const startWebSocketConnection = (dispatch, setUserList) => {
       setUserList({
         online: ws_userlist.getState().online,
         offline: ws_userlist.getState().offline,
+      });
+    } else if (data.type === "duplicate_login") {
+      console.log("duplicate_login");
+      axiosLogout().then((res) => {
+        if (res.status === 200) {
+          ws_userlist.getState().socket.close();
+          ws_gamelogic.getState().socket.close();
+          gotoPage("/");
+        }
       });
     }
   };
