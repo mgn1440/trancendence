@@ -329,9 +329,6 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
         <div class="modal-dialog">
           <div class="modal-content">
             <div id="lottie"></div>
-            {/* <div class="loader">
-              <span></span>
-            </div> */}
           </div>
         </div>
       </div>
