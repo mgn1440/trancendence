@@ -21,6 +21,7 @@ class CustomAuthentication:
 			re.compile(r'^(.*)/auth/otp/'),
 			re.compile(r'^(.*)/admin/'),
 			re.compile(r'^(.*)/auth/'),
+			re.compile(r'^(.*)metrics'),
 		]
 	def __call__(self, request):
 		path = request.path_info.lstrip('/')

@@ -1,4 +1,7 @@
 import { useRef, useEffect, useState } from "@/lib/dom";
+import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
+
+let bracketShow = false;
 
 let drawBorder = (ctx, player, pos) => {
   ctx.font = "16px Arial";
@@ -13,6 +16,25 @@ let drawBorder = (ctx, player, pos) => {
 };
 
 const Bracket = (users) => {
+  addEventArray(eventType.KEYDOWN, (e) => {
+    // console.log(e.key);
+    if (e.key === "t") {
+      const bracketElem = document.querySelector("#Bracket");
+      if (!bracketElem || bracketShow) return;
+      bracketElem.setAttribute("class", "show");
+      bracketShow = true;
+    }
+  });
+  addEventArray(eventType.KEYUP, (e) => {
+    // console.log(e.key);
+    if (e.key === "t") {
+      const bracketElem = document.querySelector("#Bracket");
+      if (!bracketElem || !bracketShow) return;
+      bracketElem.removeAttribute("class");
+      bracketShow = false;
+    }
+  });
+  addEventHandler();
   const drawBracket = (canvas, p_width) => {
     const ctx = canvas.getContext("2d");
 

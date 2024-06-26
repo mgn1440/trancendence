@@ -309,9 +309,9 @@ const GamePage = () => {
     document.getElementById("pong-game").style.display = "block";
     canvas = document.getElementById("pong-game");
     let windowH = window.innerHeight;
-    if (window.innerHeight > 800) {
-      windowH = window.innerHeight - 400;
-    }
+    // if (window.innerHeight > 800) {
+    //   windowH = window.innerHeight - 400;
+    // }
     if (windowH / 3 > window.innerWidth / 4) {
       canvas.width = window.innerWidth - 10;
       canvas.height = (window.innerWidth * 3) / 4 - 10;
