@@ -148,6 +148,9 @@ const CustumGamePage = () => {
                 .socket.send(JSON.stringify({ type: "start_game" }));
             }
           }, 1000);
+          addEventArray(eventType.BEFOREUNLOAD, () => {
+            clearInterval(interval);
+          });
           addEventArray(eventType.KEYDOWN, (e) => {
             if (e.key === "ArrowUp" || e.key === "ArrowDown") {
               direction = e.key === "ArrowUp" ? dirStat.UP : dirStat.DOWN;

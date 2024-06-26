@@ -3,6 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# for backend
+*_initial.py
+
+# for infra
+elasticsearch/certs/*
+
+
 # C extensions
 *.so
 

@@ -49,10 +49,9 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
     } else {
       config2Change.append("profile_image", getProfileImg());
     }
-    for (let pair of config2Change.entries()) {
-    }
     const res = await axiosUserMeConfig(config2Change);
-    if (res.data.message === "Username already exists") {
+    console.log(res.data);
+    if (res.data.message === "Invalid username") {
       document.querySelector(".dupl-msg").classList.add("show");
       document.querySelector(".dupl-msg").classList.add("active");
       document.querySelectorAll("input[type=text]")[0].focus();
@@ -69,8 +68,8 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
         JSON.stringify({
           type: "change_name",
           new_name: userMe.data.user_info.username,
-        }
-      ));
+        })
+      );
       setUserData(clientUserStore.dispatch, userMe.data.user_info);
       gotoPage("/profile/me");
     }
@@ -80,7 +79,9 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
       {!profile ? null : <h3>{profile.username}</h3>}
       <div class="profile-config-list">
         <ItemInput ItemName="Nickname" defaultValue={profile.username} />
-        <div class="cl-red dupl-msg">nickname duplicated</div>
+        <div class="cl-red dupl-msg">
+          wrong nickname policy, may be duplicated
+        </div>
         <div style="display: none;">
           <ItemInput
             ItemName="Multi-nickname"
