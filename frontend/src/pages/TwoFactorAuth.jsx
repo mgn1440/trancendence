@@ -24,7 +24,7 @@ const OTP = ({ len }) => {
         .join("")
     );
     console.log(ret);
-    if (ret.message === "인증이 완료 되었습니다") {
+    if (ret.data.message === "인증이 완료 되었습니다") {
       MoveToLobby();
     } else {
       setTimeout(() => {

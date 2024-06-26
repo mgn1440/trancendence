@@ -114,7 +114,7 @@ class OTPView(View):
 			else:
 				if device.token == otp_code:
 					return JsonResponse({'statusCode': 400, "message": "맞대"}, status=400)
-				return JsonResponse({'statusCode': 200, "message": "안돼"}, status=400)
+				return JsonResponse({'statusCode': 200, "message": "안돼"}, status=200)
 		else:
 			return JsonResponse({"'statusCode': 400, message": "패스"}, status=400)
 
