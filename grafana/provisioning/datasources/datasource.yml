@@ -10,3 +10,4 @@ datasources:
     jsonData:
       httpMethod: POST
       tlsSkipVerify: true
+    uid: prometheus

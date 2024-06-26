@@ -196,13 +196,13 @@ services:
 
   grafana:
     container_name: grafana
+    env_file:
+      - ${BE_ENV_PATH}
     build:
       context: ${GRAFANA_PATH}
       dockerfile: Dockerfile.grafana
     volumes:
       - ${GRAFANA_PATH}/data:/var/lib/grafana
-      - ${GRAFANA_PATH}/provisioning:/etc/grafana/provisioning
-      - ${GRAFANA_PATH}/dashboard:/etc/grafana/provisioning/dashboards
     ports:
       - "3000:3000"
     networks:

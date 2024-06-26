@@ -16,7 +16,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "edpr64ze6d6gwb"
+          "uid": "prometheus"
         },
         "enable": false,
         "expr": "ALERTS{alias=\"$host\", alertstate=\"firing\"}",
@@ -29,7 +29,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "edpr64ze6d6gwb"
+          "uid": "prometheus"
         },
         "enable": true,
         "expr": "ALERTS{alias=\"$host\",alertstate=\"pending\"}",
@@ -52,7 +52,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -103,7 +103,7 @@
           "calculatedInterval": "10m",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -124,7 +124,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -185,7 +185,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "expr": "count(count(node_cpu_seconds_total{$tag=\"$host\"}) by (cpu))",
           "format": "time_series",
@@ -201,7 +201,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -263,7 +263,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "expr": "node_memory_MemAvailable_bytes{$tag=\"$host\"}",
           "format": "time_series",
@@ -281,7 +281,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -340,7 +340,7 @@
           "calculatedInterval": "10m",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -361,7 +361,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -449,7 +449,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -469,7 +469,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -602,7 +602,7 @@
           "calculatedInterval": "10s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -620,7 +620,7 @@
           "calculatedInterval": "10s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -638,7 +638,7 @@
           "calculatedInterval": "10s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -659,7 +659,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -799,7 +799,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -817,7 +817,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -835,7 +835,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -856,7 +856,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -943,7 +943,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -961,7 +961,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -979,7 +979,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -997,7 +997,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1018,7 +1018,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1121,7 +1121,7 @@
           "calculatedInterval": "2m",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1142,7 +1142,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1260,7 +1260,7 @@
           "calculatedInterval": "2m",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1278,7 +1278,7 @@
           "calculatedInterval": "2m",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1304,7 +1304,7 @@
       "dashes": false,
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "decimals": 2,
       "editable": true,
@@ -1346,7 +1346,7 @@
           "calculatedInterval": "2m",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1402,7 +1402,7 @@
       "dashes": false,
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "decimals": 2,
       "editable": true,
@@ -1449,7 +1449,7 @@
           "calculatedInterval": "2m",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1505,7 +1505,7 @@
       "dashes": false,
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "decimals": 2,
       "editable": true,
@@ -1547,7 +1547,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1565,7 +1565,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1621,7 +1621,7 @@
       "dashes": false,
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "decimals": 2,
       "editable": true,
@@ -1665,7 +1665,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1684,7 +1684,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1742,7 +1742,7 @@
       "dashes": false,
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "decimals": 2,
       "editable": true,
@@ -1793,7 +1793,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1811,7 +1811,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1867,7 +1867,7 @@
       "dashes": false,
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "decimals": 2,
       "editable": true,
@@ -1909,7 +1909,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1927,7 +1927,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -1983,7 +1983,7 @@
       "dashes": false,
       "datasource": {
         "type": "prometheus",
-        "uid": "edpr64ze6d6gwb"
+        "uid": "prometheus"
       },
       "decimals": 2,
       "editable": true,
@@ -2025,7 +2025,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -2043,7 +2043,7 @@
           "calculatedInterval": "2s",
           "datasource": {
             "type": "prometheus",
-            "uid": "edpr64ze6d6gwb"
+            "uid": "prometheus"
           },
           "datasourceErrors": {},
           "errors": {},
@@ -2175,7 +2175,7 @@
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "edpr64ze6d6gwb"
+          "uid": "prometheus"
         },
         "definition": "",
         "hide": 0,
