@@ -17,7 +17,6 @@ class StatusConsumer(AsyncWebsocketConsumer):
 
 	async def connect(self):
 		user = self.scope['user']
-		self.my_uid = self.scope['user'].uid
 		if user.is_anonymous:
 			await self.close()
 			return

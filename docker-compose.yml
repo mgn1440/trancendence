@@ -111,18 +111,15 @@ services:
       - transcendence
   logstash:
     container_name: logstash
-    # image: logstash:8.14.1
     image: docker.elastic.co/logstash/logstash:8.14.1
-    # image: docker.elastic.co/logstash/logstash:7.17.1
     volumes:
       - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
       - ./logstash/config/logstash.conf:/config/logstash.conf
       - ./elasticsearch/certs:/usr/share/logstash/config/certs
       - ./backend/log/:/django/
     environment:
-      - ELASTIC_PASSWORD=abc123
-    command: /usr/share/logstash/bin/logstash -f /config/logstash.conf #--path.settings /usr/share/logstash/config
-    # command: tail -f /dev/null
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    command: /usr/share/logstash/bin/logstash -f /config/logstash.conf
     networks:
       - transcendence
     ports:
@@ -131,7 +128,7 @@ services:
     container_name: kibana
     image: docker.elastic.co/kibana/kibana:7.17.22
     environment:
-      - ELASTIC_PASSWORD=abc123
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
     networks:
       - transcendence
     volumes:
@@ -146,18 +143,13 @@ services:
       context: ./elasticsearch
       dockerfile: Dockerfile.elasticsearch
     environment:
-      - ELASTIC_PASSWORD=abc123
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - discovery.type=single-node
     volumes:
       - ./elasticsearch/certs:/usr/share/elasticsearch/certs
       - esdata:/usr/share/elasticsearch/data
     depends_on:
       - kibana
-    # healthcheck:
-    #   test: [ "CMD", "curl", "-f", "http://localhost:9200" ]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 5
     ports:
     - "9200:9200"
     - "9300:9300"
