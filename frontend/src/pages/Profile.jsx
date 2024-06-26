@@ -10,6 +10,7 @@ import {
 import { gotoPage, isEmpty } from "@/lib/libft";
 import { useState, useEffect } from "@/lib/dom";
 import { history } from "@/lib/router";
+import { clientUserStore, setUserData } from "@/store/clientUserStore";
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState({});
@@ -23,6 +24,7 @@ const ProfilePage = () => {
       setUserName(name);
       if (name === "me") {
         user = await axiosUserMe();
+        setUserData(clientUserStore.dispatch, user.data.user_info);
       } else {
         user = await axiosUserOther(name);
         if (!user.data) {

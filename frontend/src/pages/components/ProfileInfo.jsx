@@ -9,6 +9,7 @@ import {
 import { Chart, registerables } from "chart.js";
 import { isEmpty } from "@/lib/libft";
 import { eventType, addEventArray, addEventHandler } from "@/lib/libft";
+import { clientUserStore } from "@/store/clientUserStore";
 
 let canvas;
 let routeInfo;
@@ -292,6 +293,7 @@ const LogMultiItem = ({
     });
   };
 
+  console.log(clientUserStore.getState());
   return (
     <div
       class="log-multi-item"
@@ -302,7 +304,10 @@ const LogMultiItem = ({
       <div class="log-multi-info">
         <div class="flex-row">
           <div class="flex-column">
-            <img class="my-profile" src="/img/minji_2.jpg"></img>
+            <img
+              class="my-profile"
+              src={clientUserStore.getState().client.profile_image}
+            ></img>
             <img
               src={
                 record.opponent1_profile ?? getDefaultImg(record.opponent1_name)
