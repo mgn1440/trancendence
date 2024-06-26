@@ -28,16 +28,16 @@ class CustomUser(ExportModelOperationsMixin("user"), AbstractUser):
 		self.save()
 
 class FollowList(ExportModelOperationsMixin("follow_list"), models.Model):
-	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, db_column="user")
-	following_username = models.CharField(max_length=128, null=True, blank=True)
+	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="follower_set", db_column="user")
+	following_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="following_set", db_column="following_user")
 
 	def __str__(self):
-		return f'{self.user} follows {self.following_username}'
+		return f'{self.user} follows {self.following_user}'
 
 	def save(self, *args, **kwargs):
-		if self.user.username == self.following_username:
+		if self.user == self.following_user:
 			raise Exception('자기 자신을 친구로 추가할 수 없습니다.')
-		if FollowList.objects.filter(user=self.user, following_username=self.following_username).exists():
+		if FollowList.objects.filter(user=self.user, following_user=self.following_user).exists():
 			raise Exception('이미 친구로 추가된 사용자입니다.')
 		super().save(*args, **kwargs)
 
