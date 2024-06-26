@@ -51,11 +51,20 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
     }
     const res = await axiosUserMeConfig(config2Change);
     console.log(res.data);
-    if (res.data.message === "Invalid username") {
-      document.querySelector(".dupl-msg").classList.add("show");
-      document.querySelector(".dupl-msg").classList.add("active");
+    if (
+      res.data.message === "Invalid username" ||
+      res.data.message === "duplicate username"
+    ) {
+      if (res.data.message === "Invalid username") {
+        document.querySelector(".inval-msg").innerHTML =
+          "Invalid user name, may be wrong nickname policy";
+      } else {
+        document.querySelector(".inval-msg").innerHTML = "Duplicated user name";
+      }
+      document.querySelector(".inval-msg").classList.add("show");
+      document.querySelector(".inval-msg").classList.add("active");
       document.querySelectorAll("input[type=text]")[0].focus();
-      document.querySelector(".dupl-msg").addEventListener(
+      document.querySelector(".inval-msg").addEventListener(
         "animationend",
         function () {
           this.classList.remove("active");
@@ -79,9 +88,7 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
       {!profile ? null : <h3>{profile.username}</h3>}
       <div class="profile-config-list">
         <ItemInput ItemName="Nickname" defaultValue={profile.username} />
-        <div class="cl-red dupl-msg">
-          wrong nickname policy, may be duplicated
-        </div>
+        <div class="cl-red inval-msg"></div>
         <div style="display: none;">
           <ItemInput
             ItemName="Multi-nickname"
