@@ -14,6 +14,7 @@ from django.db.models import Q, Count, Case, When, IntegerField
 from datetime import datetime
 from django.core.files.storage import default_storage
 from django.contrib.auth import logout as django_logout
+import re
 
 
 class OtpUpdateView(View):
@@ -57,12 +58,17 @@ class UserMeView(RetrieveUpdateDestroyAPIView):
 		user = get_jwt_user(self.request)
 		partial = kwargs.pop('partial', False)
 		serializer = UserUpdateSerializer(user, data=request.data, partial=partial)
-
 		if 'username' in request.data and user.username != request.data['username']:
 			if CustomUser.objects.filter(username=request.data['username']).exists():
 				return JsonResponse({'status_code': '200', 'message': 'Username already exists'}, status=200)
-
 		if serializer.is_valid(raise_exception=True):
+			username = serializer.validated_data.get('username')
+			patterns = r'^[a-zA-Z0-9_-]+$'
+			if not re.match(patterns, username) or username == '-' or username == '_':
+				return JsonResponse({'status_code': '200', 'message': 'Invalid username'}, status=200)
+			if len(username) > 12:
+				return JsonResponse({'status_code': '200', 'message': 'Username must be 12 characters or less'}, status=200)
+	
 			serializer.save()
 			if 'profile_image' in request.FILES:
 				profile_image = request.FILES.get('profile_image')
