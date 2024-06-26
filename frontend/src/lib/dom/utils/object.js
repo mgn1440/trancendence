@@ -1,4 +1,11 @@
 const shallowEqual = (obj1, obj2) => {
+  if (
+    obj1?.type?.toString().startsWith("image/") &&
+    obj2?.type?.toString().startsWith("image/")
+  ) {
+    console.log("image type");
+    return false;
+  }
   if (Object.is(obj1, obj2)) {
     return true;
   }
