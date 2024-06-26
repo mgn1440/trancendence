@@ -17,7 +17,7 @@ class OtherUserSerializer(serializers.ModelSerializer):
 		if request is None:
 			return False
 		request_user = request.user
-		return FollowList.objects.filter(user=request_user, following_username=obj.username).exists()
+		return FollowList.objects.filter(user=request_user, following_user=obj).exists()
 
 class ProfileImageSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -25,19 +25,28 @@ class ProfileImageSerializer(serializers.ModelSerializer):
 		fields = ['profile_image']
 
 class FollowListSerializer(serializers.ModelSerializer):
+	following_username = serializers.CharField(write_only=True)
 	class Meta:
 		model = FollowList
 		fields = ['following_username']
 
-	def validate(self, data):
-		user = self.context['request'].user
-		follow_username = data['following_username']
+	def validate_following_username(self, value):
+		try:
+			following_user = CustomUser.objects.get(username=value)
+		except CustomUser.DoesNotExist:
+			raise serializers.ValidationError('해당 사용자는 존재하지 않습니다.')
 
-		if user.username == follow_username:
+		user = self.context['request'].user
+		if user == following_user:
 			raise serializers.ValidationError('자기 자신을 친구로 추가할 수 없습니다.')
-		if FollowList.objects.filter(user=user, following_username=follow_username).exists():
+		if FollowList.objects.filter(user=user, following_user=following_user).exists():
 			raise serializers.ValidationError('이미 친구로 추가된 사용자입니다.')
-		return data
+		return value
+
+	def create(self, validated_data):
+		user = self.context['request'].user
+		following_user = CustomUser.objects.get(username=validated_data['following_username'])
+		return FollowList.objects.create(user=user, following_user=following_user)
 
 class SingleGameRecordSerializer(serializers.ModelSerializer):
 	class Meta:

@@ -23,13 +23,13 @@ class StatusConsumer(AsyncWebsocketConsumer):
 		username = self.scope['user'].username
 		await self.accept()
 		self.check = False
-		if username in self.user_list:
-			await self.send(text_data=json.dumps({
-				'type': 'duplicate_login',
-			}))
-			self.check = True
-			await self.close()
-			return
+		# if username in self.user_list:
+		# 	await self.send(text_data=json.dumps({
+		# 		'type': 'duplicate_login',
+		# 	}))
+		# 	self.check = True
+		# 	await self.close()
+		# 	return
 
 		await self.channel_layer.group_add(
 			'online_status',
@@ -108,7 +108,7 @@ class StatusConsumer(AsyncWebsocketConsumer):
 					'type': 'add_offline',
 					'offline': offline_list
 				}))
- 
+
 	async def receive(self, text_data):
 		data = json.loads(text_data)
 		if data['type'] == 'update':
