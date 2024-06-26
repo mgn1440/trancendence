@@ -17,6 +17,7 @@ const eventArray = {
   KEYUP: [],
   DOMLOADED: [],
   RESIZE: [],
+  BEFOREUNLOAD: [],
 };
 
 const resetEventArray = () => {
@@ -32,6 +33,7 @@ export const eventType = {
   KEYUP: "KEYUP",
   DOMLOADED: "DOMLOADED",
   RESIZE: "RESIZE",
+  BEFOREUNLOAD: "BEFOREUNLOAD",
 };
 
 export const addEventArray = (eventType, event) => {
@@ -57,6 +59,9 @@ export const addEventHandler = () => {
   eventArray["RESIZE"].forEach((event) => {
     window.addEventListener("resize", event);
   });
+  eventArray["BEFOREUNLOAD"].forEach((event) => {
+    window.addEventListener("beforeunload", event);
+  });
 };
 
 const removeEventHandler = () => {
@@ -77,6 +82,9 @@ const removeEventHandler = () => {
   });
   eventArray["RESIZE"].forEach((event) => {
     window.removeEventListener("resize", event);
+  });
+  eventArray["BEFOREUNLOAD"].forEach((event) => {
+    window.removeEventListener("beforeunload", event);
   });
   resetEventArray();
 };
