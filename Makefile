@@ -90,8 +90,8 @@ backend:
 # @$(EXECTUE_BE_CMD)
 
 clean:
-	docker compose down --volumes --remove-orphans
-
+	docker compose down
+#rm backend/log/*.log
 fclean:
 	make clean
 	docker system prune --all --volumes --force

@@ -1,4 +1,4 @@
-# version: "3"
+version: "3"
 services:
   frontend:
     build:
@@ -109,7 +109,68 @@ services:
       - "${NGINX_PATH}:/etc/nginx/conf.d"
     networks:
       - transcendence
-
+  logstash:
+    container_name: logstash
+    # image: logstash:8.14.1
+    image: docker.elastic.co/logstash/logstash:8.14.1
+    # image: docker.elastic.co/logstash/logstash:7.17.1
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logstash/config/logstash.conf:/config/logstash.conf
+      - ./elasticsearch/certs:/usr/share/logstash/config/certs
+      - ./backend/log/:/django/
+    environment:
+      - ELASTIC_PASSWORD=abc123
+    command: /usr/share/logstash/bin/logstash -f /config/logstash.conf #--path.settings /usr/share/logstash/config
+    # command: tail -f /dev/null
+    networks:
+      - transcendence
+    ports:
+      - "5044:5044"
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:7.17.22
+    environment:
+      - ELASTIC_PASSWORD=abc123
+    networks:
+      - transcendence
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
+      - ./elasticsearch/certs:/config
+    ports:
+      - "5601:5601"
+    restart: on-failure:3
+  elasticsearch:
+    container_name: elasticsearch
+    build:
+      context: ./elasticsearch
+      dockerfile: Dockerfile.elasticsearch
+    environment:
+      - ELASTIC_PASSWORD=abc123
+      - discovery.type=single-node
+    volumes:
+      - ./elasticsearch/certs:/usr/share/elasticsearch/certs
+      - esdata:/usr/share/elasticsearch/data
+    depends_on:
+      - kibana
+    # healthcheck:
+    #   test: [ "CMD", "curl", "-f", "http://localhost:9200" ]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    ports:
+    - "9200:9200"
+    - "9300:9300"
+    networks:
+      - transcendence
+  kibana_setting:
+    image: docker.elastic.co/kibana/kibana:7.17.22
+    volumes:
+      - ./elasticsearch/certs/:/config
+      - ./kibana_setting/:/run
+    networks:
+      - transcendence
+    command: /run/run.sh
   certificate-generator:
     container_name: certificate-generator
     build:
@@ -207,9 +268,27 @@ services:
       - "3000:3000"
     networks:
       - transcendence
-
+  # redis:
+  #   image: redis:latest
+  #   networks:
+  #     - transcendence
+  #   restart: always
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - "${REDIS_PATH}/data/:/data/"
+  #     - "${REDIS_PATH}/config/:/user/local/etc/redis/"
+  #   command: redis-server /user/local/etc/redis/redis.conf
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     timeout: 20s
+  #     retries: 5
 networks:
   transcendence:
     name: transcendence
     driver: bridge
-
+volumes:
+  esdata:
+    driver: local
+  kibana_setting_file:
+    driver: local

@@ -253,6 +253,45 @@ DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME')
 MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'KeyValueFormatter': {
+            'format': '%(asctime)s [%(levelname)s] message=%(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'KeyValueFormatter',
+        },
+        'django_error_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'log/django_error.log',
+            'formatter': 'KeyValueFormatter',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['django_error_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['django_error_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    }
+}
 SERVICE_ACCOUNT_INFO = {
     "type": os.getenv('TYPE'),
     "project_id": os.getenv('PROJECT_ID'),
