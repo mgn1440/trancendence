@@ -33,7 +33,11 @@ const reducer_userlist = (state = initState, action = {}) => {
 export const ws_userlist = createStore(reducer_userlist);
 
 export const startWebSocketConnection = (dispatch, setUserList) => {
-  if (ws_userlist.getState().socket instanceof WebSocket === false) {
+  if (
+    ws_userlist.getState().socket instanceof WebSocket === false ||
+    ws_userlist.getState().socket.readyState === WebSocket.CLOSED ||
+    ws_userlist.getState().socket.readyState === WebSocket.CLOSING
+  ) {
     const socket = new WebSocket("wss://" + "localhost" + "/ws/online/");
 
     dispatch(webSocketConnect(socket, [], []));
