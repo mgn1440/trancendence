@@ -4,17 +4,21 @@ import { axiosUserOther } from "@/api/axios.custom";
 import { isEmpty } from "@/lib/libft";
 
 const UserCard = ({ user_name }) => {
+  console.log(user_name);
   const defaultImg = `/img/minji_${(user_name[0].charCodeAt(0) % 5) + 1}.jpg`;
   const [myProfile, setMyProfile] = useState({});
   useEffect(() => {
     const fetchProfile = async () => {
-      if (user_name === "-") return;
-      const userOther = await axiosUserOther(user_name);
-      setMyProfile(userOther.data.user_info);
-      console.log(userOther.data.user_info);
+      if (user_name === "-") {
+        setMyProfile({});
+      } else {
+        const userOther = await axiosUserOther(user_name);
+        console.log(userOther.data.user_info);
+        setMyProfile(userOther.data.user_info);
+      }
     };
     fetchProfile();
-  }, []);
+  }, [user_name]);
   return (
     <div class="user-card border-user-select">
       <img src={myProfile.profile_image ?? defaultImg}></img>
