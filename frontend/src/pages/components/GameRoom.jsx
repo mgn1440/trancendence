@@ -55,7 +55,7 @@ const GameRoom = ({ gameData, isStart, isCustom, sendRoomSocket }) => {
         </button>
       </div>
       <div class="game-room">
-        <h3>{gameData.room_name}</h3>
+        <h3>{gameData.room_name?.slice(0, 30)}</h3>
         <h5>{gameData.is_custom ? "Custom" : "General"}</h5>
         {roomSetting}
         <div class="user-cards">

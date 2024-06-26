@@ -15,7 +15,7 @@ const LobbyRoom = ({ roomInfo, clickEvent }) => {
       onclick={() => clickEvent(roomInfo)}
     >
       <div class="first-row">
-        <h6>{roomInfo.room_name}</h6>
+        <h6>{roomInfo.room_name.slice(0, 20)}</h6>
         <div>
           {roomInfo.is_secret ? <img src="/icon/lock.svg" /> : <div />}
           {roomInfo.is_custom ? <img src="/icon/spanner.svg" /> : <div />}
