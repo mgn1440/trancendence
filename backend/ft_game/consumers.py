@@ -917,7 +917,6 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
         self.room_group_name = f"local_game_{self.host_username}"
         await self.accept()
         if self.host_username != self.scope['user'].username:
-            print('not host')
             self.check = True
             await self.send(text_data=json.dumps({
                 'type': 'error',
@@ -937,7 +936,6 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
-        await self.accept()
         await self.channel_layer.group_send(
             self.room_group_name,
             {
