@@ -4,6 +4,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
+  position: relative;
 }
 #pong-game {
   display: none;
@@ -30,13 +32,11 @@
 .pong-game-info > p.user1 {
   position: absolute;
   top: 0.5rem;
-  left: 0.5rem;
 }
 
 .pong-game-info > p.user2 {
   position: absolute;
   top: 0.5rem;
-  right: 0.5rem;
 }
 
 .pong-game-info > h6.user1 {

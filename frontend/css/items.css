@@ -61,3 +61,7 @@ input:checked + .slider:before {
 input:checked + .slider {
   box-shadow: 0 0 0 2px limeGreen, 0 0 2px limeGreen;
 }
+
+.item input:focus {
+  outline: none;
+}

@@ -9,17 +9,24 @@ SHELL 						:= /bin/bash
 # UNAME_S 					:= $(shell uname -s)
 
 SRC_FOLDER				:= .
-FE_FOLDER					:= frontend
-BE_FOLDER					:= backend
+FE_FOLDER				:= frontend
+BE_FOLDER				:= backend
 NGINX_FOLDER			:= nginx
 REDIS_FOLDER			:= redis
 CONFIG_FOLDER			:= config
+PROMETHEUS_FOLDER		:= prometheus
+GRAFANA_FOLDER			:= grafana
+CERTIFICATE_FOLDER		:= cert
 
-FE_PATH						:= $(SRC_FOLDER)/$(FE_FOLDER)
-BE_PATH						:= $(SRC_FOLDER)/$(BE_FOLDER)
+FE_PATH					:= $(SRC_FOLDER)/$(FE_FOLDER)
+BE_PATH					:= $(SRC_FOLDER)/$(BE_FOLDER)
 NGINX_PATH				:= $(SRC_FOLDER)/$(NGINX_FOLDER)
 REDIS_PATH				:= $(SRC_FOLDER)/$(REDIS_FOLDER)
-export FE_PATH BE_PATH NGINX_PATH REDIS_PATH
+PROMETHEUS_PATH			:= $(SRC_FOLDER)/$(PROMETHEUS_FOLDER)
+GRAFANA_PATH			:= $(SRC_FOLDER)/$(GRAFANA_FOLDER)
+CERTIFICATE_PATH		:= $(SRC_FOLDER)/$(CERTIFICATE_FOLDER)
+
+export FE_PATH BE_PATH NGINX_PATH REDIS_PATH PROMETHEUS_PATH GRAFANA_PATH CERTIFICATE_PATH
 
 ifeq ($(firstword $(MAKECMDGOALS)),local)
 	ENV_FILE				:= .env.local
@@ -83,9 +90,8 @@ backend:
 # @$(EXECTUE_BE_CMD)
 
 clean:
-	docker compose down --volumes --remove-orphans
-	rm backend/log/*.log
-
+	docker compose down
+#rm backend/log/*.log
 fclean:
 	make clean
 	docker system prune --all --volumes --force
@@ -94,6 +100,9 @@ fclean:
 
 backend-restart:
 	docker compose -f $(COMPOSE_FILE) restart backend
+
+frontend-restart:
+	docker compose -f $(COMPOSE_FILE) restart frontend
 
 nginx-restart:
 	docker compose -f $(COMPOSE_FILE) restart nginx
@@ -114,7 +123,7 @@ status: ps images volume network top
 ps logs images top:
 	docker compose $@
 
-.PHONY: ps logs images top 
+.PHONY: ps logs images top
 
 network volume:
 	docker $@ ls

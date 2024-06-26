@@ -7,7 +7,6 @@ import { BottomSection } from "./ModalSection";
 let roomID = 0;
 
 const LobbyRoom = ({ roomInfo, clickEvent }) => {
-  console.log(roomInfo);
   return (
     <div
       class={`lobby-room ${
@@ -15,9 +14,15 @@ const LobbyRoom = ({ roomInfo, clickEvent }) => {
       }`}
       onclick={() => clickEvent(roomInfo)}
     >
-      <h6>{roomInfo.room_name}</h6>
+      <div class="first-row">
+        <h6>{roomInfo.room_name}</h6>
+        <div>
+          {roomInfo.is_secret ? <img src="/icon/lock.svg" /> : <div />}
+          {roomInfo.is_custom ? <img src="/icon/spanner.svg" /> : <div />}
+        </div>
+      </div>
       <p>
-        {roomInfo.status === "game"
+        {roomInfo.status === "game" || roomInfo.status === "playing"
           ? "Playing..."
           : `${roomInfo.players.length}/${roomInfo.mode}`}
       </p>
@@ -27,16 +32,44 @@ const LobbyRoom = ({ roomInfo, clickEvent }) => {
 
 const LobbyRooms = ({ roomList, sendLobbySocket }) => {
   useEffect(() => {
-    const modalElement = document.getElementById("PswdRoomModal");
-    const handleModalHidden = () => {
-      const inputs = modalElement.querySelectorAll("input[type=text]");
-      inputs.forEach((input) => (input.value = ""));
+    const pswdModalElement = document.getElementById("PswdRoomModal");
+    const handlePswdModalHidden = () => {
+      const input = pswdModalElement.querySelector("input");
+      input.value = "";
+      pswdModalElement.querySelector(".denied").classList.remove("show");
     };
-
-    modalElement.addEventListener("hidden.bs.modal", handleModalHidden);
+    const handlePswdModalShown = () => {
+      const input = pswdModalElement.querySelector("input");
+      input.focus();
+    };
+    const handlePswdModalShow = () => {
+      pswdModalElement.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          sendLobbySocket({
+            type: "join_secret_room",
+            room_id: roomID,
+            password: document.querySelector("#PswdRoomModal input").value,
+          });
+        }
+      });
+    };
+    pswdModalElement.addEventListener("hidden.bs.modal", handlePswdModalHidden);
+    pswdModalElement.addEventListener("shown.bs.modal", handlePswdModalShown);
+    pswdModalElement.addEventListener("show.bs.modal", handlePswdModalShow);
 
     return () => {
-      modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
+      pswdModalElement.removeEventListener(
+        "hidden.bs.modal",
+        handlePswdModalHidden
+      );
+      pswdModalElement.removeEventListener(
+        "shown.bs.modal",
+        handlePswdModalShown
+      );
+      pswdModalElement.removeEventListener(
+        "show.bs.modal",
+        handlePswdModalShow
+      );
     };
   }, []);
 
@@ -57,23 +90,30 @@ const LobbyRooms = ({ roomList, sendLobbySocket }) => {
       <Modal
         id="PswdRoomModal"
         title={() =>
-          TitleSection({ IconPath: "/icon/enter.svg", Title: "basic room" })
+          TitleSection({ IconPath: "/icon/lock.svg", Title: "basic room" })
         }
         body={() => {
-          return <InputBox text="Password" defaultValue="" />;
+          return (
+            <div>
+              <InputBox text="Password" defaultValue="" />
+              <div class="denied cl-red">password not correct</div>
+            </div>
+          );
         }}
-        footer={() =>
-          BottomSection({
-            ButtonName: "Enter",
-            ClickEvent: () => {
+        footer={() => (
+          <button
+            class="small-btn"
+            onclick={() => {
               sendLobbySocket({
                 type: "join_secret_room",
                 room_id: roomID,
                 password: document.querySelector("#PswdRoomModal input").value,
               });
-            },
-          })
-        }
+            }}
+          >
+            Enter
+          </button>
+        )}
       />
       <div class="lobby-rooms-nav">
         <button class="selected">

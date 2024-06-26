@@ -58,7 +58,10 @@ const updateElement = (parent, newVDOM, currentVDOM, index = 0) => {
   if (!newVDOM || !currentVDOM) return;
 
   // 타입이 다르면 새로운 VDOM으로 교체
-  if (newVDOM.type !== currentVDOM.type) {
+  if (
+    newVDOM.type !== currentVDOM.type
+    // newVDOM.type !== parent.childNodes[index].tagName.toLowerCase()
+  ) {
     parent.replaceChild(createElement(newVDOM), parent.childNodes[index]);
     return;
   }

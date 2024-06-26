@@ -22,16 +22,40 @@ const LobbyPage = () => {
         if (data.type === "room_list") {
           setRoomList(data.rooms);
         } else if (data.type === "join_approved") {
+          const pswdRoomModalElement = document.getElementById("PswdRoomModal");
+          if (pswdRoomModalElement.classList.contains("show")) {
+            pswdRoomModalElement.style.display = "none";
+            setTimeout(() => {
+              const modalBackdrop = document.querySelector(".modal-backdrop");
+              if (modalBackdrop) {
+                modalBackdrop.remove();
+              }
+            }, 10);
+          }
           gotoPage(`/lobby/${data.room_id}`);
         } else if (data.type === "join_denied") {
-          alert(data.message);
+          const pswdRoomModalElement = document.getElementById("PswdRoomModal");
+          pswdRoomModalElement
+            .querySelector(".modal-content")
+            .classList.add("active");
+          pswdRoomModalElement
+            .querySelector(".modal-content")
+            .classList.add("shake");
+          pswdRoomModalElement.querySelector(".modal-content").addEventListener(
+            "animationend",
+            function () {
+              this.classList.remove("shake");
+              this.classList.remove("active");
+            },
+            { once: true }
+          );
+          pswdRoomModalElement.querySelector(".denied").classList.add("show");
         } else if (data.type === "password_required") {
           let enterModal = new bootstrap.Modal(
             document.getElementById("PswdRoomModal")
           );
           enterModal.show();
         } else if (data.type === "matchmaking_waiting") {
-          console.log("matchmaking_waiting"); //debug
         } else if (data.type === "goto_matchmaking_game") {
           const quickMatchModal = new bootstrap.Modal(
             document.getElementById("QuickMatchModal")
@@ -45,7 +69,6 @@ const LobbyPage = () => {
               modalBackdrop.remove();
             }
           }, 10);
-          console.log(quickMatchModal); //debug
           gotoPage(`/game/${data.room_id}`);
         } else if (data.type === "room_created") {
           gotoPage(`/lobby/${data.room_id}`);

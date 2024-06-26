@@ -166,3 +166,16 @@
     transform: scale(1.2);
   }
 }
+
+.modal .user-item h6 {
+  text-align: left;
+}
+
+.denied {
+  display: none;
+  margin-inline: 33px;
+}
+
+.show {
+  display: block;
+}

@@ -1,5 +1,5 @@
 import LobbyButton from "./LobbyButton";
-import { isEmpty } from "@/lib/libft";
+import { gotoPage, isEmpty } from "@/lib/libft";
 import { MainProfileState } from "../GameRoom";
 import { useState, useEffect } from "@/lib/dom";
 import { axiosUserMe } from "@/api/axios.custom";
@@ -11,41 +11,58 @@ const LobbyProfile = ({ data, sendLobbySocket, stat }) => {
   useEffect(() => {
     const fetchProfile = async () => {
       const userMe = await axiosUserMe();
+      if (!userMe.data) {
+        return;
+      }
       setUserData(clientUserStore.dispatch, userMe.data.user_info);
-      // console.log(clientUserStore.getState()); // debug
       setMyProfile(userMe.data.user_info);
     };
     fetchProfile();
   }, []);
-  console.log(myProfile); // debug
 
   return (
     <div class="lobby-profile">
-      <img src={`/img/minji_${1}.jpg`}></img>
       <div class="profile-space-btw">
         {isEmpty(clientUserStore.getState().client) ? (
           <div></div>
         ) : (
-          <div>
+          <div class="profile-start">
+            <img
+              src={
+                clientUserStore.getState().client.profile_image ??
+                `/img/minji_${
+                  (clientUserStore.getState().client.username[0].charCodeAt(0) %
+                    5) +
+                  1
+                }.jpg`
+              }
+            ></img>
             <div>
-              <h3>{clientUserStore.getState().client.username}</h3>
-              <p>Win: {clientUserStore.getState().client.win}</p>
-              <p>Lose: {clientUserStore.getState().client.lose}</p>
-              <p>Rate: {calcGameRate(clientUserStore.getState().client)}%</p>
+              <div>
+                <h3>{clientUserStore.getState().client.username}</h3>
+                <p>Win: {clientUserStore.getState().client.win}</p>
+                <p>Lose: {clientUserStore.getState().client.lose}</p>
+                <p>Rate: {calcGameRate(clientUserStore.getState().client)}%</p>
+              </div>
+              {stat === MainProfileState.LOBBY ? (
+                <LobbyButton
+                  data={clientUserStore.getState().client}
+                  sendLobbySocket={sendLobbySocket}
+                />
+              ) : (
+                <div></div>
+              )}
             </div>
-            {stat === MainProfileState.LOBBY ? (
-              <LobbyButton
-                data={clientUserStore.getState().client}
-                sendLobbySocket={sendLobbySocket}
-              />
-            ) : (
-              <div></div>
-            )}
           </div>
         )}
         {stat === MainProfileState.LOBBY ? (
           <div class="lobby-buttons">
-            <button class="lobby-game-btn">
+            <button
+              class="lobby-game-btn"
+              onclick={() => {
+                gotoPage(`/local/${myProfile.username}`);
+              }}
+            >
               <img src="/icon/user.svg"></img>
               Offline Game
             </button>

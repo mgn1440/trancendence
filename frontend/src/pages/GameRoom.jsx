@@ -8,6 +8,8 @@ import { isEmpty, gotoPage } from "@/lib/libft";
 import GameRoom from "./components/GameRoom";
 import { history } from "@/lib/router";
 import { ws_gamelogic, connectGameLogicWebSocket } from "@/store/gameLogicWS";
+import { windowSizeStore, setWindowSize } from "@/store/windowSizeStore";
+import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 
 export const MainProfileState = {
   LOBBY: 1,
@@ -18,6 +20,7 @@ const RoomPage = () => {
   const [myProfile, setMyProfile] = useState({});
   const [gameData, setGameData] = useState([]);
   const [startBtn, setStartBtn] = useState(false);
+  const [winSize, setWinSize] = useState(windowSizeStore.getState().winSize);
   useEffect(() => {
     const fetchProfile = async () => {
       const userMe = await axiosUserMe();
@@ -33,7 +36,6 @@ const RoomPage = () => {
 
       ws_gamelogic.getState().socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
         if (data.type === "room_info" || data.type === "connect_user") {
           setGameData(data);
         } else if (data.type === "disconnect_user") {
@@ -52,8 +54,18 @@ const RoomPage = () => {
             setStartBtn(true);
           }
         } else if (data.type === "goto_game") {
-          if (data.mode === 2) gotoPage(`/game/${data.room_id}`);
-          else if (data.mode === 4) gotoPage(`/tournament/${data.room_id}`);
+          if (data.mode === 2) {
+            if (data.is_custom) {
+              gotoPage(`/custom/${data.room_id}`);
+            } else {
+              gotoPage(`/game/${data.room_id}`);
+            }
+          } else if (data.mode === 4)
+            if (data.is_custom) {
+              gotoPage(`/customTournament/${data.room_id}`);
+            } else {
+              gotoPage(`/tournament/${data.room_id}`);
+            }
         }
       };
     };
@@ -61,12 +73,19 @@ const RoomPage = () => {
     socketAsync();
   }, []);
 
+  useEffect(() => {
+    setWindowSize(windowSizeStore.dispatch, setWinSize);
+    addEventArray(eventType.RESIZE, () => {
+      setWindowSize(windowSizeStore.dispatch, setWinSize);
+    });
+    addEventHandler();
+  }, []);
+
   const sendRoomSocket = (roomData) => {
     if (
       ws_gamelogic.getState().socket &&
       ws_gamelogic.getState().socket.readyState === WebSocket.OPEN
     ) {
-      console.log(roomData);
       ws_gamelogic.getState().socket.send(JSON.stringify(roomData));
     }
   };

@@ -8,7 +8,7 @@ services:
     env_file:
       - ${FE_ENV_PATH}
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:5173" ]
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,7 +48,7 @@ services:
       postgresql:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000" ]
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -74,7 +74,7 @@ services:
       # POSTGRES_USER: ${DJANGO_DB_USER}
       # POSTGRES_PASSWORD: ${DJANGO_DB_PASSWORD}
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -86,13 +86,14 @@ services:
     tty: true
     networks:
       - transcendence
+
   nginx:
     container_name: nginx_gateway
     build:
       context: ${NGINX_PATH}
       dockerfile: Dockerfile.nginx
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost" ]
+      test: ["CMD", "curl", "-f", "http://localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -101,6 +102,8 @@ services:
       - "80:80"
       - "443:443"
     restart: on-failure:3
+    depends_on:
+      - backend
     tty: true
     volumes:
       - "${NGINX_PATH}:/etc/nginx/conf.d"
@@ -160,21 +163,6 @@ services:
     - "9300:9300"
     networks:
       - transcendence
-  #   # redis:
-#   #   image: redis:latest
-#   #   networks:
-#   #     - transcendence
-#   #   restart: always
-#   #   ports:
-#   #     - "6379:6379"
-#   #   volumes:
-#   #     - "${REDIS_PATH}/data/:/data/"
-#   #     - "${REDIS_PATH}/config/:/user/local/etc/redis/"
-#   #   command: redis-server /user/local/etc/redis/redis.conf
-#   #   healthcheck:
-#   #     test: ["CMD", "redis-cli", "ping"]
-#   #     timeout: 20s
-#   #     retries: 5
   kibana_setting:
     image: docker.elastic.co/kibana/kibana:7.17.22
     volumes:
@@ -183,15 +171,119 @@ services:
     networks:
       - transcendence
     command: /run/run.sh
-    # depends_on:
-    #   - backend
+  certificate-generator:
+    container_name: certificate-generator
+    build:
+      context: ${CERTIFICATE_PATH}
+      dockerfile: Dockerfile.certificate
+    volumes:
+      - ${CERTIFICATE_PATH}/certs:/etc/ssl/certs
+    networks:
+      - transcendence
+
+  prometheus:
+    env_file:
+      - ${BE_ENV_PATH}
+    container_name: prometheus
+    build:
+      context: ${PROMETHEUS_PATH}
+      dockerfile: Dockerfile.prometheus
+    depends_on:
+      - certificate-generator
+    volumes:
+      - ${PROMETHEUS_PATH}/data:/prometheus
+      - ${CERTIFICATE_PATH}/certs:/etc/ssl/certs
+    ports:
+      - "9090:9090"
+    networks:
+      - transcendence
+    entrypoint:
+      - "/usr/local/bin/entrypoint.sh"
+      - "/etc/ssl/certs/prometheus-selfsigned.crt"
+      - "60"
+      - "/opt/prometheus/prometheus"
+      - "--config.file=/opt/prometheus/prometheus.yml"
+      - "--web.config.file=/opt/prometheus/web.yml"
+      - "--storage.tsdb.retention=14d"
+    restart: always
+
+  node-exporter:
+    container_name: node-exporter
+    build:
+      context: ${PROMETHEUS_PATH}
+      dockerfile: Dockerfile.node-exporter
+    depends_on:
+      - certificate-generator
+    volumes:
+      - ${CERTIFICATE_PATH}/certs:/etc/ssl/certs
+    ports:
+      - "9100:9100"
+    networks:
+      - transcendence
+    entrypoint:
+      - "/usr/local/bin/entrypoint.sh"
+      - "/etc/ssl/certs/node-exporter-selfsigned.crt"
+      - "60"
+      - "/usr/local/bin/node_exporter"
+      - "--web.listen-address=:9100"
+      - "--web.config=opt/node-exporter/web.yml"
+    restart: always
 
 
+  alertmanager:
+    container_name: alertmanager
+    env_file:
+      - ${BE_ENV_PATH}
+    build:
+      context: ${PROMETHEUS_PATH}
+      dockerfile: Dockerfile.alertmanager
+    depends_on:
+      - certificate-generator
+    volumes:
+      - ${CERTIFICATE_PATH}/certs:/etc/ssl/certs
+    ports:
+      - "9093:9093"
+    networks:
+      - transcendence
+    entrypoint:
+      - "/usr/local/bin/entrypoint.sh"
+      - "/etc/ssl/certs/alertmanager-selfsigned.crt"
+      - "60"
+      - "/usr/local/bin/alertmanager"
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--web.config.file=/opt/alertmanager/web.yml"
+    restart: always
+
+  grafana:
+    container_name: grafana
+    env_file:
+      - ${BE_ENV_PATH}
+    build:
+      context: ${GRAFANA_PATH}
+      dockerfile: Dockerfile.grafana
+    volumes:
+      - ${GRAFANA_PATH}/data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - transcendence
+  # redis:
+  #   image: redis:latest
+  #   networks:
+  #     - transcendence
+  #   restart: always
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - "${REDIS_PATH}/data/:/data/"
+  #     - "${REDIS_PATH}/config/:/user/local/etc/redis/"
+  #   command: redis-server /user/local/etc/redis/redis.conf
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     timeout: 20s
+  #     retries: 5
 networks:
   transcendence:
     name: transcendence
     driver: bridge
-  
-    # volumes:
-    #   - ./kibana/config/:/usr/share/kibana/config/kibana.yml
-    

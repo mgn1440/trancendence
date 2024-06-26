@@ -1,16 +1,19 @@
-import { axiosUserProfile } from "@/api/axios.custom";
-import { useEffect } from "@/lib/dom";
+import { useEffect, useState } from "@/lib/dom";
+import { LoseMessage } from "./components/ResultMessage";
 
 const TestPage = () => {
-  useEffect(() => {
-    const fetchUserProfile = async (username) => {
-      const profileImg = await axiosUserProfile(username);
-      console.log(profileImg);
-    };
+  const [stat, setStat] = useState(0);
 
-    fetchUserProfile("hyungjuk");
-  }, []);
-  return <div>TestPage</div>;
+  const onclickHandler = () => {
+    if (stat < 4) {
+      setStat(stat + 1);
+    }
+  };
+  return (
+    <div>
+      <LoseMessage />
+    </div>
+  );
 };
 
 export default TestPage;

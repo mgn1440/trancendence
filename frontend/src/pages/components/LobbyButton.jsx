@@ -4,13 +4,34 @@ import { InputBox, RadioCheck } from "./Inputs";
 import { useEffect, useRef, useState } from "@/lib/dom";
 import { moveToProfile } from "./UserList";
 import { axiosUserOther } from "@/api/axios.custom";
-import { isEmpty } from "@/lib/libft";
+import { gotoPage, isEmpty } from "@/lib/libft";
+import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 
 export const UserFind = ({ userData }) => {
-  const randNum = Math.ceil(Math.random() * 5);
-  const imgSrc = `/img/minji_${randNum}.jpg`;
+  const imgSrc = `/img/minji_${
+    (userData.username[0].charCodeAt(0) % 5) + 1
+  }.jpg`;
+  if (userData.profile_image !== null) {
+    imgSrc = userData.profile_image;
+  }
   return (
-    <div class="user-item" onclick={() => moveToProfile(userData.username)}>
+    <div
+      class="user-item"
+      onclick={() => {
+        const findModalElement = document.getElementById("FindUserModal");
+        setTimeout(() => {
+          const findModal = new bootstrap.Modal(findModalElement);
+          if (findModal) {
+            findModal.hide();
+          }
+          const modalBackdrop = document.querySelector(".modal-backdrop");
+          if (modalBackdrop) {
+            modalBackdrop.remove();
+          }
+        }, 10);
+        moveToProfile(userData.username);
+      }}
+    >
       <div class="profile">
         <img src={imgSrc} />
       </div>
@@ -22,7 +43,10 @@ export const UserFind = ({ userData }) => {
               win: {userData.win} lose: {userData.lose} rate:
               {userData.win + userData.lose === 0
                 ? 0
-                : (userData.win / (userData.win + userData.lose)) * 100}
+                : (
+                    (userData.win / (userData.win + userData.lose)) *
+                    100
+                  ).toFixed(2)}
               %
             </p>
           </div>
@@ -39,14 +63,29 @@ const getModalInput = (data) => {
   const radios = modalElement.querySelectorAll("input[type=radio]");
 
   if (radios[1].checked && inputs[1].value == "") {
-    alert("Please enter the password");
+    modalElement.querySelector(".modal-content").classList.add("active");
+    modalElement.querySelector(".modal-content").classList.add("shake");
+    modalElement.querySelector(".modal-content").addEventListener(
+      "animationend",
+      function () {
+        this.classList.remove("shake");
+        this.classList.remove("active");
+      },
+      { once: true }
+    );
+    modalElement.querySelector(".denied").classList.add("show");
+    inputs[1].focus();
     return false;
   }
+  let mode = 0;
+  if (radios[2].checked) mode = 2;
+  else mode = 4;
   const retRoomData = {
     type: "create_room",
     room_name:
       inputs[0].value === "" ? `${data.username}'s Room` : inputs[0].value,
-    mode: radios[2].checked ? 2 : 4,
+    mode: mode,
+    is_custom: radios[5].checked ? true : false,
     is_secret: radios[1].checked ? true : false,
     password: radios[1].checked ? inputs[1].value : "",
   };
@@ -54,31 +93,36 @@ const getModalInput = (data) => {
 };
 
 const LobbyButton = ({ data, sendLobbySocket }) => {
-  console.log(data); // debug
-  useEffect(() => {
+  const createRoomModalReset = () => {
     const modalElement = document.getElementById("CreateRoomModal");
-    const handleModalHidden = () => {
-      const inputs = modalElement.querySelectorAll("input[type=text]");
-      inputs.forEach((input) => (input.value = ""));
-
-      const radios = modalElement.querySelectorAll("input[type=radio]");
-      radios[0].checked = true;
-      radios[2].checked = true;
-    };
-
-    modalElement.addEventListener("hidden.bs.modal", handleModalHidden);
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const radios = modalElement.querySelectorAll("input[type=radio]");
-      const inputs = modalElement.querySelectorAll("input[type=text]");
-      if (radios[0].checked == true) inputs[1].disable = true;
-      else inputs[1].disable = false;
+    if (!modalElement) return;
+    const inputs = modalElement.querySelectorAll("input[type=text]");
+    inputs.forEach((input) => (input.value = ""));
+    const radios = modalElement.querySelectorAll("input[type=radio]");
+    modalElement.querySelector(".denied").classList.remove("show");
+    radios[0].checked = true;
+    radios[2].checked = true;
+    radios[4].checked = true;
+    inputs[1].setAttribute("disabled", true);
+    inputs[0].focus();
+  };
+  useEffect(() => {
+    createRoomModalReset();
+    const modalElement = document.getElementById("CreateRoomModal");
+    modalElement.addEventListener("hidden.bs.modal", createRoomModalReset);
+    modalElement.querySelectorAll("input[type=text]").forEach((input) => {
+      input.addEventListener("keydown", (e) => {
+        const isalpha = /^[a-zA-Z0-9]*$/i.test(e.key);
+        const isnumpad = /^[0-9]*$/i.test(e.key);
+        if (!isalpha && !isnumpad) {
+          e.preventDefault();
+        }
+      });
     });
 
     const loaderElement = document.getElementById("QuickMatchModal");
     const handleLoaderHidden = () => {
       sendLobbySocket({ type: "cancel_matchmaking" });
-      // console.log("modal hidden"); // debug
     };
 
     loaderElement.addEventListener("hidden.bs.modal", handleLoaderHidden);
@@ -100,6 +144,16 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
           ".user-item .user-info h6"
         );
         if (findName !== null) {
+          setTimeout(() => {
+            const findModal = new bootstrap.Modal(findModalElement);
+            if (findModal) {
+              findModal.hide();
+            }
+            const modalBackdrop = document.querySelector(".modal-backdrop");
+            if (modalBackdrop) {
+              modalBackdrop.remove();
+            }
+          }, 10);
           moveToProfile(findName.innerText);
         }
       } else if (!isalpha && !isnumpad) {
@@ -112,7 +166,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     const findModalInput = findModalElement.querySelector("input");
     findModalInput.addEventListener("keydown", handleFindInput);
 
-    document.addEventListener("keydown", (e) => {
+    addEventArray(eventType.KEYDOWN, (e) => {
       let isModalOpen = false;
       document.querySelectorAll(".modal").forEach((modal) => {
         if (modal.classList.contains("show")) {
@@ -145,8 +199,11 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
         ) {
           logoutModal.show();
         }
+      } else if (e.key === "h") {
+        gotoPage("/user/me");
       }
     });
+    addEventHandler();
 
     return () => {
       modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
@@ -197,6 +254,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
           return (
             <div>
               <InputBox
+                type="text"
                 text="Group Name"
                 defaultValue={`${data.username}'s Room`}
               />
@@ -204,24 +262,33 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
                 <RadioCheck text="Open Room" name="lock" id="open" />
                 <RadioCheck text="Private" name="lock" id="private" />
               </div>
-              <InputBox text="Password" defaultValue="" />
+              <InputBox type="text" text="Password" defaultValue="" />
+              <div class="denied cl-red">password required</div>
               <div class="radio-check body-element robby-game-btn">
                 <RadioCheck text="1 vs 1" name="battle" id="1vs1" />
                 <RadioCheck text="Tournament" name="battle" id="tornament" />
               </div>
+              <div class="radio-check body-element robby-game-btn">
+                <RadioCheck text="Classic" name="type" id="classic" />
+                <RadioCheck text="Custom" name="type" id="custom" />
+              </div>
             </div>
           );
         }}
-        footer={() =>
-          BottomSection({
-            ButtonName: "Create",
-            ClickEvent: () => {
+        footer={() => (
+          <button
+            class="small-btn"
+            onclick={() => {
               const roomData = getModalInput(data);
-              if (!roomData) return;
+              if (!roomData) {
+                return;
+              }
               sendLobbySocket(roomData);
-            },
-          })
-        }
+            }}
+          >
+            create
+          </button>
+        )}
       />
       <Modal
         id="FindUserModal"
@@ -235,12 +302,14 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
                 <input class="user-search-input"></input>
                 <img src="/icon/search.svg"></img>
               </div>
-              {findStatus == 0 ? null : (
+              {findStatus == 0 ? (
+                <div />
+              ) : (
                 <div class="find-result">
                   {findResult ? (
                     <UserFind userData={findResult} />
                   ) : (
-                    <div class="not-found-msg">no user found</div>
+                    <div class="not-found-msg cl-red">no user found</div>
                   )}
                 </div>
               )}

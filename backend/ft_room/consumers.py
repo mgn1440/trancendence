@@ -9,6 +9,9 @@ import asyncio
 class RoomConsumer(AsyncWebsocketConsumer):
     async def connect(self):
 
+        if self.scope['user'].is_anonymous:
+            await self.close()
+            return
         self.room_id_str = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = f'room_{self.room_id_str}'
         self.room_id = int(self.room_id_str)
@@ -52,6 +55,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
             'room_name': LobbyConsumer.rooms[self.room_id]['room_name'],
             'room_id': self.room_id,
             'mode': LobbyConsumer.rooms[self.room_id]['mode'],
+            'is_custom': LobbyConsumer.rooms[self.room_id]['is_custom'],
             'user_list': LobbyConsumer.rooms[self.room_id]['players'],
         }))
 
@@ -74,6 +78,9 @@ class RoomConsumer(AsyncWebsocketConsumer):
         
 
     async def disconnect(self, close_code):
+        if self.scope['user'].is_anonymous:
+            return
+    
         if self.room_id not in LobbyConsumer.rooms: # 방이 없어졌으면 그냥 종료
             await self.channel_layer.group_discard(
                 self.room_group_name,
@@ -124,7 +131,11 @@ class RoomConsumer(AsyncWebsocketConsumer):
                 LobbyConsumer.rooms[self.room_id]['in_game_players'].append(LobbyConsumer.rooms[self.room_id]['players'][2])
                 LobbyConsumer.rooms[self.room_id]['in_game_players'].append(LobbyConsumer.rooms[self.room_id]['players'][3])
             
-            print (LobbyConsumer.rooms[self.room_id]['in_game_players'])
+            if LobbyConsumer.rooms[self.room_id]['is_custom']:
+                if 'goal_score' in data:
+                    LobbyConsumer.rooms[self.room_id]['goal_score'] = data['goal_score']
+                if 'items' in data:
+                    LobbyConsumer.rooms[self.room_id]['items'] = data['items']
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -177,6 +188,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
             'room_id': self.room_id,
             'mode': LobbyConsumer.rooms[self.room_id]['mode'],
             'user_list': LobbyConsumer.rooms[self.room_id]['players'],
+            'is_custom': LobbyConsumer.rooms[self.room_id]['is_custom'],
         }))
         
     async def disconnect_user(self, event):
@@ -189,6 +201,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
             'room_id': self.room_id,
             'mode': LobbyConsumer.rooms[self.room_id]['mode'],
             'user_list': LobbyConsumer.rooms[self.room_id]['players'],
+            'is_custom': LobbyConsumer.rooms[self.room_id]['is_custom'],
         }))
         
     async def room_ready(self, event):
@@ -205,4 +218,5 @@ class RoomConsumer(AsyncWebsocketConsumer):
             'type': 'goto_game',
             'mode': LobbyConsumer.rooms[room_id]['mode'],
             'room_id': room_id,
+            'is_custom': LobbyConsumer.rooms[room_id]['is_custom'],
         }))

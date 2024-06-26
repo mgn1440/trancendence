@@ -1,3 +1,4 @@
+import { gotoPage } from "@/lib/libft.js";
 import { createStore } from "../lib/observer/Store.js";
 
 const WS_GAMELOGIC = "WS_GAMELOGIC";
@@ -32,7 +33,17 @@ export const disconnectGameLogicWebSocket = () => {
 };
 
 export const connectGameLogicWebSocket = (dispatch, path) => {
-  disconnectGameLogicWebSocket();
-  const socket = new WebSocket("ws://" + "localhost:8000" + path);
-  dispatch(webSocketConnect(socket));
+  if (
+    ws_gamelogic.getState().socket instanceof WebSocket === false ||
+    ws_gamelogic.getState().socket.readyState === WebSocket.CLOSED ||
+    ws_gamelogic.getState().socket.readyState === WebSocket.CLOSING
+  ) {
+    const socket = new WebSocket("wss://" + "localhost" + path);
+    dispatch(webSocketConnect(socket));
+    socket.onerror = (e) => {
+      gotoPage("/");
+    };
+  } else {
+    console.log("WebSocket is already connected");
+  }
 };

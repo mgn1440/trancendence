@@ -6,15 +6,14 @@ from rest_framework.views import APIView
 import jwt
 from backend.settings import JWT_SECRET_KEY
 from .serializers import CustomUserSerializer, FollowListSerializer, SingleGameRecordSerializer, MultiGameRecordSerializer, OtherUserSerializer, ProfileImageSerializer, SingleGameDetailSerializer, DayStatSerializer, UserUpdateSerializer
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView
 from rest_framework.exceptions import NotFound, ValidationError
 import json
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q, Count, Case, When, IntegerField
 from datetime import datetime
+from django.core.files.storage import default_storage
+
 
 class OtpUpdateView(View):
 	def post(self, request):
@@ -43,11 +42,11 @@ class UserNameDetailView(RetrieveAPIView):
 	def get(self, request, *args, **kwargs):
 		user = self.get_object()
 		if user is None:
-			return JsonResponse({'status_code': '400', 'message': 'User not found'}, status=400)
+			return JsonResponse({'status_code': '200', 'message': 'User not found'}, status=200)
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 
-class UserMeView(RetrieveUpdateAPIView):
+class UserMeView(RetrieveUpdateDestroyAPIView):
 	serializer_class = CustomUserSerializer
 	def get(self, request, *args, **kwargs):
 		user = get_jwt_user(self.request)
@@ -57,10 +56,31 @@ class UserMeView(RetrieveUpdateAPIView):
 		user = get_jwt_user(self.request)
 		partial = kwargs.pop('partial', False)
 		serializer = UserUpdateSerializer(user, data=request.data, partial=partial)
+
+		if 'username' in request.data and user.username != request.data['username']:
+			if CustomUser.objects.filter(username=request.data['username']).exists():
+				return JsonResponse({'status_code': '200', 'message': 'Username already exists'}, status=200)
+
 		if serializer.is_valid(raise_exception=True):
 			serializer.save()
-			return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
-		return JsonResponse({'status_code': '400', 'message': serializer.error}, status=400)
+			if 'profile_image' in request.FILES:
+				profile_image = request.FILES.get('profile_image')
+				if profile_image:
+					try:
+						user.profile_image = profile_image
+						user.save()
+					except Exception as e:
+						return JsonResponse({'status_code': '400', 'message': str(e)}, status=400)
+				elif profile_image is None:
+					user.profile_image = None
+					user.save()
+				return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
+		return JsonResponse({'status_code': '200', 'message': serializer.errors}, status=200)
+	def delete(self, request, *args, **kwargs):
+		user = get_jwt_user(self.request)
+		user.profile_image = None
+		user.save()
+		return JsonResponse({'status_code': '204', 'message': 'User Profile deleted'}, status=204)
 
 class ProfileImageView(RetrieveUpdateDestroyAPIView):
 	serializer_class = ProfileImageSerializer
@@ -73,7 +93,7 @@ class ProfileImageView(RetrieveUpdateDestroyAPIView):
 		user = self.get_object()
 		serializer = self.get_serializer(user)
 		return JsonResponse({'status_code': '200', 'profile_image': serializer.data}, status=200)
-	def destroy(self, request, *args, **kwargs):
+	def delete(self, request, *args, **kwargs):
 		user = self.get_object()
 		if user.profile_image:
 			user.profile_image.delete(save=False)
@@ -86,7 +106,7 @@ class SingleGameRecordListView(APIView):
 	def get(self, request, username):
 		try:
 			user = CustomUser.objects.get(username=username)
-			record_list = SingleGameRecord.objects.filter(Q(player1=user) | Q(player2=user), is_tournament=False)
+			record_list = SingleGameRecord.objects.filter((Q(player1=user) | Q(player2=user)) & Q(is_tournament=False))
 			serializer = SingleGameRecordSerializer(record_list, many=True, context={'username': username})
 			return JsonResponse({'statusCode': '200', 'record_list': serializer.data}, status=200)
 		except CustomUser.DoesNotExist:
@@ -155,15 +175,23 @@ class DayStatAPIView(APIView):
 			count=Count('id'),
 			wins=Count(Case(When(winner=username, then=1), output_field=IntegerField()))
 		)
-		day_count_stats = []
+
+		all_days = {day: {'count': 0, 'wins': 0} for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']}
 		for record in stats:
-			day_str = record['day']
-			day_date = datetime.strptime(day_str, '%Y-%m-%d')
-			day_count_stats.append({
-				'day': day_date.strftime('%A'),
+			day_date = record['day']
+			if isinstance(day_date, str):
+					day_date = datetime.strptime(day_date, '%Y-%m-%d')
+			day_abbr = day_date.strftime('%a') # Get 3-letter abbreviation for the day
+			all_days[day_abbr] = {
 				'count': record['count'],
 				'wins': record['wins'],
-			})
+			}
+		# Convert the dictionary to a list of dictionaries for serialization
+		day_count_stats = [{'day': day, 'count': data['count'], 'wins': data['wins']} for day, data in all_days.items()]
+
+		# Sort the list by day order (Mon-Sun)
+		day_order = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+		day_count_stats = sorted(day_count_stats, key=lambda x: day_order.index(x['day']))
 		serializer = DayStatSerializer(day_count_stats, many=True)
 		return JsonResponse({'status_code': '200', 'day_count_stats': serializer.data}, status=200)
 
@@ -191,6 +219,48 @@ class RecentOpponentsAPIView(APIView):
 				opponent_records[opponent.username]['loses'] += 1
 			opponent_records[opponent.username]['total'] += 1
 		return JsonResponse({'status_code': '200', 'opponent_records': opponent_records}, status=200)
+
+class AverageLineAPIView(APIView):
+	def get(self, request, username):
+		if not CustomUser.objects.filter(username=username).exists():
+			return JsonResponse({'status_code': '404', 'message': 'User not found'}, status=404)
+		user = CustomUser.objects.get(username=username)
+		records = SingleGameRecord.objects.filter(
+			Q(player1=user) | Q(player2=user)
+		).order_by('created_at')
+
+		win_rates = [1 if record.winner == username else 0 for record in records]
+		overall_win_rate = self.calculate_win_rate(win_rates)
+		moving_average_3 = self.moving_average(win_rates, 3)
+		moving_average_5 = self.moving_average(win_rates, 5)
+
+		response_data = {
+			'status_code': '200',
+			'index': list(range(len(win_rates), 0, -1)),
+			'rates_total': overall_win_rate,
+			'rates_3play': moving_average_3,
+			'rates_5play': moving_average_5,
+		}
+
+		return JsonResponse(response_data, status=200)
+
+	def calculate_win_rate(self, win_rates):
+		cumulative_wins = 0
+		cumulative_win_rates = []
+		for i, win in enumerate(win_rates):
+			cumulative_wins += win
+			cumulative_win_rates.append(round(cumulative_wins / (i + 1) * 100, 2))
+		return cumulative_win_rates
+
+	def moving_average(self, data, window_size):
+		moving_averages = []
+		for i in range(len(data)):
+			if i < window_size - 1:
+				moving_averages.append(0.0)
+			else:
+				window_avg = sum(data[i-window_size+1:i+1]) / window_size
+				moving_averages.append(round(window_avg * 100, 2))
+		return moving_averages
 
 
 def logout(request):

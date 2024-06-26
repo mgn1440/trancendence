@@ -7,7 +7,7 @@ import {
   axiosUserOther,
   axiosGameRecords,
 } from "@/api/axios.custom";
-import { isEmpty } from "@/lib/libft";
+import { gotoPage, isEmpty } from "@/lib/libft";
 import { useState, useEffect } from "@/lib/dom";
 import { history } from "@/lib/router";
 
@@ -25,12 +25,22 @@ const ProfilePage = () => {
         user = await axiosUserMe();
       } else {
         user = await axiosUserOther(name);
+        if (!user.data) {
+          return;
+        } else if (user.data.message === "User not found") {
+          gotoPage("/lobby");
+          return;
+        }
+        console.log(user.data);
         let follow = user.data.user_info.is_following;
-        console.log(follow);
         if (!follow) setStat(2);
         else setStat(3);
       }
-      setProfile(user.data);
+      if (!user.data) {
+        return;
+      }
+      console.log(user.data.user_info);
+      setProfile(user.data.user_info);
     };
     fetchProfile();
   }, []);
@@ -45,8 +55,8 @@ const ProfilePage = () => {
           <div class="main-section flex-row"></div>
         ) : (
           <div class="main-section flex-row">
-            <ProfileImg stat={stat} setStat={setStat} user_name={userName} />
-            <ProfileInfo data={profile} />
+            <ProfileImg stat={stat} setStat={setStat} profile={profile} />
+            <ProfileInfo profile={profile} />
           </div>
         )}
         <UserList />

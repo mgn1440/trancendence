@@ -7,6 +7,9 @@ import TwoFactorAuthPage from "../pages/TwoFactorAuth";
 import ProfilePage from "../pages/Profile";
 import ProfileConfigPage from "../pages/ProfileConfig";
 import TournamentPage from "../pages/Tournament";
+import CustomTournamentPage from "../pages/CustomTournament";
+import CustomGamePage from "../pages/CustomGamePage";
+import LocalGamePage from "../pages/LocalGamePage";
 import TestPage from "@/pages/TPage";
 
 export const routes = [
@@ -68,6 +71,33 @@ export const routes = [
           {
             path: ":id",
             element: TournamentPage,
+          },
+        ],
+      },
+      {
+        path: "custom",
+        children: [
+          {
+            path: ":id",
+            element: CustomGamePage,
+          },
+        ],
+      },
+      {
+        path: "customTournament",
+        children: [
+          {
+            path: ":id",
+            element: CustomTournamentPage,
+          },
+        ],
+      },
+      {
+        path: "local",
+        children: [
+          {
+            path: ":id",
+            element: LocalGamePage,
           },
         ],
       },

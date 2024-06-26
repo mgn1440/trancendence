@@ -32,9 +32,9 @@ const domRenderer = () => {
     options.stateHook = {};
     options.refs = {};
     options.refHook = {};
-    options.dependencies = [];
-    options.effectHook = 0;
-    options.effectList = [];
+    options.dependencies = {};
+    options.effectHook = {};
+    options.effectList = {};
   };
 
   const _render = frameRunner(() => {
@@ -51,10 +51,12 @@ const domRenderer = () => {
     renderInfo.currentVDOM = newVDOM;
     options.stateHook = {};
     options.refHook = {};
-    options.effectHook = 0;
+    options.effectHook = {};
 
-    options.effectList.forEach((effect) => effect());
-    options.effectList = [];
+    for (let key in options.effectList) {
+      options.effectList[key].forEach((effect) => effect());
+    }
+    options.effectList = {};
   });
 
   const render = (root, component) => {
@@ -63,6 +65,10 @@ const domRenderer = () => {
     renderInfo.$root = root;
     renderInfo.component = component;
     disconnectGameLogicWebSocket();
+    const modalBackdrop = document.querySelector(".modal-backdrop");
+    if (modalBackdrop) {
+      modalBackdrop.remove();
+    }
     _render();
   };
 
@@ -85,8 +91,7 @@ const domRenderer = () => {
       // console.log(options.states); // debug
       // TODO: diff알고리즘과 shallowEqual 함수 객체일 때 제대로 확인이 안되는 문제 발생 => 재정비 필요
       // 문제 발생 시 shallowEqual 함수를 주석처리하시오
-      if (shallowEqual(state, newState)) return;
-      // console.log("shallowEqual Passed"); // debug
+      if (shallowEqual(states[component][index], newState)) return;
       states[component][index] = newState;
       // queueMicrotask(_render);
       // console.log(
@@ -127,20 +132,37 @@ const domRenderer = () => {
   };
 
   const useEffect = (callback, dependencies) => {
-    const index = options.effectHook;
-    options.effectList[index] = () => {
+    const component = currentComponent;
+    if (!options.effectHook[component]) {
+      options.effectHook[component] = 0;
+    }
+    if (!options.effectList[component]) {
+      options.effectList[component] = [];
+    }
+    if (!options.dependencies[component]) {
+      options.dependencies[component] = [];
+    }
+    const index = options.effectHook[component];
+    options.effectList[component][index] = () => {
       const hasNoDeps = !dependencies;
-      const prevDeps = options.dependencies[index];
+      const prevDeps = options.dependencies[component][index];
       const hasChangedDeps = prevDeps
         ? dependencies?.some((deps, i) => !shallowEqual(deps, prevDeps[i]))
         : true;
 
+      // console.log(
+      //   "hasNoDeps",
+      //   hasNoDeps,
+      //   "hasChangedDeps",
+      //   hasChangedDeps,
+      //   dependencies
+      // );
       if (hasNoDeps || hasChangedDeps) {
-        options.dependencies[index] = dependencies;
+        options.dependencies[component][index] = dependencies;
         callback();
       }
     };
-    options.effectHook += 1;
+    options.effectHook[component] += 1;
   };
 
   return { useState, useEffect, useRef, render };

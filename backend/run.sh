@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# rm db.sqlite3
+rm db.sqlite3
 find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
 find ./*/migrations/ -type f ! -name '__init__.py' -exec rm -f {} +
 

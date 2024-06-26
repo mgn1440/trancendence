@@ -1,17 +1,18 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django_prometheus.models import ExportModelOperationsMixin
 
 
-class CustomUser(AbstractUser):
+class CustomUser(ExportModelOperationsMixin("user"), AbstractUser):
 	uid = models.IntegerField(primary_key=True)
 	username = models.CharField(max_length=128, unique=True)
 	otp_enabled = models.BooleanField(default=False, null=True)
 	password = models.CharField(max_length=128, null=True, blank=True)
-	refresh_token = models.CharField(max_length=1024, null=True, blank=True)
+	refresh_token = models.CharField(max_length=4096, null=True, blank=True)
 	win = models.IntegerField(default=0)
 	lose = models.IntegerField(default=0)
 	multi_nickname = models.CharField(max_length=128, null=True, blank=True)
-	profile_image = models.ImageField(upload_to='profile_image/', null=True, blank=True)
+	profile_image = models.ImageField(upload_to='profile_image/', null=True, blank=True, max_length=4096)
 
 	def __str__(self):
 		return self.username
@@ -22,7 +23,7 @@ class CustomUser(AbstractUser):
 		self.refresh_token = refresh_token
 		self.save()
 
-class FollowList(models.Model):
+class FollowList(ExportModelOperationsMixin("follow_list"), models.Model):
 	user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, db_column="user")
 	following_username = models.CharField(max_length=128, null=True, blank=True)
 
@@ -36,7 +37,7 @@ class FollowList(models.Model):
 			raise Exception('이미 친구로 추가된 사용자입니다.')
 		super().save(*args, **kwargs)
 
-class SingleGameRecord(models.Model):
+class SingleGameRecord(ExportModelOperationsMixin("game_record"), models.Model):
 	id = models.BigAutoField(primary_key=True)
 	player1 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="player1", db_column="player1", null=True, blank=True)
 	player1_score = models.IntegerField()
@@ -67,10 +68,11 @@ class MultiGameRecord(models.Model):
 	player2 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="player2_multi", db_column="player2", null=True, blank=True)
 	player3 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="player3_multi", db_column="player3", null=True, blank=True)
 	player4 = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="player4_multi", db_column="player4", null=True, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 	def __str__(self):
 		return f"multi-game-record at {self.created_at}"
 
-class SingleGameDetail(models.Model):
+class SingleGameDetail(ExportModelOperationsMixin("game_detail"), models.Model):
 	id = models.BigAutoField(primary_key=True)
 	game = models.ForeignKey(SingleGameRecord, on_delete=models.CASCADE, db_column="game")
 	goal_user_name = models.CharField(max_length=128)

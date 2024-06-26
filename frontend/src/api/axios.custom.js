@@ -35,6 +35,61 @@ export const axiosUserMe = async () => {
     const response = await instance.get(axiosUserMeURL);
     return response;
   } catch (error) {
+    return error;
+  }
+};
+
+export const axiosUserMeConfig = async (config2Change) => {
+  try {
+    const response = await instance.put(axiosUserMeURL + "/", config2Change);
+    return response;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
+
+export const axiosDeleteProfileImg = async () => {
+  try {
+    const response = await instance.delete(axiosUserMeURL);
+    return response;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
+
+export const axiosUserDayStat = async ({ username }) => {
+  try {
+    const response = await instance.get(
+      `${axiosUserURL}/${username}/user-day-stat`
+    );
+    return response;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
+
+export const axiosUserRecentOpponent = async ({ username }) => {
+  try {
+    const response = await instance.get(
+      `${axiosUserURL}/${username}/user-recent-opponent`
+    );
+    return response;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
+
+export const axiosGameDetail = async ({ gameId }) => {
+  try {
+    const response = await instance.get(
+      `${axiosUserURL}/game-detail/${gameId}`
+    );
+    return response;
+  } catch (error) {
     console.log(error);
     return error;
   }
@@ -42,20 +97,29 @@ export const axiosUserMe = async () => {
 
 export const axiosGameRecords = async ({ username, isSingle }) => {
   try {
-    console.log(username);
     if (isSingle === "SINGLE") {
       const response = await instance.get(
         `${axiosUserURL}/${username}/record/single`
       );
-      console.log(response);
       return response;
     } else if (isSingle === "MULTI") {
       const response = await instance.get(
         `${axiosUserURL}/${username}/record/multi`
       );
-      console.log(response);
       return response;
     }
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
+
+export const axiosAvgGameLine = async ({ username }) => {
+  try {
+    const response = await instance.get(
+      `${axiosUserURL}/${username}/average-line`
+    );
+    return response;
   } catch (error) {
     console.log(error);
     return error;
@@ -98,6 +162,15 @@ export const axiosUserProfile = async (user_name) => {
     const response = await instance.get(
       `${axiosUserURL}/${user_name}/profile-image`
     );
+    return response;
+  } catch (error) {
+    return error;
+  }
+};
+
+export const axiosLogout = async () => {
+  try {
+    const response = await instance.get(`${axiosUserURL}/logout`);
     return response;
   } catch (error) {
     return error;
