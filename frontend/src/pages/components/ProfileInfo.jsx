@@ -45,7 +45,6 @@ const drawLineDash = (stX, stY, edX, edY, color, gameIdx) => {
 };
 
 const drawBall = (x, y, radius, gameIdx) => {
-  // ctx[gameIdx].fillStyle = "#ffffff";
   ctx[gameIdx].beginPath();
   ctx[gameIdx].arc(
     x * ratio,
@@ -293,7 +292,6 @@ const LogMultiItem = ({
     });
   };
 
-  console.log(clientUserStore.getState());
   return (
     <div
       class="log-multi-item"
@@ -469,9 +467,6 @@ const LobbyProfile = ({ profile }) => {
             y: {
               grid: {
                 color: (context) => {
-                  // if (context.tick.value % 20 === 0) {
-                  //   return "rgba(255,255,255,0.8)";
-                  // }
                   return "rgba(255,255,255,0.4)";
                 },
                 lineWidth: (context) => {
@@ -530,9 +525,6 @@ const LobbyProfile = ({ profile }) => {
             y: {
               grid: {
                 color: (context) => {
-                  // if (context.tick.value % 20 === 0) {
-                  //   return "rgba(255,255,255,0.8)";
-                  // }
                   return "rgba(255,255,255,0.4)";
                 },
                 lineWidth: (context) => {
@@ -564,10 +556,6 @@ const LobbyProfile = ({ profile }) => {
           document.querySelector(".game-detail").clientWidth / rate;
         cvsComponent.height = cvsComponent.width * 0.75;
       });
-      // routeInfo.forEach((info) => {
-      //   info.ball_start_position = JSON.parse(info.ball_start_position);
-      //   info.ball_end_position = JSON.parse(info.ball_end_position);
-      // });
       gameMaxIdx = routeInfo.length;
       canvasDone = false;
       drawBallRoute(0);

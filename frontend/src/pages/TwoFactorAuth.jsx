@@ -162,7 +162,7 @@ const resendBtn = () => {
         method: "get",
         url: "https://localhost/api/auth/otp/",
         withCredentials: true,
-      }).then(console.log("resend"));
+      });
       resendBtn();
     };
     bottom.appendChild(resendBtn);

@@ -16,13 +16,8 @@ export const createStore = (reducer) => {
   const dispatch = (action) => {
     const newState = reducer(state, action);
 
-    // console.log(newState);
     for (const [key, value] of Object.entries(newState)) {
-      // console.log(key, value);
       // // state의 key가 아닐 경우 변경을 생략한다.
-      // console.log(state[key]);
-      // console.log(!state[key]);
-      // console.log(state);
       if (!state[key]) continue;
       state[key] = value;
     }

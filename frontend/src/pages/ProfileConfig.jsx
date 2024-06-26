@@ -17,7 +17,6 @@ const ProfileConfigPage = () => {
         return;
       }
       setUserData(clientUserStore.dispatch, userMe.data.user_info);
-      console.log(userMe.data.user_info);
       setProfile(userMe.data.user_info);
     };
     fetchProfile();

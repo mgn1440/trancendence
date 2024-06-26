@@ -50,10 +50,8 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
       config2Change.append("profile_image", getProfileImg());
     }
     for (let pair of config2Change.entries()) {
-      console.log(pair[0] + ", " + pair[1]);
     }
     const res = await axiosUserMeConfig(config2Change);
-    console.log(res);
     if (res.data.message === "Username already exists") {
       document.querySelector(".dupl-msg").classList.add("show");
       document.querySelector(".dupl-msg").classList.add("active");
@@ -71,10 +69,6 @@ const ProfileConfig = ({ profile, getProfileImg }) => {
       setUserData(clientUserStore.dispatch, userMe.data.user_info);
       gotoPage("/profile/me");
     }
-    // config2Change.forEach((value, key) => {
-    //   console.log(`${key}, ${value}`);
-    // });
-    // console.log(getProfileImg());
   };
   return (
     <div class="profile-config-main">

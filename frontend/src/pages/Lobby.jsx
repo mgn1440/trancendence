@@ -14,11 +14,9 @@ const LobbyPage = () => {
   useEffect(() => {
     const socketAsync = async () => {
       await connectGameLogicWebSocket(ws_gamelogic.dispatch, "/ws/lobby/");
-      console.log(ws_gamelogic.getState().socket); // debug
       ws_gamelogic.getState().socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
 
-        // console.log(data); // debug
         if (data.type === "room_list") {
           setRoomList(data.rooms);
         } else if (data.type === "join_approved") {
@@ -84,9 +82,6 @@ const LobbyPage = () => {
       ws_gamelogic.getState().socket.readyState === WebSocket.OPEN
     ) {
       ws_gamelogic.getState().socket.send(JSON.stringify(roomData));
-      console.log(roomData);
-    } else {
-      console.log("socket is not ready");
     }
   };
 

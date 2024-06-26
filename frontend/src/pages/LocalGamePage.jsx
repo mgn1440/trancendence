@@ -119,8 +119,9 @@ const LocalGamePage = () => {
               clearInterval(interval);
             }
           }, 1000);
-          window.addEventListener("keydown", handleKeyDown);
-          window.addEventListener("keyup", handleKeyUp);
+          addEventArray(eventType.KEYDOWN, handleKeyDown);
+          addEventArray(eventType.KEYUP, handleKeyUp);
+          addEventHandler();
         } else if (data.type === "update_game") {
           setGameState(data.game);
           setGameStat([data.game.scores, data.game.roles]);

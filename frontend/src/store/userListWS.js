@@ -41,10 +41,7 @@ export const startWebSocketConnection = (dispatch, setUserList) => {
     const socket = new WebSocket("wss://" + "localhost" + "/ws/online/");
 
     dispatch(webSocketConnect(socket, [], []));
-  } else {
-    console.log("Socket Already connected");
   }
-  // socket.onmessage = (e) => {
   ws_userlist.getState().socket.onmessage = (e) => {
     const data = JSON.parse(e.data);
     if (data.type === "status") {
@@ -101,7 +98,6 @@ export const startWebSocketConnection = (dispatch, setUserList) => {
         offline: ws_userlist.getState().offline,
       });
     } else if (data.type === "duplicate_login") {
-      console.log("duplicate_login");
       axiosLogout().then((res) => {
         if (res.status === 200) {
           ws_userlist.getState().socket.close();

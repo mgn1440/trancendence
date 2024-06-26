@@ -18,7 +18,6 @@ const drawPaddle = (x, y, bar_size) => {
 
 const drawBall = (x, y) => {
   context.fillStyle = "blue";
-  // context.fillRect(x, y, 20, 20);
   context.beginPath();
   context.arc(
     gameState.ball.x * ratio,
@@ -93,13 +92,10 @@ const draw = () => {
   drawBall(gameState.ball.x, gameState.ball.y);
   drawItems(gameState.items);
   drawLine();
-  // context.font = "20px Quantico";
-  // context.fillText("User1", 10, 20);
 };
 
 const update = () => {
   draw();
-  // requestAnimationFrame(() => update());
 };
 
 const dirStat = {
@@ -110,12 +106,10 @@ const dirStat = {
 const CustumGamePage = () => {
   const [gameStat, setGameStat] = useState([]);
   const [gameResult, setGameResult] = useState(null);
-  // const [gameScore, setGameScore] = useState({});
   let direction = dirStat.STOP;
   let startFlag = false;
   useEffect(() => {
     const socketAsync = async () => {
-      console.log(history.currentPath().split("/")[2]);
       connectGameLogicWebSocket(
         ws_gamelogic.dispatch,
         `/ws/custom/${history.currentPath().split("/")[2]}/`
@@ -137,16 +131,12 @@ const CustumGamePage = () => {
 
       ws_gamelogic.getState().socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
         if (data.type === "game_start") {
           startFlag = true;
           gameState = data.game;
-          // setGameScore(data.game.scores);
-          // setGameUsers(data.game.roles);
           setGameStat([data.game.scores, data.game.roles]);
           let timer = 3;
           let interval = setInterval(() => {
-            console.log(timer);
             timer--;
             const counter = document.querySelector(".pong-game-info h1");
             counter.innerText = timer;
@@ -159,11 +149,7 @@ const CustumGamePage = () => {
             }
           }, 1000);
           addEventArray(eventType.KEYDOWN, (e) => {
-            if (
-              // direction === dirStat.STOP &&
-              e.key === "ArrowUp" ||
-              e.key === "ArrowDown"
-            ) {
+            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
               direction = e.key === "ArrowUp" ? dirStat.UP : dirStat.DOWN;
               ws_gamelogic.getState().socket.send(
                 JSON.stringify({
@@ -177,7 +163,6 @@ const CustumGamePage = () => {
           addEventArray(eventType.KEYUP, (e) => {
             if (
               direction !== dirStat.STOP &&
-              // (e.key === "ArrowUp" || e.key === "ArrowDown")
               ((e.key === "ArrowUp" && direction === dirStat.UP) ||
                 (e.key === "ArrowDown" && direction === dirStat.DOWN))
             ) {

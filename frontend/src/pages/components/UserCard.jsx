@@ -4,7 +4,6 @@ import { axiosUserOther } from "@/api/axios.custom";
 import { isEmpty } from "@/lib/libft";
 
 const UserCard = ({ user_name }) => {
-  console.log(user_name);
   const defaultImg = `/img/minji_${(user_name[0].charCodeAt(0) % 5) + 1}.jpg`;
   const [myProfile, setMyProfile] = useState({});
   useEffect(() => {
@@ -13,7 +12,6 @@ const UserCard = ({ user_name }) => {
         setMyProfile({});
       } else {
         const userOther = await axiosUserOther(user_name);
-        console.log(userOther.data.user_info);
         setMyProfile(userOther.data.user_info);
       }
     };

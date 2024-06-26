@@ -1,5 +1,3 @@
-// src/Bracket.js
-
 import { useRef, useEffect, useState } from "@/lib/dom";
 
 let drawBorder = (ctx, player, pos) => {
@@ -11,7 +9,7 @@ let drawBorder = (ctx, player, pos) => {
   } else {
     ctx.fillText(player, pos.x, pos.y + 25);
   }
-  ctx.strokeRect(pos.x - 50, pos.y, 100, 40); // 네모 테두리
+  ctx.strokeRect(pos.x - 50, pos.y, 100, 40);
 };
 
 const Bracket = (users) => {
@@ -83,18 +81,6 @@ const Bracket = (users) => {
     ctx.lineTo(basex + 350, basey + 120);
     ctx.stroke();
   };
-  // useEffect(() => {
-  //   const canvas = document.getElementById("Bracket");
-  //   const handleResize = () => {
-  //     drawBracket(canvas, window.innerWidth);
-  //   };
-  //   drawBracket(canvas, window.innerWidth);
-
-  //   window.addEventListener("resize", handleResize);
-  //   return () => {
-  //     window.removeEventListener("resize", handleResize);
-  //   };
-  // }, []);
   useEffect(() => {
     const canvas = document.getElementById("Bracket");
     drawBracket(canvas, window.innerWidth);
