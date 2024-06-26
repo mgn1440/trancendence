@@ -1,7 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django_prometheus.models import ExportModelOperationsMixin
+import os
 
+def user_profile_image_path(instance, filename):
+	# 파일이 업로드 될 경로: profile_images/<username>/<filename>
+	return f'profile_images/{instance.username}/{filename}'
 
 class CustomUser(ExportModelOperationsMixin("user"), AbstractUser):
 	uid = models.IntegerField(primary_key=True)
@@ -12,7 +16,7 @@ class CustomUser(ExportModelOperationsMixin("user"), AbstractUser):
 	win = models.IntegerField(default=0)
 	lose = models.IntegerField(default=0)
 	multi_nickname = models.CharField(max_length=128, null=True, blank=True)
-	profile_image = models.ImageField(upload_to='profile_image/', null=True, blank=True, max_length=4096)
+	profile_image = models.ImageField(upload_to=user_profile_image_path, null=True, blank=True, max_length=4096)
 
 	def __str__(self):
 		return self.username
