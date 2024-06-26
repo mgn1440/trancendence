@@ -6,6 +6,7 @@ import { moveToProfile } from "./UserList";
 import { axiosUserOther } from "@/api/axios.custom";
 import { gotoPage, isEmpty } from "@/lib/libft";
 import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
+import lottie from "lottie-web";
 
 export const UserFind = ({ userData }) => {
   const imgSrc = `/img/minji_${
@@ -107,6 +108,14 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     inputs[0].focus();
   };
   useEffect(() => {
+    var animation = lottie.loadAnimation({
+      container: document.getElementById("lottie"),
+      renderer: "svg",
+      loop: true,
+      autoplay: true,
+      path: "/img/quick_match.json",
+    });
+    console.log(animation);
     createRoomModalReset();
     const modalElement = document.getElementById("CreateRoomModal");
     modalElement.addEventListener("hidden.bs.modal", createRoomModalReset);
@@ -317,12 +326,13 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
           );
         }}
       />
-      <div class="modal" id="QuickMatchModal" tabindex="-1">
+      <div class="modal fade" id="QuickMatchModal" tabindex="-1">
         <div class="modal-dialog">
           <div class="modal-content">
-            <div class="loader">
+            <div id="lottie"></div>
+            {/* <div class="loader">
               <span></span>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

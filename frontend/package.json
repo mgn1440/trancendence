@@ -16,6 +16,7 @@
     "axios": "^1.7.2",
     "chart.js": "^4.4.3",
     "styled-components": "^6.1.11",
-    "vite-jsconfig-paths": "^2.0.1"
+    "vite-jsconfig-paths": "^2.0.1",
+    "lottie-web": "^5.10.0"
   }
 }

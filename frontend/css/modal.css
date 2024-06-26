@@ -179,3 +179,14 @@
 .show {
   display: block;
 }
+
+#lottie {
+  position: absolute;
+  top: 50vh;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10rem;
+  height: 10rem;
+  display: inline-block;
+  box-sizing: border-box;
+}
