@@ -87,7 +87,6 @@ const updateElement = (parent, newVDOM, currentVDOM, index = 0) => {
     );
     // removeIndex = _removeIndex;
     removeIndex += typeof _removeIndex === "number" ? 1 : 0;
-    // console.log("removeIndex", _removeIndex, removeIndex); // debug(important!!)
   }
 };
 
@@ -118,7 +117,6 @@ const updateAttributes = (target, newProps, currentProps) => {
       target.setAttribute(attr, value);
       // target[attr] = value;
     }
-    // console.log("attr", attr, "value", value, "target", target);
   }
 
   // TODO: onclick, onchange 이외에도 on event는 추가해 줘야 함

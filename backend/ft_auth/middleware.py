@@ -20,6 +20,7 @@ class CustomAuthentication:
 			re.compile(r'^(.*)test/'),
 			re.compile(r'^(.*)/auth/otp/'),
 			re.compile(r'^(.*)/admin/'),
+			re.compile(r'^(.*)/auth/'),
 		]
 	def __call__(self, request):
 		path = request.path_info.lstrip('/')
@@ -52,10 +53,12 @@ class CustomAuthentication:
 		return self.get_response(request)
 
 class InsertJWT(MiddlewareMixin):
+	PUBLIC_URLS = [
+			'api/auth/login',
+		]
 	def process_request(self, request):
-		authorization = request.headers.get('Authorization')
-		if authorization:
-			request.token = authorization.split(' ')[1]
+		access_token = request.COOKIES.get('access_token')
+		if access_token:
+			request.token = access_token
 		else:
 			request.token = None
-		return None
