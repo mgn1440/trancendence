@@ -147,8 +147,9 @@ class FollowDetailView(DestroyAPIView):
 	serializer_class = FollowListSerializer
 	def get_object(self):
 		follow_username = self.kwargs['username']
+		follow_user = CustomUser.objects.get(username=follow_username)
 		try:
-			return FollowList.objects.get(user=self.request.user, following_username=follow_username)
+			return FollowList.objects.get(user=self.request.user, following_user=follow_user)
 		except FollowList.DoesNotExist:
 			raise NotFound("follow user does not exist")
 	def perform_destroy(self, instance):
