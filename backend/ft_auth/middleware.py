@@ -36,6 +36,7 @@ class CustomAuthentication:
 				token = request.token #이부분은 이후 Header에서 Authorization으로 받아오는 방식으로 바꿔야함
 				payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256']) #이거는 try except으로 해야함. 사이닝 키로 유효성검사와 동시에 성공시 페이로드 리턴받아옴.
 				user = CustomUser.objects.get(uid=payload['uid'])
+				request.META['HTTP_AUTHORIZATION'] = 'Bearer ' + token
 				if user == request_user:
 					return self.get_response(request)
 				else:
