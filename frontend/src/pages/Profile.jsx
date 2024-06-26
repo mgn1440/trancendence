@@ -33,7 +33,6 @@ const ProfilePage = () => {
           gotoPage("/lobby");
           return;
         }
-        console.log(user.data);
         let follow = user.data.user_info.is_following;
         if (!follow) setStat(2);
         else setStat(3);
@@ -41,7 +40,6 @@ const ProfilePage = () => {
       if (!user.data) {
         return;
       }
-      console.log(user.data.user_info);
       setProfile(user.data.user_info);
     };
     fetchProfile();

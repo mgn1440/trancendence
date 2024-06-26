@@ -38,7 +38,6 @@ const domRenderer = () => {
   };
 
   const _render = frameRunner(() => {
-    console.log("_render");
     const { $root, component, currentVDOM } = renderInfo;
     if (!$root || !component) return;
 
@@ -60,7 +59,6 @@ const domRenderer = () => {
   });
 
   const render = (root, component) => {
-    console.log("render");
     resetOptions();
     renderInfo.$root = root;
     renderInfo.component = component;
@@ -78,7 +76,6 @@ const domRenderer = () => {
     if (!stateHook[component]) {
       stateHook[component] = 0;
     }
-    // console.log("states", states[component]); // debug
     if (states[component] === undefined) {
       states[component] = [];
     }
@@ -86,20 +83,11 @@ const domRenderer = () => {
     if (states[component].length === index)
       states[component].push(initialState);
     const state = states[component][index];
-    // console.log("useState", component, initialState, states[component], state); // debug
     const setState = (newState) => {
-      // console.log(options.states); // debug
       // TODO: diff알고리즘과 shallowEqual 함수 객체일 때 제대로 확인이 안되는 문제 발생 => 재정비 필요
       // 문제 발생 시 shallowEqual 함수를 주석처리하시오
       if (shallowEqual(states[component][index], newState)) return;
       states[component][index] = newState;
-      // queueMicrotask(_render);
-      // console.log(
-      //   "setState",
-      //   component,
-      //   states[component],
-      //   states[component][index]
-      // );
       _render();
     };
     options.stateHook[component] += 1;
@@ -120,15 +108,11 @@ const domRenderer = () => {
     const getRef = () => refs[component][index];
     const setRef = (newRef) => {
       // TODO: Create Room 안되는 문제
-      // console.log("before shallowEqual", getRef(), newRef); // debug
       if (shallowEqual(getRef(), newRef)) return;
-      // console.log("shallowEqual Passed"); // debug
       refs[component][index] = newRef;
     };
     options.refHook[component] += 1;
-    // console.log(refs);
     return [getRef, setRef];
-    // return { current: refs[index] };
   };
 
   const useEffect = (callback, dependencies) => {
@@ -150,13 +134,6 @@ const domRenderer = () => {
         ? dependencies?.some((deps, i) => !shallowEqual(deps, prevDeps[i]))
         : true;
 
-      // console.log(
-      //   "hasNoDeps",
-      //   hasNoDeps,
-      //   "hasChangedDeps",
-      //   hasChangedDeps,
-      //   dependencies
-      // );
       if (hasNoDeps || hasChangedDeps) {
         options.dependencies[component][index] = dependencies;
         callback();

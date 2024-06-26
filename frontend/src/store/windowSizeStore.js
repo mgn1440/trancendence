@@ -41,6 +41,5 @@ export const setWindowSize = (dispatch, setWinSize) => {
     windowSize.height = "large";
   }
   dispatch(set_windowSize(windowSize));
-  console.log(windowSizeStore.getState().winSize);
   setWinSize(windowSizeStore.getState().winSize);
 };

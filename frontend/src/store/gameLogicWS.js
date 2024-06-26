@@ -43,7 +43,5 @@ export const connectGameLogicWebSocket = (dispatch, path) => {
     socket.onerror = (e) => {
       gotoPage("/");
     };
-  } else {
-    console.log("WebSocket is already connected");
   }
 };

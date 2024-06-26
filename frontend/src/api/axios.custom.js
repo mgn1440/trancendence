@@ -44,7 +44,7 @@ export const axiosUserMeConfig = async (config2Change) => {
     const response = await instance.put(axiosUserMeURL + "/", config2Change);
     return response;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return error;
   }
 };
@@ -54,7 +54,7 @@ export const axiosDeleteProfileImg = async () => {
     const response = await instance.delete(axiosUserMeURL);
     return response;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return error;
   }
 };
@@ -66,7 +66,7 @@ export const axiosUserDayStat = async ({ username }) => {
     );
     return response;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return error;
   }
 };
@@ -78,7 +78,7 @@ export const axiosUserRecentOpponent = async ({ username }) => {
     );
     return response;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return error;
   }
 };
@@ -90,7 +90,7 @@ export const axiosGameDetail = async ({ gameId }) => {
     );
     return response;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return error;
   }
 };
@@ -109,7 +109,7 @@ export const axiosGameRecords = async ({ username, isSingle }) => {
       return response;
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return error;
   }
 };
@@ -121,7 +121,7 @@ export const axiosAvgGameLine = async ({ username }) => {
     );
     return response;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return error;
   }
 };

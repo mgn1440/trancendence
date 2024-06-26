@@ -9,7 +9,6 @@ import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 import lottie from "lottie-web";
 
 export const UserFind = ({ userData }) => {
-  console.log(userData);
   let imgSrc = `/img/minji_${(userData.username[0].charCodeAt(0) % 5) + 1}.jpg`;
   if (userData.profile_image !== null) {
     imgSrc = userData.profile_image;
@@ -114,7 +113,6 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
       autoplay: true,
       path: "/img/quick_match.json",
     });
-    console.log(animation);
     createRoomModalReset();
     const modalElement = document.getElementById("CreateRoomModal");
     modalElement.addEventListener("hidden.bs.modal", createRoomModalReset);
