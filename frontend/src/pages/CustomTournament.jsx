@@ -179,6 +179,9 @@ const GamePage = () => {
               timer++;
             }
           }, 1000);
+          addEventArray(eventType.BEFOREUNLOAD, () => {
+            clearInterval(interval);
+          });
           addEventArray(eventType.KEYDOWN, (e) => {
             if (e.key === "ArrowUp" || e.key === "ArrowDown") {
               direction = e.key === "ArrowUp" ? dirStat.UP : dirStat.DOWN;
@@ -291,6 +294,10 @@ const GamePage = () => {
               );
             }
           }, 1000);
+          addEventArray(eventType.BEFOREUNLOAD, () => {
+            clearInterval(interval);
+          });
+          addEventHandler();
         }
       };
     };

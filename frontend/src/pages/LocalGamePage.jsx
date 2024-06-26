@@ -121,6 +121,9 @@ const LocalGamePage = () => {
               clearInterval(interval);
             }
           }, 1000);
+          addEventArray(eventType.BEFOREUNLOAD, () => {
+            clearInterval(interval);
+          });
           addEventArray(eventType.KEYDOWN, handleKeyDown);
           addEventArray(eventType.KEYUP, handleKeyUp);
           addEventHandler();
