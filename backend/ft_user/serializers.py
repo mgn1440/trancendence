@@ -18,7 +18,6 @@ class OtherUserSerializer(serializers.ModelSerializer):
 	def get_is_following(self, obj):
 		request_user = self.context.get('request_user')
 		api_user = self.context.get('api_user')
-		print(request_user, api_user)
 		if request_user == api_user:
 			return False
 		return FollowList.objects.filter(user=request_user, following_user=api_user).exists()

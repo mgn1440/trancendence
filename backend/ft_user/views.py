@@ -39,7 +39,6 @@ class UserNameDetailView(APIView):
 		try:
 			request_user = get_jwt_user(request)
 			api_user = CustomUser.objects.get(username=username)
-			print(request_user, api_user)
 			serializer = OtherUserSerializer(api_user, context={
 				'request_user': request_user,
 				'api_user': api_user,
