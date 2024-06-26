@@ -21,6 +21,8 @@ while true; do
 done
 
 if [ -f lifecycle]; then
+	break;
+else
 	curl --cacert /config/ca/ca.crt -u elastic:abc123 -X PUT "https://elasticsearch:9200/_ilm/policy/30-days-default" -H 'Content-Type: application/json' -d'{ "policy": {"phases": {"hot": {"actions": {"rollover": {"max_age": "30d","max_size": "50gb"}}},"delete": {"min_age": "30d", "actions": {"delete": {}}}}}}'
 	curl --cacert /config/ca/ca.crt -u elastic:abc123 -X PUT "https://elasticsearch:9200/_index_template/django_template" -H 'Content-Type: application/json' -d'{"index_patterns": ["django*"],"template": {"settings": {"index.lifecycle.name": "30-days-default","index.lifecycle.rollover_alias": "django_alias"}}}'
 	touch lifecycle
