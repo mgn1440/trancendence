@@ -20,12 +20,21 @@ class StatusConsumer(AsyncWebsocketConsumer):
 		if user.is_anonymous:
 			await self.close()
 			return
+		username = self.scope['user'].username
 		await self.accept()
+		self.check = False
+		if username in self.user_list:
+			await self.send(text_data=json.dumps({
+				'type': 'duplicate_login',
+			}))
+			self.check = True
+			await self.close()
+			return
+
 		await self.channel_layer.group_add(
 			'online_status',
 			self.channel_name,
 		)
-		username = self.scope['user'].username
 		await self.channel_layer.group_send(
 			'online_status',
 			{
@@ -41,6 +50,12 @@ class StatusConsumer(AsyncWebsocketConsumer):
 		if self.scope['user'].is_anonymous:
 			return
 		username = self.scope['user'].username
+		if self.check :
+			await self.channel_layer.group_discard(
+				'online_status',
+				self.channel_name,
+			)
+			return
 		self.user_list.remove(username)
 		await self.channel_layer.group_discard(
 			'online_status',

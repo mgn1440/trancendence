@@ -15,6 +15,9 @@ import pyotp
 import jwt
 from django_otp.plugins.otp_email.models import EmailDevice
 from django.urls import reverse
+import datetime
+import random
+import string
 
 def oauth(request):
 	# request.META['Origin'] = 'http://localhost:8000/api/auth/callback'
@@ -50,6 +53,13 @@ class Callback(View): # TODO: POST otp check function
 		id = user_data['id']
 		username = user_data['login']
 		email = user_data['email']
+		try:
+			is_already_user = CustomUser.objects.get(username=username)
+			if is_already_user.uid != id:
+				username = generate_random_username(username)
+		except:
+			if CustomUser.DoesNotExist:
+				pass
 		user, created = CustomUser.objects.get_or_create(uid=id, defaults={'username': username, 'email': email, 'multi_nickname': username})
 		if created:
 			device = EmailDevice.objects.create(user=user, email=user.email)
@@ -139,3 +149,12 @@ def refresh(request):
 	response.set_cookie('access_token', tokens['access_token'])
 	response.set_cookie('refresh_token', tokens['refresh_token'])
 	return response
+
+
+def generate_random_username(username):
+	now = datetime.datetime.now()
+	time_str = now.strftime("%S%f")
+	random_str = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+	username = username.join('_')
+	joined_random_str = ''.join([time_str + random_str for time_str, random_str in zip(time_str, random_str)])
+	return username + joined_random_str

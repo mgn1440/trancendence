@@ -63,7 +63,18 @@ const getModalInput = (data) => {
   const radios = modalElement.querySelectorAll("input[type=radio]");
 
   if (radios[1].checked && inputs[1].value == "") {
-    alert("Please enter the password");
+    modalElement.querySelector(".modal-content").classList.add("active");
+    modalElement.querySelector(".modal-content").classList.add("shake");
+    modalElement.querySelector(".modal-content").addEventListener(
+      "animationend",
+      function () {
+        this.classList.remove("shake");
+        this.classList.remove("active");
+      },
+      { once: true }
+    );
+    modalElement.querySelector(".denied").classList.add("show");
+    inputs[1].focus();
     return false;
   }
   let mode = 0;
@@ -88,6 +99,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     const inputs = modalElement.querySelectorAll("input[type=text]");
     inputs.forEach((input) => (input.value = ""));
     const radios = modalElement.querySelectorAll("input[type=radio]");
+    modalElement.querySelector(".denied").classList.remove("show");
     radios[0].checked = true;
     radios[2].checked = true;
     radios[4].checked = true;
@@ -95,9 +107,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     inputs[0].focus();
   };
   useEffect(() => {
-    // addEventArray(eventType.DOMLOADED, () => {
     createRoomModalReset();
-    // });
     const modalElement = document.getElementById("CreateRoomModal");
     modalElement.addEventListener("hidden.bs.modal", createRoomModalReset);
     modalElement.querySelectorAll("input[type=text]").forEach((input) => {
@@ -253,6 +263,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
                 <RadioCheck text="Private" name="lock" id="private" />
               </div>
               <InputBox type="text" text="Password" defaultValue="" />
+              <div class="denied cl-red">password required</div>
               <div class="radio-check body-element robby-game-btn">
                 <RadioCheck text="1 vs 1" name="battle" id="1vs1" />
                 <RadioCheck text="Tournament" name="battle" id="tornament" />
@@ -264,16 +275,20 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
             </div>
           );
         }}
-        footer={() =>
-          BottomSection({
-            ButtonName: "Create",
-            ClickEvent: () => {
+        footer={() => (
+          <button
+            class="small-btn"
+            onclick={() => {
               const roomData = getModalInput(data);
-              if (!roomData) return;
+              if (!roomData) {
+                return;
+              }
               sendLobbySocket(roomData);
-            },
-          })
-        }
+            }}
+          >
+            create
+          </button>
+        )}
       />
       <Modal
         id="FindUserModal"

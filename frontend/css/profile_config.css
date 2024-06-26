@@ -45,3 +45,41 @@
   height: 1.5rem;
   padding-right: 0.625rem;
 }
+
+.profile-config-main .profile-config-input {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  align-items: start;
+}
+
+.profile-config-input .check-btn {
+  font-size: 0.875rem;
+}
+
+@keyframes fadeInDown {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -50%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translateZ(0);
+  }
+}
+
+.profile-config-list .active {
+  position: relative;
+  animation: fadeInDown 1s;
+}
+
+.dupl-msg {
+  display: none;
+  width: 100%;
+  align-items: end;
+  padding-top: 1.5rem;
+}
+
+.show {
+  display: block;
+}
