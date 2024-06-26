@@ -8,9 +8,8 @@ import { gotoPage, isEmpty } from "@/lib/libft";
 import { addEventArray, addEventHandler, eventType } from "@/lib/libft";
 
 export const UserFind = ({ userData }) => {
-  const imgSrc = `/img/minji_${
-    (userData.username[0].charCodeAt(0) % 5) + 1
-  }.jpg`;
+  console.log(userData);
+  let imgSrc = `/img/minji_${(userData.username[0].charCodeAt(0) % 5) + 1}.jpg`;
   if (userData.profile_image !== null) {
     imgSrc = userData.profile_image;
   }
