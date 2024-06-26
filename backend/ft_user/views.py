@@ -37,15 +37,16 @@ class OtpUpdateView(View):
 class UserNameDetailView(APIView):
 	def get(self, request, username):
 		try:
-			request_user = get_jwt_user(self.request)
+			request_user = get_jwt_user(request)
 			api_user = CustomUser.objects.get(username=username)
-			serializer = OtherUserSerializer(request_user, context={
+			print(request_user, api_user)
+			serializer = OtherUserSerializer(api_user, context={
 				'request_user': request_user,
 				'api_user': api_user,
 			})
 			return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 		except CustomUser.DoesNotExist:
-			return JsonResponse({'status_code': '200', 'message': 'User not found'}, status=404)
+			return JsonResponse({'status_code': '200', 'message': 'User not found'}, status=200)
 
 
 class UserMeView(RetrieveUpdateDestroyAPIView):
@@ -60,17 +61,15 @@ class UserMeView(RetrieveUpdateDestroyAPIView):
 		serializer = UserUpdateSerializer(user, data=request.data, partial=partial)
 		if 'username' in request.data and user.username != request.data['username']:
 			if CustomUser.objects.filter(username=request.data['username']).exists():
-				return JsonResponse({'status_code': '200', 'message': 'Username already exists'}, status=200)
+				return JsonResponse({'status_code': '200', 'message': 'Invalid username'}, status=200)
 		if serializer.is_valid(raise_exception=True):
-			username = serializer.validated_data.get('username')
+			username = user.username
 			patterns = r'^[a-zA-Z0-9_]+$'
 			patterns2 = r'^[0-9]+$'
-			print(username)
 			if not re.match(patterns, username) or username == '_' or re.match(patterns2, username):
 				return JsonResponse({'status_code': '200', 'message': 'Invalid username'}, status=200)
 			if len(username) > 12:
-				return JsonResponse({'status_code': '200', 'message': 'Username must be 12 characters or less'}, status=200)
-	
+				return JsonResponse({'status_code': '200', 'message': 'Invalid username'}, status=200)
 			serializer.save()
 			if 'profile_image' in request.FILES:
 				profile_image = request.FILES.get('profile_image')
@@ -134,21 +133,21 @@ class MultiGameRecordListView(APIView):
 class FollowView(ListCreateAPIView):
 	queryset = FollowList.objects.all()
 	serializer_class = FollowListSerializer
-	def get_queryset(self):
-		return FollowList.objects.filter(user=self.request.user)
-	def perform_create(self, serializer):
+	def get_queryset(self, user):
+		return FollowList.objects.filter(user=user)
+	def perform_create(self, serializer, user):
 		try:
-			serializer.save(user=self.request.user)
+			serializer.save(user=user)
 		except Exception as e:
 			raise ValidationError({'message': str(e)})
 	def list(self, request, *args, **kwargs):
-		serializer = self.get_serializer(self.get_queryset(), many=True)
+		serializer = self.get_serializer(self.get_queryset(get_jwt_user(request)), many=True)
 		return JsonResponse({'status_code': '200', 'following_list': serializer.data}, status=200)
 	def create(self, request, *args, **kwargs):
 		json_data = json.loads(request.body)
 		serializer = self.get_serializer(data=json_data)
 		serializer.is_valid(raise_exception=True)
-		self.perform_create(serializer)
+		self.perform_create(serializer, get_jwt_user(request))
 		return JsonResponse({'status_code': '201', 'message': 'Friend added'}, status=201)
 
 class FollowDetailView(DestroyAPIView):
@@ -158,7 +157,7 @@ class FollowDetailView(DestroyAPIView):
 		follow_username = self.kwargs['username']
 		follow_user = CustomUser.objects.get(username=follow_username)
 		try:
-			return FollowList.objects.get(user=self.request.user, following_user=follow_user)
+			return FollowList.objects.get(user=get_jwt_user(self.request), following_user=follow_user)
 		except FollowList.DoesNotExist:
 			raise NotFound("follow user does not exist")
 	def perform_destroy(self, instance):

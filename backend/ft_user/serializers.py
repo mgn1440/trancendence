@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from .models import CustomUser, FollowList, SingleGameRecord, MultiGameRecord, SingleGameDetail
 from rest_framework.validators import UniqueValidator
+import jwt
+from backend.settings import JWT_SECRET_KEY
+
 
 class CustomUserSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -37,7 +40,7 @@ class FollowListSerializer(serializers.ModelSerializer):
 		except CustomUser.DoesNotExist:
 			raise serializers.ValidationError('해당 사용자는 존재하지 않습니다.')
 
-		user = self.context['request'].user
+		user = get_jwt_user(self.context['request'])
 		if user == following_user:
 			raise serializers.ValidationError('자기 자신을 친구로 추가할 수 없습니다.')
 		if FollowList.objects.filter(user=user, following_user=following_user).exists():
@@ -45,7 +48,7 @@ class FollowListSerializer(serializers.ModelSerializer):
 		return value
 
 	def create(self, validated_data):
-		user = self.context['request'].user
+		user = get_jwt_user(self.context['request'])
 		following_user = CustomUser.objects.get(username=validated_data['following_username'])
 		return FollowList.objects.create(user=user, following_user=following_user)
 
@@ -144,3 +147,8 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = CustomUser
 		fields = ['username', 'otp_enabled','profile_image', 'multi_nickname']
+
+def get_jwt_user(request):
+	access_token = request.token
+	payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=['HS256'])
+	return CustomUser.objects.get(uid=payload['uid'])
