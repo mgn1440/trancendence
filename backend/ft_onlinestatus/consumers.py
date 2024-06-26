@@ -8,6 +8,7 @@ import asyncio
 import random
 from channels.generic.websocket import AsyncWebsocketConsumer
 from ft_user.models import CustomUser, FollowList
+import uuid
 
 
 class StatusConsumer(AsyncWebsocketConsumer):
@@ -30,11 +31,25 @@ class StatusConsumer(AsyncWebsocketConsumer):
 		# 	self.check = True
 		# 	await self.close()
 		# 	return
+		self.uuid = uuid.uuid4()
 
+      
 		await self.channel_layer.group_add(
 			'online_status',
 			self.channel_name,
 		)
+  
+		if username in self.user_list:
+			await self.channel_layer.group_send(
+				'online_status',
+				{
+					'type': 'old_out',
+					'username': username,
+					'uuid': self.uuid,
+				}
+			)
+			return
+       
 		await self.channel_layer.group_send(
 			'online_status',
 			{
@@ -46,7 +61,17 @@ class StatusConsumer(AsyncWebsocketConsumer):
 			}
 		)
 		self.user_list.append(username)
-
+  
+  
+	async def old_out(self, event):
+		if self.scope['user'].username == event['username'] and self.uuid != event['uuid']:
+			await self.send(text_data=json.dumps({
+				'type': 'duplicate_login',
+			}))
+			self.check = True
+			await self.close()
+			return
+     
 	async def disconnect(self, close_code):
 		if self.scope['user'].is_anonymous:
 			return
