@@ -13,11 +13,12 @@ class OtherUserSerializer(serializers.ModelSerializer):
 		model = CustomUser
 		fields = ['uid', 'username', 'win', 'lose', 'multi_nickname', 'is_following', 'profile_image']
 	def get_is_following(self, obj):
-		request = self.context.get('request', None)
-		if request is None:
+		request_user = self.context.get('request_user')
+		api_user = self.context.get('api_user')
+		print(request_user, api_user)
+		if request_user == api_user:
 			return False
-		request_user = request.user
-		return FollowList.objects.filter(user=request_user, following_user=obj).exists()
+		return FollowList.objects.filter(user=request_user, following_user=api_user).exists()
 
 class ProfileImageSerializer(serializers.ModelSerializer):
 	class Meta:

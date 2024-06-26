@@ -34,19 +34,19 @@ class OtpUpdateView(View):
 			except CustomUser.DoesNotExist:
 				return JsonResponse({'status_code': '401', 'message': 'User not found'}, status=404)
 
-class UserNameDetailView(RetrieveAPIView):
-	serializer_class = OtherUserSerializer
-	def get_object(self):
+class UserNameDetailView(APIView):
+	def get(self, request, username):
 		try:
-			return CustomUser.objects.get(username=self.kwargs['username'])
+			request_user = get_jwt_user(self.request)
+			api_user = CustomUser.objects.get(username=username)
+			serializer = OtherUserSerializer(request_user, context={
+				'request_user': request_user,
+				'api_user': api_user,
+			})
+			return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
 		except CustomUser.DoesNotExist:
-			return None
-	def get(self, request, *args, **kwargs):
-		user = self.get_object()
-		if user is None:
-			return JsonResponse({'status_code': '200', 'message': 'User not found'}, status=200)
-		serializer = self.get_serializer(user)
-		return JsonResponse({'status_code': '200', 'user_info': serializer.data}, status=200)
+			return JsonResponse({'status_code': '200', 'message': 'User not found'}, status=404)
+
 
 class UserMeView(RetrieveUpdateDestroyAPIView):
 	serializer_class = CustomUserSerializer
