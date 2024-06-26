@@ -323,7 +323,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
           );
         }}
       />
-      <div class="modal fade" id="QuickMatchModal" tabindex="-1">
+      <div class="modal" id="QuickMatchModal" tabindex="-1">
         <div class="modal-dialog">
           <div class="modal-content">
             <div id="lottie"></div>
