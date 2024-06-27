@@ -303,7 +303,10 @@ const LogMultiItem = ({
       <div class="log-multi-info">
         <div class="flex-row">
           <div class="flex-column">
-            <img class="my-profile" src={userProfile}></img>
+            <img
+              class="my-profile"
+              src={userProfile ?? getDefaultImg(name)}
+            ></img>
             <img
               src={
                 record.opponent1_profile ?? getDefaultImg(record.opponent1_name)
