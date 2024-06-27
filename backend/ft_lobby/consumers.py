@@ -11,6 +11,7 @@ class LobbyConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         if self.scope['user'].is_anonymous:
+            await self.accept()
             await self.close()
             return
         await self.channel_layer.group_add("lobby", self.channel_name)

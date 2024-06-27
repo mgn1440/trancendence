@@ -10,6 +10,7 @@ class RoomConsumer(AsyncWebsocketConsumer):
     async def connect(self):
 
         if self.scope['user'].is_anonymous:
+            await self.accept()
             await self.close()
             return
         self.room_id_str = self.scope['url_route']['kwargs']['room_id']
