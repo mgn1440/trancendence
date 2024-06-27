@@ -106,7 +106,7 @@ const LobbyButton = ({ data, sendLobbySocket }) => {
     inputs[0].focus();
   };
   useEffect(() => {
-    var animation = lottie.loadAnimation({
+    addEventArray(eventType.LOTTIE, {
       container: document.getElementById("lottie"),
       renderer: "svg",
       loop: true,

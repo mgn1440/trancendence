@@ -1,4 +1,5 @@
 import { history } from "./router";
+import lottie from "lottie-web";
 
 export const isEmpty = (obj) => {
   return Object.keys(obj).length === 0;
@@ -18,6 +19,8 @@ const eventArray = {
   DOMLOADED: [],
   RESIZE: [],
   BEFOREUNLOAD: [],
+  LOTTIE: [],
+  LOTTIEANI: [],
 };
 
 const resetEventArray = () => {
@@ -34,6 +37,7 @@ export const eventType = {
   DOMLOADED: "DOMLOADED",
   RESIZE: "RESIZE",
   BEFOREUNLOAD: "BEFOREUNLOAD",
+  LOTTIE: "LOTTIE",
 };
 
 export const addEventArray = (eventType, event) => {
@@ -62,6 +66,9 @@ export const addEventHandler = () => {
   eventArray["BEFOREUNLOAD"].forEach((event) => {
     window.addEventListener("beforeunload", event);
   });
+  eventArray["LOTTIE"].forEach((event) => {
+    eventArray["LOTTIEANI"].push(lottie.loadAnimation(event));
+  });
 };
 
 const removeEventHandler = () => {
@@ -85,6 +92,9 @@ const removeEventHandler = () => {
   });
   eventArray["BEFOREUNLOAD"].forEach((event) => {
     window.removeEventListener("beforeunload", event);
+  });
+  eventArray["LOTTIEANI"].forEach((event) => {
+    event.destroy();
   });
   resetEventArray();
 };
