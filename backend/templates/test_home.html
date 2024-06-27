@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Test Page</title>
+</head>
+<body>
+    <h1>OTP Test Page</h1>
+    <form id="otpForm">
+        <label for="otp_status">OTP Status:</label>
+        <input type="checkbox" id="otp_status" name="otp_status">
+        <button type="button" onclick="sendOtpStatus()">Submit</button>
+    </form>
+
+    <button id="joinGameButton1">게임 방 1 입장</button>
+    <button id="joinGameButton2">게임 방 2 입장</button>
+	<button id="lobby">로비로 이동</button>
+    <button id="createRoomButton">방 만들기</button>
+
+    <!-- 방 만들기 옵션 폼 -->
+    <div id="createRoomForm" style="display: none;">
+        <h2>방 만들기</h2>
+        <label for="roomName">방 이름:</label>
+        <input type="text" id="roomName" name="roomName"><br><br>
+
+        <label for="isSecret">비밀 방 여부:</label>
+        <input type="checkbox" id="isSecret" name="isSecret"><br><br>
+
+        <label for="mode">게임 모드:</label>
+        <select id="mode" name="mode">
+            <option value="1v1">1 vs 1</option>
+            <option value="tournament">Tournament</option>
+        </select><br><br>
+
+        <label for="password">비밀번호:</label>
+        <input type="password" id="password" name="password" placeholder="비밀번호 (선택사항)"><br><br>
+
+        <button type="button" onclick="createRoom()">방 만들기</button>
+    </div>
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function sendOtpStatus() {
+            const csrftoken = getCookie('csrftoken');
+            const otpStatus = document.getElementById('otp_status').checked;
+
+            fetch('/api/user/otp/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({ 'otp_status': otpStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                alert('Response: ' + JSON.stringify(data));
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+
+        document.getElementById('joinGameButton1').addEventListener('click', function() {
+            window.location.href = '/api/game/room/1';
+        });
+
+        document.getElementById('joinGameButton2').addEventListener('click', function() {
+            window.location.href = '/api/game/room/2';
+        });
+
+		document.getElementById('lobby').addEventListener('click', function() {
+            window.location.href = '/api/lobby/';
+        });
+
+        document.getElementById('createRoomButton').addEventListener('click', function() {
+            const form = document.getElementById('createRoomForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        });
+
+        function createRoom() {
+            const csrftoken = getCookie('csrftoken');
+            const roomName = document.getElementById('roomName').value;
+            const isSecret = document.getElementById('isSecret').checked;
+            const mode = document.getElementById('mode').value;
+            const password = document.getElementById('password').value;
+
+            fetch('/api/lounge/rooms/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({ 'room_name': roomName, 'is_secret': isSecret, 'mode': mode, 'password': password || "" })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                alert('방이 성공적으로 생성되었습니다: ' + JSON.stringify(data));
+				alert('방 번호 : ' + data.room_number)
+                window.location.href = '/api/game/room/' + data.room_number;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('방 생성에 실패했습니다.');
+            });
+        }
+    </script>
+</body>
+</html>

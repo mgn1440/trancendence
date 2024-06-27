@@ -1,0 +1,106 @@
+:root {
+  --white: #ffffff;
+  --gray10: #f8f8f8;
+  --gray20: #d8d8d8;
+  --gray30: #b8b8b8;
+  --gray40: #989898;
+  --gray50: #787878;
+  --gray60: #585858;
+  --gray70: #383838;
+  --black: #181818;
+  --bs-scrollbar-width: 0;
+}
+
+@font-face {
+  font-family: "MajorMonoDisplay";
+  src: url(font/MajorMonoDisplay.ttf);
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Quantico";
+  src: url(font/Quantico.ttf);
+  font-weight: normal;
+}
+
+::-webkit-scrollbar {
+  width: var(--bs-scrollbar-width);
+}
+body {
+  /* overflow: hidden; */
+  font-family: "Quantico";
+  background-color: var(--black);
+  color: var(--white);
+}
+
+h1 {
+  font-family: "MajorMonoDisplay";
+  color: var(--white);
+  font-size: 10vh;
+}
+
+#profile {
+  height: 20vh;
+}
+
+a {
+  text-decoration: none;
+}
+
+.window {
+  height: 100vh;
+  width: 100vw;
+}
+
+.mdSizeBtn {
+  background-color: var(--gray70);
+  color: var(--white);
+  border-radius: 20px;
+  padding: 10px 30px;
+}
+
+.mdSizeBtn:hover {
+  background-color: var(--white);
+  color: var(--black);
+}
+
+.avatar {
+  position: relative;
+}
+
+.avatar-img {
+  width: 45px;
+  height: 45px;
+}
+
+.otp input {
+  width: 40px;
+  height: 40px;
+}
+
+.isloggedin {
+  position: absolute;
+  color: greenyellow;
+  left: 30px;
+  top: 30px;
+}
+
+div.modal-content {
+  background-color: var(--black);
+  color: var(--gray30);
+}
+
+#matchList {
+  height: 80vh;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: var(--gray10);
+}
+
+button {
+  background-color: var(--gray70);
+  color: var(--white);
+  border-radius: 10px;
+  padding: 5px 10px;
+}
