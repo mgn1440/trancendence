@@ -17,6 +17,11 @@ class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         
         if self.scope['user'].is_anonymous:
+            await self.accept()
+            await self.send(text_data=json.dumps({
+                'type': 'error',
+                'message': 'anonymous user'
+            }))
             await self.close()
             return
         
@@ -91,6 +96,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         if self.scope['user'].is_anonymous:
+            
             return
         
         if self.room_id not in LobbyConsumer.rooms:
@@ -361,6 +367,11 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
     game_player_list = {}
     async def connect(self):
         if self.scope['user'].is_anonymous:
+            await self.accept()
+            await self.send(text_data=json.dumps({
+                'type': 'error',
+                'message': 'anonymous user'
+            }))
             await self.close()
             return
         
@@ -910,6 +921,11 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 class LocalGameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         if self.scope['user'].is_anonymous:
+            await self.accept()
+            await self.send(text_data=json.dumps({
+                'type': 'error',
+                'message': 'anonymous user'
+            }))
             await self.close()
             return
         self.host_username = self.scope['url_route']['kwargs']['host_username']
@@ -1079,6 +1095,11 @@ class LocalGameConsumer(AsyncWebsocketConsumer):
 class CustomGameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         if self.scope['user'].is_anonymous:
+            await self.accept()
+            await self.send(text_data=json.dumps({
+                'type': 'error',
+                'message': 'anonymous user'
+            }))
             await self.close()
             return
         self.room_id_str = self.scope['url_route']['kwargs']['room_id']
@@ -1441,6 +1462,11 @@ class CustomTournamentGameConsumer(AsyncWebsocketConsumer):
     game_player_list = {}
     async def connect(self):
         if self.scope['user'].is_anonymous:
+            await self.accept()
+            await self.send(text_data=json.dumps({
+                'type': 'error',
+                'message': 'anonymous user'
+            }))
             await self.close()
             return
         self.room_id_str = self.scope['url_route']['kwargs']['room_id']

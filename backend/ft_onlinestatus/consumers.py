@@ -19,21 +19,13 @@ class StatusConsumer(AsyncWebsocketConsumer):
 	async def connect(self):
 		user = self.scope['user']
 		if user.is_anonymous:
+			await self.accept()
 			await self.close()
 			return
 		username = self.scope['user'].username
 		await self.accept()
 		self.check = False
-		# if username in self.user_list:
-		# 	await self.send(text_data=json.dumps({
-		# 		'type': 'duplicate_login',
-		# 	}))
-		# 	self.check = True
-		# 	await self.close()
-		# 	return
 		self.uuid = uuid.uuid4()
-
-      
 		await self.channel_layer.group_add(
 			'online_status',
 			self.channel_name,
