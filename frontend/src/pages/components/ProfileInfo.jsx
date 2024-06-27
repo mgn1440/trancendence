@@ -278,6 +278,7 @@ const LogMultiItem = ({
   setLogStat,
   gameRecords,
   setGameRecords,
+  userProfile,
 }) => {
   const handleGameDetail = async (idArr) => {
     routeInfo = [];
@@ -302,10 +303,7 @@ const LogMultiItem = ({
       <div class="log-multi-info">
         <div class="flex-row">
           <div class="flex-column">
-            <img
-              class="my-profile"
-              src={clientUserStore.getState().client.profile_image}
-            ></img>
+            <img class="my-profile" src={userProfile}></img>
             <img
               src={
                 record.opponent1_profile ?? getDefaultImg(record.opponent1_name)
@@ -594,6 +592,7 @@ const LobbyProfile = ({ profile }) => {
     }
     setLogStat(stat);
   };
+  console.log(profile);
   return (
     <div class="profile-main">
       <div class="profile-info">
@@ -657,6 +656,7 @@ const LobbyProfile = ({ profile }) => {
                     setLogStat={setLogStat}
                     gameRecords={gameRecords}
                     setGameRecords={setGameRecords}
+                    userProfile={profile.profile_image}
                   />
                 ))}
             </div>
