@@ -85,19 +85,18 @@ const GameRoom = ({ gameData, isStart, isCustom, sendRoomSocket }) => {
   useEffect(() => {
     if (gameData.is_custom) {
       drawTooltip(0.7);
+      addEventArray(eventType.KEYDOWN, (e) => {
+        if (e.key === "t") {
+          document.getElementById("tool-tip").style.display = "block";
+        }
+      });
+      addEventArray(eventType.KEYUP, (e) => {
+        if (e.key === "t") {
+          document.getElementById("tool-tip").style.display = "none";
+        }
+      });
+      addEventHandler();
     }
-    addEventArray(eventType.KEYDOWN, (e) => {
-      if (e.key === "t") {
-        document.getElementById("tool-tip").style.display = "block";
-      }
-    });
-    addEventArray(eventType.KEYUP, (e) => {
-      if (e.key === "t") {
-        document.getElementById("tool-tip").style.display = "none";
-      }
-    });
-
-    addEventHandler();
   }, [gameData.is_custom]);
   const handleStartBtn = () => {
     let find_items = [];
