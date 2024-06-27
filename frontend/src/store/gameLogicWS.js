@@ -38,7 +38,7 @@ export const connectGameLogicWebSocket = (dispatch, path) => {
     ws_gamelogic.getState().socket.readyState === WebSocket.CLOSED ||
     ws_gamelogic.getState().socket.readyState === WebSocket.CLOSING
   ) {
-    const socket = new WebSocket("wss://" + "localhost" + path);
+    const socket = new WebSocket("wss://" + "10.31.5.2" + path);
     dispatch(webSocketConnect(socket));
     socket.onerror = (e) => {
       gotoPage("/");

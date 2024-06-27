@@ -5,8 +5,6 @@ services:
       context: ${FE_PATH}
       dockerfile: Dockerfile.frontend
     container_name: frontend
-    env_file:
-      - ${FE_ENV_PATH}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5173"]
       interval: 10s
@@ -27,23 +25,7 @@ services:
       dockerfile: Dockerfile.backend
     container_name: backend
     env_file:
-      - ${BE_ENV_PATH}
-    # environment:
-    #   POSTGRES_DB: postgres
-    #   POSTGRES_USER: postgres
-    #   POSTGRES_PASSWORD: postgres
-    #   DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-    #   DJANGO_DEBUG: ${DJANGO_DEBUG}
-    #   DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
-    #   DJANGO_DB_ENGINE: ${DJANGO_DB_ENGINE}
-    #   DJANGO_DB_NAME: ${DJANGO_DB_NAME}
-    #   DJANGO_DB_USER: ${DJANGO_DB_USER}
-    #   DJANGO_DB_PASSWORD: ${DJANGO_DB_PASSWORD}
-    #   DJANGO_DB_HOST: ${DJANGO_DB_HOST}
-    #   DJANGO_DB_PORT: ${DJANGO_DB_PORT}
-    #   DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME}
-    #   DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL}
-    #   DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD}
+      - .env
     depends_on:
       postgresql:
         condition: service_healthy
@@ -64,15 +46,12 @@ services:
   postgresql:
     container_name: postgresql
     env_file:
-      - ${BE_ENV_PATH}
+      - .env
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       DJANGO_DB_USER: postgres
-      # POSTGRES_DB: ${DJANGO_DB_NAME}
-      # POSTGRES_USER: ${DJANGO_DB_USER}
-      # POSTGRES_PASSWORD: ${DJANGO_DB_PASSWORD}
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s
@@ -86,6 +65,8 @@ services:
     tty: true
     networks:
       - transcendence
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   nginx:
     container_name: nginx_gateway
@@ -178,7 +159,7 @@ services:
 
   prometheus:
     env_file:
-      - ${BE_ENV_PATH}
+      - .env
     container_name: prometheus
     build:
       context: ${PROMETHEUS_PATH}
@@ -228,7 +209,7 @@ services:
   alertmanager:
     container_name: alertmanager
     env_file:
-      - ${BE_ENV_PATH}
+      - .env
     build:
       context: ${PROMETHEUS_PATH}
       dockerfile: Dockerfile.alertmanager
@@ -253,7 +234,7 @@ services:
   grafana:
     container_name: grafana
     env_file:
-      - ${BE_ENV_PATH}
+      - .env
     build:
       context: ${GRAFANA_PATH}
       dockerfile: Dockerfile.grafana
@@ -263,21 +244,7 @@ services:
       - "3000:3000"
     networks:
       - transcendence
-  # redis:
-  #   image: redis:latest
-  #   networks:
-  #     - transcendence
-  #   restart: always
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - "${REDIS_PATH}/data/:/data/"
-  #     - "${REDIS_PATH}/config/:/user/local/etc/redis/"
-  #   command: redis-server /user/local/etc/redis/redis.conf
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "ping"]
-  #     timeout: 20s
-  #     retries: 5
+
 networks:
   transcendence:
     name: transcendence
@@ -286,4 +253,6 @@ volumes:
   esdata:
     driver: local
   kibana_data:
+    driver: local
+  postgres_data:
     driver: local

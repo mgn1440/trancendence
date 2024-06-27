@@ -40,14 +40,14 @@ class StatusConsumerTest(TestCase):
 			reverse('follow'),  # ensure this name corresponds to your URLconf
 			{'following_username': 'user2'},
 			format='json',
-			HTTP_ORIGIN='http://localhost:5173'
+			HTTP_ORIGIN='http://10.31.5.2:5173'
 		)
 		self.assertEqual(response.status_code, 201)
 		response = self.client.post(
 			reverse('follow'),  # ensure this name corresponds to your URLconf
 			{'following_username': 'user3'},
 			format='json',
-			HTTP_ORIGIN='http://localhost:5173'
+			HTTP_ORIGIN='http://10.31.5.2:5173'
 		)
 		self.assertEqual(response.status_code, 201)
 
@@ -58,7 +58,7 @@ class StatusConsumerTest(TestCase):
 		response2 = await communicator1.receive_json_from()
 		assert response1['type'] == 'status'
 		assert not response1['online']
-		
+
 		assert response1['offline'][0]['username'] == 'user2'
 		assert response1['offline'][1]['username'] == 'user3'
 
@@ -87,7 +87,7 @@ class StatusConsumerTest(TestCase):
 		assert response5['online'][0]['username'] == 'user3'
 
 		# response1 = await communicator1.receive_json_from()
-		
+
 		# communicator3 = await self.connect_communicator(self.user3)
 		# response3 = await communicator3.receive_json_from()
 
@@ -129,10 +129,10 @@ class StatusConsumerTest(TestCase):
 # 		user4 = CustomUser.objects.create_user(uid=4, username='user4', email='dafsd@ddb.com', multi_nickname='user4')
 # 		self.client.force_authenticate(user=user3)
 # 		response = self.client.post(
-# 			'http://localhost:8000/api/user/follow/',  # ensure this name corresponds to your URLconf
+# 			'http://10.31.5.2:8000/api/user/follow/',  # ensure this name corresponds to your URLconf
 # 			{'following_username': 'user4'},
 # 			format='json',
-# 			HTTP_ORIGIN='http://localhost:5173'
+# 			HTTP_ORIGIN='http://10.31.5.2:5173'
 # 		)
 # 		self.assertEqual(response.status_code, 201)
 

@@ -38,7 +38,7 @@ export const startWebSocketConnection = (dispatch, setUserList) => {
     ws_userlist.getState().socket.readyState === WebSocket.CLOSED ||
     ws_userlist.getState().socket.readyState === WebSocket.CLOSING
   ) {
-    const socket = new WebSocket("wss://" + "localhost" + "/ws/online/");
+    const socket = new WebSocket("wss://" + "10.31.5.2" + "/ws/online/");
 
     dispatch(webSocketConnect(socket, [], []));
   }
